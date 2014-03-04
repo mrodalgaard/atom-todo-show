@@ -1,0 +1,23 @@
+{
+  "name": "show-todo",
+  "main": "./lib/show-todo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A short description of your package",
+  "activationEvents": [
+    "show-todo:toggle"
+  ],
+  "repository": "https://github.com/atom/show-todo",
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+    "fs-plus": "2.x",
+    "pathwatcher": "0.16.0",
+    "roaster": ">=1.0.3 <2.0",
+    "dust": "~0.3.0",
+    "hogan.js": "~2.0.0",
+    "dust.js": "~0.1.0"
+  }
+}

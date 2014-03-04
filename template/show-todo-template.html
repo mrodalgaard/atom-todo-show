@@ -1,0 +1,19 @@
+<html>
+  <body>
+    <h1>Todo's</h1>
+
+    <div class="todos">
+      <table>
+      {#todo_items}
+        {#matches}
+          <tr>
+            {#filterPath}<td width="10px" class="file_url"><a href="todolist-preview://something" class="{filePath}">{filePath}</a></td>{/filterPath}
+            <td width="290px" class="text">{#filter}{lineText.range}{lineText}{/filter}</td>
+          </tr>
+        {/matches}
+      {/todo_items}
+    </table>
+    </div>
+
+  </body>
+</html>

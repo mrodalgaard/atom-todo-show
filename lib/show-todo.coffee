@@ -11,7 +11,7 @@ module.exports =
   showTodoView: null
 
   activate: (state) ->
-    atom.workspaceView.command 'show-todo:toggle', =>
+    atom.workspaceView.command 'todo-show:find-in-project', => #this one is tied to the one in package.json
       @show()
     # @show()
     # @showTodoView = new ShowTodoView(state.showTodoViewState)
@@ -26,9 +26,9 @@ module.exports =
       new ShowTodoView(pathname)
 
 
-  findTodos: ->
-    atom.project.scan /todo/, (e) ->
-      console.log(e)
+  # findTodos: ->
+  #   atom.project.scan /todo/, (e) ->
+  #     console.log(e)
 
   deactivate: ->
     @showTodoView.destroy()

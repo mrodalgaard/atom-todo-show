@@ -1,18 +1,47 @@
 <html>
   <body>
-    <h1>Todo's</h1>
+
+
+    <div class="fixme">
+      <h2>Fixme</h1>
+      <table>
+        {#fixme_items}
+          {#matches}
+            <tr>
+              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
+              <td width="290px" class="text">{matchText}</td>
+            </tr>
+          {/matches}
+        {/fixme_items}
+      </table>
+    </div>
 
     <div class="todos">
+      <h2>Todos</h1>
       <table>
-      {#todo_items}
-        {#matches}
-          <tr>
-            {#filterPath}<td width="10px" class="file_url"><a href="todolist-preview://something" class="{filePath}">{filePath}</a></td>{/filterPath}
-            <td width="290px" class="text">{#filter}{lineText.range}{lineText}{/filter}</td>
-          </tr>
-        {/matches}
-      {/todo_items}
-    </table>
+        {#todo_items}
+          {#matches}
+            <tr>
+              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
+              <td width="290px" class="text">{matchText}</td>
+            </tr>
+          {/matches}
+        {/todo_items}
+      </table>
+    </div>
+
+    <div class="changed">
+      <h2>Changed</h1>
+      <table>
+        {#changed_items}
+          {#matches}
+            <tr>
+              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
+              <td width="290px" class="text">{matchText}</td>
+            </tr>
+          {/matches}
+        {/changed_items}
+      </table>
     </div>
 
   </body>

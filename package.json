@@ -1,11 +1,11 @@
 {
-  "name": "show-todo",
+  "name": "todo-show",
   "main": "./lib/show-todo",
   "version": "0.0.0",
   "private": true,
-  "description": "A short description of your package",
+  "description": "Finds all the TODOs, FIXMEs, CHANGEDs in your project.",
   "activationEvents": [
-    "show-todo:toggle"
+    "todo-show:find-in-project"
   ],
   "repository": "https://github.com/atom/show-todo",
   "license": "MIT",

@@ -2,6 +2,7 @@ path = require 'path'
 {$, $$$, Point, EditorView, ScrollView} = require 'atom'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
+_ = require 'underscore'
 
 todoArray = []
 fixmeArray = []

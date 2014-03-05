@@ -1,6 +1,8 @@
 # TODO-show package
 
-Fetches TODO, FIXME, CHANGED comments from the project.
+Fetches TODO, FIXME, CHANGED comments from the project. Currenlty requires one open file (bug).
+
+Ignores anything in your .gitignore.
 
 ![](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 

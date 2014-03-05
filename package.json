@@ -15,9 +15,6 @@
   "dependencies": {
     "fs-plus": "2.x",
     "pathwatcher": "0.16.0",
-    "roaster": ">=1.0.3 <2.0",
-    "dust": "~0.3.0",
-    "hogan.js": "~2.0.0",
     "dust.js": "~0.1.0"
   }
 }

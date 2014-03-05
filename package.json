@@ -7,7 +7,7 @@
   "activationEvents": [
     "todo-show:find-in-project"
   ],
-  "repository": "https://github.com/atom/show-todo",
+  "repository": "https://github.com/jamischarles/atom-todo-show",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"

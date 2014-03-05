@@ -4,6 +4,7 @@ Fetches TODO, FIXME, CHANGED comments from the project. Currenlty requires one o
 
 Ignores anything in your .gitignore.
 
+
 ![](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 
 ## Coming features (PR's welcome)

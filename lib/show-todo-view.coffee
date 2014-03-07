@@ -38,7 +38,7 @@ class ShowTodoView extends ScrollView
     @detach()
 
   getTitle: ->
-    "#{path.basename(@getPath())} Preview"
+    "Todo-show Results" #just put this title in there
 
   getUri: ->
     "todolist-preview://#{@getPath()}"
@@ -69,7 +69,7 @@ class ShowTodoView extends ScrollView
     todoArray = []
     #capture the rest of the line after the todo
     atom.project.scan /TODO:(.+$)/, (e) -> #glob pattern. Ignore node_modules
-      console.log('RESULTS', e)
+      # console.log('RESULTS', e)
       # only keep the part we care about
 
 
@@ -206,6 +206,9 @@ class ShowTodoView extends ScrollView
   # we call this from the results view. This will open the result file in the left pane.
   openPath: (filePath, cursorCoords) ->
     return unless filePath
+
+    #if there's no workspace, create a workspace... Doesn't appear to be necessary?
+    # console.log('workspace', atom.workspace)
 
     atom.workspaceView.open(filePath, split: 'left', {@allowActiveEditorChange}).done =>
       @moveCursorTo(cursorCoords)

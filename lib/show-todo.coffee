@@ -21,7 +21,7 @@ module.exports =
       console.log('REGISTER OPENER CALLED222', uriToOpen)
       {protocol, pathname} = url.parse(uriToOpen)
       pathname = querystring.unescape(pathname) if pathname
-      return unless protocol is 'todolist-preview:' and fs.isFileSync(pathname)
+      return unless protocol is 'todolist-preview:'
       console.log('REGISTER OPENER CALLED444', uriToOpen)
       new ShowTodoView(pathname)
 
@@ -37,9 +37,8 @@ module.exports =
     showTodoViewState: @showTodoView.serialize()
 
   show: (todoContent )->
-    console.log 'show called'
-    editor = atom.workspace.getActiveEditor()
-    return unless editor?
+    # editor = atom.workspace.getActiveEditor()
+    # return unless editor?
 
     # unless editor.getGrammar().scopeName is "source.gfm"
     #   console.warn("Cannot render markdown for '#{editor.getUri() ? 'untitled'}'")
@@ -50,7 +49,7 @@ module.exports =
     #   return
 
     previousActivePane = atom.workspace.getActivePane()
-    uri = "todolist-preview://#{editor.getPath()}"
+    uri = "todolist-preview://TODOs"
     atom.workspace.open(uri, split: 'right', searchAllPanes: true).done (showTodoView) ->
       # TODO: we could require it in, and use a similar pattern as the other one...
       console.log(arguments)

@@ -212,13 +212,12 @@ class ShowTodoView extends ScrollView
 
   # taken directly from atom/fuzzy-finder
   moveCursorTo: (cursorCoords) ->
-    lineNumber = cursorCoords[0] #take the regex start char [0], [1]
-    charNumber = cursorCoords[1]
+    lineNumber = parseInt(cursorCoords[0]) #take the regex start char [0], [1]
+    charNumber = parseInt(cursorCoords[1])
     # return unless lineNumber >= 0
 
     if editorView = atom.workspaceView.getActiveView()
       position = [lineNumber, charNumber]
-      console.log('position', position)
       editorView.scrollToBufferPosition(position, center: true)
       editorView.editor.setCursorBufferPosition(position)
       # editorView.editor.moveCursorToFirstCharacterOfLine()

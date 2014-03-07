@@ -14,3 +14,4 @@ Ignores anything in your .gitignore.
 - ignore TODOs outside of comment blocks
 - have nice message when no results are found
 - refactor and clean up code
+- add test cases

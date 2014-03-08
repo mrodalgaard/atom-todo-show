@@ -4,9 +4,13 @@ path = require 'path'
 fs = require 'fs-plus'
 _ = require 'underscore'
 
+#@FIXME: make these an object? Seems kind of dirty like this
 todoArray = []
+todo_total_length = 0 #includes length of todos in each file
 fixmeArray = []
+fixme_total_length = 0
 changedArray = []
+changed_total_length = 0
 
 
 module.exports =
@@ -60,13 +64,14 @@ class ShowTodoView extends ScrollView
 
   showLoading: ->
     @html $$$ ->
-      @div class: 'markdown-spinner', 'Loading Markdown...'
+      @div class: 'markdown-spinner', 'Loading Todos...'
 
   #FIXME: These need to be broken out nicer and more reusable
   fetchTodos: ->
     # console.log arguments
     # wipe out the array, to start fresh
     todoArray = []
+    todo_total_length = 0
     #capture the rest of the line after the todo
     atom.project.scan /TODO:(.+$)/, (e) -> #glob pattern. Ignore node_modules
       # console.log('RESULTS', e)
@@ -76,6 +81,9 @@ class ShowTodoView extends ScrollView
       #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
       regExMatch.matchText = regExMatch.matchText.match(/TODO:\s?(.+$)/)[1] for regExMatch in e.matches
 
+      #get a total symbol count by adding up the amount of matches on each file
+      todo_total_length += e.matches.length
+
       # store in array
       todoArray.push(e)
 
@@ -84,11 +92,15 @@ class ShowTodoView extends ScrollView
     # console.log arguments
     # wipe out the array, to start fresh
     fixmeArray = []
+    fixme_total_length = 0
     #capture the rest of the line after the todo
     atom.project.scan /FIXME:(.+$)/, (e) -> #glob pattern. Ignore node_modules
 
       #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
       regExMatch.matchText = regExMatch.matchText.match(/FIXME:\s?(.+$)/)[1] for regExMatch in e.matches
+
+      #get a total symbol count by adding up the amount of matches on each file
+      fixme_total_length += e.matches.length
 
       # store in array
       fixmeArray.push(e)
@@ -98,11 +110,15 @@ class ShowTodoView extends ScrollView
     # console.log arguments
     # wipe out the array, to start fresh
     changedArray = []
+    changed_total_length = 0
     #capture the rest of the line after the todo
     atom.project.scan /CHANGED:(.+$)/, (e) -> #glob pattern. Ignore node_modules
 
       #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
       regExMatch.matchText = regExMatch.matchText.match(/CHANGED:\s?(.+$)/)[1] for regExMatch in e.matches
+
+      #get a total symbol count by adding up the amount of matches on each file
+      changed_total_length += e.matches.length
 
       # store in array
       changedArray.push(e)
@@ -115,8 +131,6 @@ class ShowTodoView extends ScrollView
       @fetchFixme().then (contents) =>
 
         @fetchChanged().then (contents) =>
-
-
 
           # wasn't able to load 'dust' properly for some reason
           dust = require('dust.js') #templating engine
@@ -131,8 +145,8 @@ class ShowTodoView extends ScrollView
           if ( fs.isFileSync(templ_path) )
             template = fs.readFileSync(templ_path, {encoding: "utf8"})
 
-          console.log(todoArray)
-          console.log 'template', template
+          # console.log(todoArray)
+          # console.log 'template', template
 
           #FIXME: Add better error handling if the template fails to load
           compiled = dust.compile(template, "todo-template")
@@ -152,7 +166,10 @@ class ShowTodoView extends ScrollView
             ,
             "todo_items": todoArray,
             "fixme_items": fixmeArray,
-            "changed_items": changedArray
+            "changed_items": changedArray,
+            "todo_items_length": todo_total_length,
+            "fixme_items_length": fixme_total_length,
+            "changed_items_length": changed_total_length
           }
 
           # render the template

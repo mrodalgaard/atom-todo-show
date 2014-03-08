@@ -1,9 +1,9 @@
 <html>
   <body>
 
-
+    <!-- @TODO: Consider installing dustJS helpers...     -->
     <div class="fixme">
-      <h2>Fixme</h1>
+      <h2>Fixmes ({fixme_items_length})</h1>
       <table>
         {#fixme_items}
           {#matches}
@@ -17,7 +17,7 @@
     </div>
 
     <div class="todos">
-      <h2>Todos</h1>
+      <h2>Todos ({todo_items_length})</h1>
       <table>
         {#todo_items}
           {#matches}
@@ -31,7 +31,7 @@
     </div>
 
     <div class="changed">
-      <h2>Changed</h1>
+      <h2>Changed ({changed_items_length})</h1>
       <table>
         {#changed_items}
           {#matches}

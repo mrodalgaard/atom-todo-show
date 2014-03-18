@@ -2,6 +2,8 @@
 
 Fetches TODO, FIXME, CHANGED comments from the project.
 
+Regex can be customized via settings.
+
 Ignores anything in your .gitignore.
 
 If you have npm errors installing, retry. Usually works then.

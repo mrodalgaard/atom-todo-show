@@ -1,8 +1,6 @@
 # TODO-show package
 
-Fetches TODO, FIXME, CHANGED comments from the project.
-
-Regex can be customized via settings.
+Fetches TODO, FIXME, CHANGED comments from the project. Or anything else you want (settings).
 
 Ignores anything in your .gitignore.
 

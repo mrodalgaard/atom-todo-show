@@ -8,16 +8,6 @@ fs = require 'fs-plus'
 _ = require 'underscore'
 
 
-
-#@FIXME: make these an object? Seems kind of dirty like this
-todoArray = []
-todo_total_length = 0 #includes length of todos in each file
-fixmeArray = []
-fixme_total_length = 0
-changedArray = []
-changed_total_length = 0
-
-
 module.exports =
 class ShowTodoView extends ScrollView
   atom.deserializers.add(this)
@@ -67,6 +57,7 @@ class ShowTodoView extends ScrollView
 
     html
 
+  # currently broken. FIXME: Remove or replace
   resolveJSPaths: (html) =>
     console.log('INISDE RESOLVE')
     html = $(html)
@@ -75,9 +66,9 @@ class ShowTodoView extends ScrollView
     # scrList = html.find("#mainScript")
     scrList = [html[5]]
 
-    console.log('html', html)
-    console.log('hi')
-    console.log('srcList', scrList)
+    # console.log('html', html)
+    # console.log('hi')
+    # console.log('srcList', scrList)
 
     for scrElement in scrList
       js = $(scrElement)
@@ -119,80 +110,30 @@ class ShowTodoView extends ScrollView
     # convert regexStr to actual regex obj
     # convert it from /findMe/i  to (regex, flags)
     # extract the regex pattern
-    pattern = regexObject.regex.match(/\/(.+)\//)[1] #extract anything between the slashes
+    pattern = regexObject.regex.match(/\/(.+)\//)?[1] #extract anything between the slashes
     # extract the flags (after the last slash)
-    flags = regexObject.regex.match(/\/(\w+$)/)[1] #extract any words after the last slash
+    flags = regexObject.regex.match(/\/(\w+$)/)?[1] #extract any words after the last slash. Flags are optional
+
+    #abort if there's no valid pattern
+    return false unless pattern
 
     regexObj = new RegExp(pattern, flags)
 
-
-    console.log('regexObj', regexObj)
+    console.log('pattern', pattern)
+    # console.log('regexObj', regexObj)
     return atom.project.scan regexObj, (e) ->
-      console.log 'regexResults', e
+
       #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
-      # console.log 'e', e
+      # regExMatch.matchText = regExMatch.matchText.match(regexObj)[1] for regExMatch in e.matches
+      for regExMatch in e.matches
+
+        # strip out the regex token from the found phrase (todo, fixme, etc)
+        # FIXME: I have no idea why this requires a stupid while loop. Figure it out and/or fix it.
+        while (match = regexObj.exec(regExMatch.matchText))
+          regExMatch.matchText = match[1]
+
       regexObject.results.push(e) # add it to the array of results for this regex
 
-
-  #FIXME: These need to be broken out nicer and more reusable
-  fetchTodos: ->
-
-
-
-    # console.log arguments
-    # wipe out the array, to start fresh
-    todoArray = []
-    todo_total_length = 0
-    #capture the rest of the line after the todo
-    atom.project.scan /TODO:(.+$)/, (e) -> #glob pattern. Ignore node_modules
-      # console.log('RESULTS', e)
-      # only keep the part we care about
-
-
-      #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
-      regExMatch.matchText = regExMatch.matchText.match(/TODO:\s?(.+$)/)[1] for regExMatch in e.matches
-
-      #get a total symbol count by adding up the amount of matches on each file
-      todo_total_length += e.matches.length
-
-      # store in array
-      todoArray.push(e)
-
-  #FIXME: These need to be broken out nicer and more reusable
-  fetchFixme: ->
-    # console.log arguments
-    # wipe out the array, to start fresh
-    fixmeArray = []
-    fixme_total_length = 0
-    #capture the rest of the line after the todo
-    atom.project.scan /FIXME:(.+$)/, (e) -> #glob pattern. Ignore node_modules
-
-      #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
-      regExMatch.matchText = regExMatch.matchText.match(/FIXME:\s?(.+$)/)[1] for regExMatch in e.matches
-
-      #get a total symbol count by adding up the amount of matches on each file
-      fixme_total_length += e.matches.length
-
-      # store in array
-      fixmeArray.push(e)
-
-  #CHANGED: something has changed
-  fetchChanged: ->
-    # console.log arguments
-    # wipe out the array, to start fresh
-    changedArray = []
-    changed_total_length = 0
-    #capture the rest of the line after the todo
-    atom.project.scan /CHANGED:(.+$)/, (e) -> #glob pattern. Ignore node_modules
-
-      #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
-      regExMatch.matchText = regExMatch.matchText.match(/CHANGED:\s?(.+$)/)[1] for regExMatch in e.matches
-
-      #get a total symbol count by adding up the amount of matches on each file
-      changed_total_length += e.matches.length
-
-      # store in array
-      changedArray.push(e)
 
   renderTodos: ->
     @showLoading()
@@ -210,15 +151,6 @@ class ShowTodoView extends ScrollView
 
     # fire callback when ALL project scans are done
     Q.all(promises).then () =>
-      console.log 'arguments for ALL DONE', arguments
-      console.log 'promises once all done', promises
-      console.log('ALL THE REGEXES', regexes)
-
-    # @fetchTodos().then (contents) =>
-    #
-    #   @fetchFixme().then (contents) =>
-    #
-    #     @fetchChanged().then (contents) =>
 
       # wasn't able to load 'dust' properly for some reason
       dust = require('dust.js') #templating engine
@@ -232,9 +164,6 @@ class ShowTodoView extends ScrollView
       templ_path = path.resolve(__dirname, '../template/show-todo-template.html')
       if ( fs.isFileSync(templ_path) )
         template = fs.readFileSync(templ_path, {encoding: "utf8"})
-
-      # console.log(todoArray)
-      # console.log 'template', template
 
       #FIXME: Add better error handling if the template fails to load
       compiled = dust.compile(template, "todo-template")

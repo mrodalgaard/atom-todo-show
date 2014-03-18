@@ -14,9 +14,9 @@ module.exports =
       'FIXMEs'
       '/FIXME:(.+$)/g'
       'TODOs' #title
-      '/TODO:(.+$)/g' #TODO: try a bunch of different things. See if we need to take the thing, and convert it to a regex then
-      'NOTEs'
-      '/NOTE:(.+$)/g'
+      '/TODO:(.+$)/g' 
+      'CHANGEDs'
+      '/CHANGED:(.+$)/g'
     ]
 
   activate: (state) ->
@@ -41,7 +41,8 @@ module.exports =
 
   deactivate: ->
     @showTodoView.destroy()
-
+    #CHANGED
+    #NOTE:
   serialize: ->
     showTodoViewState: @showTodoView.serialize()
 

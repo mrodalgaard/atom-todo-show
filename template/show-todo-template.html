@@ -9,11 +9,13 @@
           {#results}
             {#matches}
               <tr>
-              <td width="290px" class="text">{matchText}</td>              
-              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
+                <td width="290px" class="text">{matchText}</td>
+                <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
 
               </tr>
             {/matches}
+          {:else}
+            I AM EMPTY <!-- FIXME: Why is this not working? Is it because it's not the official dust.js repo?-->
           {/results}
         </table>
       </div>

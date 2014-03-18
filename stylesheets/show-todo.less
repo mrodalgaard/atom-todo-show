@@ -44,6 +44,7 @@
 // includes some GitHub Flavored Markdown specific styling (like @mentions)
 .show-todo-preview {
 
+  //FIXME: This CSS is a mess. really needs to be cleaned up
   .file_url {
     font-size: 10px;
     width: 100px !important; //dirty. let's fix this...
@@ -52,6 +53,17 @@
   .result_table {
     width: 100%;
   }
+
+  .result_heading_title {
+    border-bottom: 1px solid #eee;
+
+    .regex {
+      color: #aaa;
+      font-size: 14px;
+    }
+  }
+
+
 
   // pre,
   // pre div.editor,
@@ -292,8 +304,8 @@
 
     th, td {
     //   border: 1px solid #ccc;
-      font-size: 13px;
-      padding: 5px 6px;
+      font-size: 14px;
+      padding: 6px 6px;
     }
 
     tr {

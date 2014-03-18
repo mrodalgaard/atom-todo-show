@@ -1,8 +1,13 @@
+vm = require 'vm'  #needed for the Content Security Policy errors when executing JS from my template view
+Q = require 'q'
 path = require 'path'
 {$, $$$, Point, EditorView, ScrollView} = require 'atom'
+{allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole' #needed for the Content Security Policy errors when executing JS from my template view
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 _ = require 'underscore'
+
+
 
 #@FIXME: make these an object? Seems kind of dirty like this
 todoArray = []
@@ -62,12 +67,78 @@ class ShowTodoView extends ScrollView
 
     html
 
+  resolveJSPaths: (html) =>
+    console.log('INISDE RESOLVE')
+    html = $(html)
+
+
+    # scrList = html.find("#mainScript")
+    scrList = [html[5]]
+
+    console.log('html', html)
+    console.log('hi')
+    console.log('srcList', scrList)
+
+    for scrElement in scrList
+      js = $(scrElement)
+      src = js.attr('src')
+      # continue if src.match /^(https?:\/\/)/
+      js.attr('src', path.resolve(path.dirname(@getPath()), src))
+      console.log 'js', js
+    html
+
   showLoading: ->
     @html $$$ ->
       @div class: 'markdown-spinner', 'Loading Todos...'
 
+
+
+
+  #get the regexes to look for from the settings
+  buildRegexLookups: ->
+    lookupFromSettings = atom.config.get('todo-show.findTheseRegexes') #array. [title1, regex1, title2, regex2]
+
+    regexes = [] #[{title, regex, results}]
+
+    for regex, i in lookupFromSettings
+      match = {
+        'title': regex
+        'regex': lookupFromSettings[i+1]
+        'results': []
+      }
+      _i = _i+1    #_ overrides the one that coffeescript actually creates. Seems hackish. FIXME: maybe just use modulus
+      regexes.push(match)
+
+    console.log 'regexes', regexes
+    return regexes
+
+  #@TODO: Actually figure out how promises work.
+  # scan the project for the regex that is passed
+  # returns a promise that the project scan generates
+  fetchRegexItem: (regexObject) ->
+    # convert regexStr to actual regex obj
+    # convert it from /findMe/i  to (regex, flags)
+    # extract the regex pattern
+    pattern = regexObject.regex.match(/\/(.+)\//)[1] #extract anything between the slashes
+    # extract the flags (after the last slash)
+    flags = regexObject.regex.match(/\/(\w+$)/)[1] #extract any words after the last slash
+
+    regexObj = new RegExp(pattern, flags)
+
+
+    console.log('regexObj', regexObj)
+    return atom.project.scan regexObj, (e) ->
+      console.log 'regexResults', e
+      #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
+      # console.log 'e', e
+      regexObject.results.push(e) # add it to the array of results for this regex
+
+
   #FIXME: These need to be broken out nicer and more reusable
   fetchTodos: ->
+
+
+
     # console.log arguments
     # wipe out the array, to start fresh
     todoArray = []
@@ -125,86 +196,88 @@ class ShowTodoView extends ScrollView
 
   renderTodos: ->
     @showLoading()
-    #FIXME: nesting this seems ugly
-    @fetchTodos().then (contents) =>
 
-      @fetchFixme().then (contents) =>
+    #fetch the reges from the settings
+    regexes = @buildRegexLookups()
 
-        @fetchChanged().then (contents) =>
-
-          # wasn't able to load 'dust' properly for some reason
-          dust = require('dust.js') #templating engine
-
-          # template = hogan.compile("Hello {name}!");
-
-          # team = ['jamis', 'adam', 'johnson']
-
-          # load up the template
-          # path.resolve __dirname, '../template/show-todo-template.html'
-          templ_path = path.resolve(__dirname, '../template/show-todo-template.html')
-          if ( fs.isFileSync(templ_path) )
-            template = fs.readFileSync(templ_path, {encoding: "utf8"})
-
-          # console.log(todoArray)
-          # console.log 'template', template
-
-          #FIXME: Add better error handling if the template fails to load
-          compiled = dust.compile(template, "todo-template")
-
-          #is this step necessary? Appears to be...
-          dust.loadSource(compiled)
-
-          # content & filters
-          context = {
-            #make the path to the result relative
-            "filterPath": (chunk, context, bodies) =>
-              return chunk.tap((data) =>
-
-                # make it relative
-                return atom.project.relativize(data);
-              ).render(bodies.block, context).untap();
-            ,
-            "todo_items": todoArray,
-            "fixme_items": fixmeArray,
-            "changed_items": changedArray,
-            "todo_items_length": todo_total_length,
-            "fixme_items_length": fixme_total_length,
-            "changed_items_length": changed_total_length
-          }
-
-          # render the template
-          dust.render "todo-template", context, (err, out) =>
-            console.log 'err', err
-            # console.log('content to be rendered', out);
-            @html(out)
-
-      # team.map (fillName) =>
-      #   # Render context to template
-      #   console.log template
-      #   console.log "template" template.render {name: fillName }
-        # return template.render {name: fillName }
+    #@FIXME: abstract this into a separate, testable function?
+    promises = []
+    for regexObj in regexes
+      #scan the project for each regex, and get a promise in return
+      promise = @fetchRegexItem(regexObj)  #inspect -> {state: 'pending'}
+      promises.push(promise) #create array of promises so we can listen for completion
 
 
+    # fire callback when ALL project scans are done
+    Q.all(promises).then () =>
+      console.log 'arguments for ALL DONE', arguments
+      console.log 'promises once all done', promises
+      console.log('ALL THE REGEXES', regexes)
 
+    # @fetchTodos().then (contents) =>
+    #
+    #   @fetchFixme().then (contents) =>
+    #
+    #     @fetchChanged().then (contents) =>
 
+      # wasn't able to load 'dust' properly for some reason
+      dust = require('dust.js') #templating engine
 
+      # template = hogan.compile("Hello {name}!");
 
-      # console.log "contents", todoArray
-      # @html("markdown-spinner', 'Loading Markdown... asdfasdfas asdfasdf asdfasdf asdfadsf ")
-      # @html(todoArray[0].matches[0].lineText)
-      # @html(todoArray[1].matches[0].lineText)
-      # @html $$$ ->
-      #   @div todoArray[0].matches[0].lineText class: 'markdown-spinner', 'Loading Markdown...'
+      # team = ['jamis', 'adam', 'johnson']
 
-    # @file.read().then (contents) =>
-    #   roaster = require 'roaster'
-    #   sanitize = true
-    #   roaster contents, {sanitize}, (error, html) =>
-    #     if error
-    #       @showError(error)
-    #     else
-    #       @html(@resolveImagePaths(html))
-          # @html(@tokenizeCodeBlocks(@resolveImagePaths(html)))
+      # load up the template
+      # path.resolve __dirname, '../template/show-todo-template.html'
+      templ_path = path.resolve(__dirname, '../template/show-todo-template.html')
+      if ( fs.isFileSync(templ_path) )
+        template = fs.readFileSync(templ_path, {encoding: "utf8"})
+
+      # console.log(todoArray)
+      # console.log 'template', template
+
+      #FIXME: Add better error handling if the template fails to load
+      compiled = dust.compile(template, "todo-template")
+
+      #is this step necessary? Appears to be...
+      dust.loadSource(compiled)
+
+      # content & filters
+      context = {
+        #make the path to the result relative
+        "filterPath": (chunk, context, bodies) =>
+          return chunk.tap((data) =>
+
+            # make it relative
+            return atom.project.relativize(data);
+          ).render(bodies.block, context).untap();
+        ,
+        "results": regexes #FIXME: fix the sort order in the results
+        # "todo_items": todoArray,
+        # "fixme_items": fixmeArray,
+        # "changed_items": changedArray,
+        # "todo_items_length": todo_total_length,
+        # "fixme_items_length": fixme_total_length,
+        # "changed_items_length": changed_total_length
+      }
+
+      # console.log('VM', vm);
+      # vm.evalInThisContext(console.log('hi something in vm'));
+
+      # render the template
+      # doSomething: ->
+
+      dust.render "todo-template", context, (err, out) =>
+        console.log 'err', err
+        # console.log('content to be rendered', out);
+        # allowUnsafeEval  ->
+        console.log('hi ho')
+        # out = @resolveJSPaths out #resolve the relative JS paths for external <script> in view
+        @html(out)
+        # @html 'hi'
+
+      # vm.evalInThisContext("doSomething()");
+
 
   # events that handle showing of todos
   handleEvents: ->

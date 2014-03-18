@@ -9,6 +9,15 @@ ShowTodoView = require './show-todo-view'
 
 module.exports =
   showTodoView: null
+  configDefaults:
+    findTheseRegexes: [
+      'FIXMEs'
+      '/FIXME:(.+$)/g'
+      'TODOs' #title
+      '/TODO:(.+$)/g' #TODO: try a bunch of different things. See if we need to take the thing, and convert it to a regex then
+      'NOTEs'
+      '/NOTE:(.+$)/g'
+    ]
 
   activate: (state) ->
     atom.workspaceView.command 'todo-show:find-in-project', => #this one is tied to the one in package.json

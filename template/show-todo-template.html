@@ -2,47 +2,30 @@
   <body>
 
     <!-- @TODO: Consider installing dustJS helpers...     -->
-    <div class="fixme">
-      <h2>Fixmes ({fixme_items_length})</h1>
-      <table>
-        {#fixme_items}
-          {#matches}
-            <tr>
-              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
-              <td width="290px" class="text">{matchText}</td>
-            </tr>
-          {/matches}
-        {/fixme_items}
-      </table>
-    </div>
+    {#results}
+      <div class="result_item">
+        <h2>{title} ({changed_items_length}) <span class="regex">{regex}</span></h2>
+        <table class="result_table">
+          {#results}
+            {#matches}
+              <tr>
+                <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
+                <td width="290px" class="text">{matchText}</td>
+              </tr>
+            {/matches}
+          {/results}
+        </table>
+      </div>
+    {/results}
+<!--   <img src="atom://todo-show/screenshots/preview.png" alt="" /> -->
+  <!--<script id="mainScript" src="atom://todo-show/template/view.js"></script>-->
 
-    <div class="todos">
-      <h2>Todos ({todo_items_length})</h1>
-      <table>
-        {#todo_items}
-          {#matches}
-            <tr>
-              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
-              <td width="290px" class="text">{matchText}</td>
-            </tr>
-          {/matches}
-        {/todo_items}
-      </table>
-    </div>
 
-    <div class="changed">
-      <h2>Changed ({changed_items_length})</h1>
-      <table>
-        {#changed_items}
-          {#matches}
-            <tr>
-              <td width="10px" class="file_url"><a onclick="atom.workspaceView.getActiveView().openPath(this.dataset.uri, this.dataset.coords.split(',')); " href="javascript:;" data-uri="{#filterPath}{filePath}{/filterPath}" data-coords="{range}">{#filterPath}{filePath}{/filterPath}</a></td>
-              <td width="290px" class="text">{matchText}</td>
-            </tr>
-          {/matches}
-        {/changed_items}
-      </table>
-    </div>
+  <script type="text/javascript" charset="utf-8">
+    "use strict";
+    console.log('hello');
+  </script>
+
 
   </body>
 </html>

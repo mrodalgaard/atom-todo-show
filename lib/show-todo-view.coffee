@@ -26,8 +26,10 @@ class ShowTodoView extends ScrollView
 
   initialize: (serializeState) ->
     # atom.workspaceView.command "show-todo:toggle", => @toggle()
-
-
+    # Add the view click handler that goes to the marker (todo, fixme, whatnot)
+    this.on 'click', '.file_url a',  (e) => # handle click here
+      link = e.target
+      @openPath(link.dataset.uri, link.dataset.coords.split(','));
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->

@@ -3,7 +3,7 @@ Q = require 'q'
 path = require 'path'
 {$, $$$, Point, EditorView, ScrollView} = require 'atom'
 {allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole' #needed for the Content Security Policy errors when executing JS from my template view
-{File} = require 'pathwatcher'
+# {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 _ = require 'underscore'
 
@@ -17,7 +17,7 @@ class ShowTodoView extends ScrollView
 
   constructor: (filePath) ->
     super
-    @file = new File(filePath)
+    # @file = new File(filePath)
     @handleEvents()
 
   @content: ->
@@ -45,7 +45,7 @@ class ShowTodoView extends ScrollView
     "todolist-preview://#{@getPath()}"
 
   getPath: ->
-    @file.getPath()
+    # @file.getPath()
 
   resolveImagePaths: (html) =>
     html = $(html)

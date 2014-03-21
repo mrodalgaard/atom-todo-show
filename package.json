@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "fs-plus": "2.x",
-    "pathwatcher": "0.16.0",
     "dust.js": "~0.1.0",
     "underscore": "^1.6.0",
     "q": "^1.0.1",

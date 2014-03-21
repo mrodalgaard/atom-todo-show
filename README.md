@@ -20,3 +20,5 @@ If you have npm errors installing, retry. Usually works then.
 - refactor and clean up code
 - fix / add keymap shortcut
 - add test cases
+
+Inspired by the textmate TODO bundle.

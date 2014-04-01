@@ -12,11 +12,11 @@ module.exports =
   configDefaults:
     findTheseRegexes: [
       'FIXMEs'
-      '/FIXME:(.+$)/g'
+      '/\\WFIXME\\W(.+$)/g'
       'TODOs' #title
-      '/TODO:(.+$)/g' 
+      '/\\WTODO\\W(.+$)/g' 
       'CHANGEDs'
-      '/CHANGED:(.+$)/g'
+      '/\\WCHANGED\\W(.+$)/g'
     ]
 
   activate: (state) ->

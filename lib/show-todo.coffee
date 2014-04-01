@@ -27,11 +27,11 @@ module.exports =
 
     # register the todolist URI. Which will then open our custom view
     atom.workspace.registerOpener (uriToOpen) ->
-      console.log('REGISTER OPENER CALLED222', uriToOpen)
+      # console.log('REGISTER OPENER CALLED222', uriToOpen)
       {protocol, pathname} = url.parse(uriToOpen)
       pathname = querystring.unescape(pathname) if pathname
       return unless protocol is 'todolist-preview:'
-      console.log('REGISTER OPENER CALLED444', uriToOpen)
+      # console.log('REGISTER OPENER CALLED444', uriToOpen)
       new ShowTodoView(pathname)
 
 
@@ -62,7 +62,7 @@ module.exports =
     uri = "todolist-preview://TODOs"
     atom.workspace.open(uri, split: 'right', searchAllPanes: true).done (showTodoView) ->
       # TODO: we could require it in, and use a similar pattern as the other one...
-      console.log(arguments)
+      # console.log(arguments)
       arguments[0].innerHTML = "WE HAVE LIFTOFF"
       if showTodoView instanceof ShowTodoView
         showTodoView.renderTodos() #do the initial render

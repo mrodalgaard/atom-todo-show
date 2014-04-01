@@ -61,7 +61,7 @@ class ShowTodoView extends ScrollView
 
   # currently broken. FIXME: Remove or replace
   resolveJSPaths: (html) =>
-    console.log('INISDE RESOLVE')
+    # console.log('INISDE RESOLVE')
     html = $(html)
 
 
@@ -77,7 +77,7 @@ class ShowTodoView extends ScrollView
       src = js.attr('src')
       # continue if src.match /^(https?:\/\/)/
       js.attr('src', path.resolve(path.dirname(@getPath()), src))
-      console.log 'js', js
+      # console.log 'js', js
     html
 
   showLoading: ->
@@ -102,7 +102,7 @@ class ShowTodoView extends ScrollView
       _i = _i+1    #_ overrides the one that coffeescript actually creates. Seems hackish. FIXME: maybe just use modulus
       regexes.push(match)
 
-    console.log 'regexes', regexes
+    # console.log 'regexes', regexes
     return regexes
 
   #@TODO: Actually figure out how promises work.
@@ -121,7 +121,7 @@ class ShowTodoView extends ScrollView
 
     regexObj = new RegExp(pattern, flags)
 
-    console.log('pattern', pattern)
+    # console.log('pattern', pattern)
     # console.log('regexObj', regexObj)
     return atom.project.scan regexObj, (e) ->
 
@@ -199,10 +199,10 @@ class ShowTodoView extends ScrollView
       # doSomething: ->
 
       dust.render "todo-template", context, (err, out) =>
-        console.log 'err', err
+        # console.log 'err', err
         # console.log('content to be rendered', out);
         # allowUnsafeEval  ->
-        console.log('hi ho')
+        # console.log('hi ho')
         # out = @resolveJSPaths out #resolve the relative JS paths for external <script> in view
         @html(out)
         # @html 'hi'

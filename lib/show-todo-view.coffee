@@ -124,18 +124,27 @@ class ShowTodoView extends ScrollView
     # console.log('pattern', pattern)
     # console.log('regexObj', regexObj)
     return atom.project.scan regexObj, (e) ->
+      # Check against ignored paths
+      include = true
+      ignoreFromSettings = atom.config.get('todo-show.ignoreThesePaths')
 
-      #loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
-      # regExMatch.matchText = regExMatch.matchText.match(regexObj)[1] for regExMatch in e.matches
-      for regExMatch in e.matches
+      for ignorePath in ignoreFromSettings
+        ignoredPath = atom.project.getPath() + ignorePath
 
-        # strip out the regex token from the found phrase (todo, fixme, etc)
-        # FIXME: I have no idea why this requires a stupid while loop. Figure it out and/or fix it.
-        while (match = regexObj.exec(regExMatch.matchText))
-          regExMatch.matchText = match[1]
+        if e.filePath.substring(0, ignoredPath.length) == ignoredPath
+          include = false
 
-      regexObject.results.push(e) # add it to the array of results for this regex
+      if include
+        # loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
+        # regExMatch.matchText = regExMatch.matchText.match(regexObj)[1] for regExMatch in e.matches
+        for regExMatch in e.matches
 
+          # strip out the regex token from the found phrase (todo, fixme, etc)
+          # FIXME: I have no idea why this requires a stupid while loop. Figure it out and/or fix it.
+          while (match = regexObj.exec(regExMatch.matchText))
+            regExMatch.matchText = match[1]
+
+        regexObject.results.push(e)
 
   renderTodos: ->
     @showLoading()

@@ -14,9 +14,13 @@ module.exports =
       'FIXMEs'
       '/FIXME:(.+$)/g'
       'TODOs' #title
-      '/TODO:(.+$)/g' 
+      '/TODO:(.+$)/g'
       'CHANGEDs'
       '/CHANGED:(.+$)/g'
+    ],
+    ignoreThesePaths: [
+      '/node_modules/'
+      '/vendor/'
     ]
 
   activate: (state) ->

@@ -1,3 +1,11 @@
+# This file handles all the fetching and displaying logic. It doesn't handle any of the pane magic.
+# Pane magic happens in show-todo.coffee.
+# Markup is in template/show-todo-template.html
+# Styling is in the stylesheets folder.
+#
+# FIXME: Realizing this is some pretty nasty code. This should really, REALLY be cleaned up. Testing should help.
+# Also, having a greater understanding of Atom should help.
+
 vm = require 'vm'  #needed for the Content Security Policy errors when executing JS from my template view
 Q = require 'q'
 path = require 'path'
@@ -88,21 +96,20 @@ class ShowTodoView extends ScrollView
 
 
   #get the regexes to look for from the settings
-  buildRegexLookups: ->
-    lookupFromSettings = atom.config.get('todo-show.findTheseRegexes') #array. [title1, regex1, title2, regex2]
-
+  # @FIXME: Add proper comments
+  # @param settingsRegexes {array} - An array of regexes from settings.
+  buildRegexLookups: (settingsRegexes) ->
     regexes = [] #[{title, regex, results}]
 
-    for regex, i in lookupFromSettings
+    for regex, i in settingsRegexes
       match = {
         'title': regex
-        'regex': lookupFromSettings[i+1]
+        'regex': settingsRegexes[i+1]
         'results': []
       }
       _i = _i+1    #_ overrides the one that coffeescript actually creates. Seems hackish. FIXME: maybe just use modulus
       regexes.push(match)
 
-    # console.log 'regexes', regexes
     return regexes
 
   #@TODO: Actually figure out how promises work.
@@ -141,7 +148,7 @@ class ShowTodoView extends ScrollView
     @showLoading()
 
     #fetch the reges from the settings
-    regexes = @buildRegexLookups()
+    regexes = @buildRegexLookups(atom.config.get('todo-show.findTheseRegexes'))
 
     #@FIXME: abstract this into a separate, testable function?
     promises = []

@@ -1,3 +1,7 @@
+# All this file really does is handle the following
+# 1) Defines Regex defaults
+# 2) Instantiates the commands, the panes, and then calls showTodoView.renderTodos()
+
 # Deps
 querystring = require 'querystring'
 url = require 'url'

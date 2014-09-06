@@ -52,6 +52,18 @@ describe "buildRegexLookups(regexes)", ->
 
 
 
+describe "makeRegexObj(regexStr)", ->
+  it "should return a RegExp obj when passed a regex literal (string)", ->
+
+    regexStr = "/TODO:(.+$)/g"
+    regexObj = showTodoView.makeRegexObj(regexStr)
+
+    # Assertions
+    # duck test. Am I a regex obj?
+    expect(typeof regexObj.test).toBe("function")
+    expect(typeof regexObj.exec).toBe("function")
+
+
 # start with the basics first...
 
 

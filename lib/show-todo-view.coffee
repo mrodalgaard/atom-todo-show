@@ -112,21 +112,27 @@ class ShowTodoView extends ScrollView
 
     return regexes
 
-  #@TODO: Actually figure out how promises work.
-  # scan the project for the regex that is passed
-  # returns a promise that the project scan generates
-  fetchRegexItem: (regexObject) ->
-    # convert regexStr to actual regex obj
-    # convert it from /findMe/i  to (regex, flags)
+  # Pass in '/FIXME:(.+$)/g ' and returns a proper RegExp obj
+  makeRegexObj: (regexStr) ->
     # extract the regex pattern
-    pattern = regexObject.regex.match(/\/(.+)\//)?[1] #extract anything between the slashes
+    pattern = regexStr.match(/\/(.+)\//)?[1] #extract anything between the slashes
     # extract the flags (after the last slash)
-    flags = regexObject.regex.match(/\/(\w+$)/)?[1] #extract any words after the last slash. Flags are optional
+    flags = regexStr.match(/\/(\w+$)/)?[1] #extract any words after the last slash. Flags are optional
 
     #abort if there's no valid pattern
     return false unless pattern
 
-    regexObj = new RegExp(pattern, flags)
+    return new RegExp(pattern, flags)
+
+  #@TODO: Actually figure out how promises work.
+  # scan the project for the regex that is passed
+  # returns a promise that the project scan generates
+  # @TODO: Improve the param name. Confusing
+  fetchRegexItem: (lookupObj) ->
+    regexObj = @makeRegexObj(lookupObj.regex)
+
+    #abort if there's no valid pattern
+    return false unless regexObj
 
     # console.log('pattern', pattern)
     # console.log('regexObj', regexObj)
@@ -141,7 +147,7 @@ class ShowTodoView extends ScrollView
         while (match = regexObj.exec(regExMatch.matchText))
           regExMatch.matchText = match[1]
 
-      regexObject.results.push(e) # add it to the array of results for this regex
+      lookupObj.results.push(e) # add it to the array of results for this regex
 
 
   renderTodos: ->

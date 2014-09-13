@@ -63,8 +63,16 @@ describe "makeRegexObj(regexStr)", ->
     expect(typeof regexObj.test).toBe("function")
     expect(typeof regexObj.exec).toBe("function")
 
+  it "should return false bool when passed an invalid regex literal (string)", ->
 
-# start with the basics first...
+    regexStr = "arstastTODO:.+$)/g"
+    regexObj = showTodoView.makeRegexObj(regexStr)
+
+    expect(regexObj).toBe(false)
+
+
+
+scan_mock = require './fixtures/atom_scan_mock_result.json'
 
 
 # TODO: make some test fixtures? pages... load those in require those instead? We really just want to unit test it

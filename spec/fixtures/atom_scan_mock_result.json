@@ -1,0 +1,26 @@
+{
+  "filePath": "/Users/jacharles/github/todo-show/lib/show-todo-view.coffee",
+  "matches":
+  [
+    {
+      "matchText": "FIXME: Realizing this is some pretty nasty code. This should really, REALLY be cleaned up. Testing should help.",
+      "lineText": " Realizing this is some pretty nasty code. This should really, REALLY be cleaned up. Testing should help.",
+      "lineTextOffset": 8,
+      "range": [ [ 5, 2 ], [ 5, 113 ] ]
+    },
+
+    {
+      "matchText": "FIXME: maybe just use modulus",
+      "lineText": "#_ overrides the one that coffeescript actually creates. Seems hackish. FIXME: maybe just use modulus",
+      "lineTextOffset": 19,
+      "range": [ [ 110, 91 ], [ 110, 120 ] ]
+    },
+
+    {
+      "matchText": "FIXME: fix the sort order in the results",
+      "lineText": "        'results': regexes #FIXME: fix the sort order in the results",
+      "lineTextOffset": 0,
+      "range": [ [ 205, 28 ], [ 205, 68 ] ]
+    }
+  ]
+}

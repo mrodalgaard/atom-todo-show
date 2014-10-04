@@ -23,6 +23,10 @@ module.exports =
       '/CHANGED:?(.+$)/g'
       'XXXs'
       '/XXX:?(.+$)/g'
+    ],
+    ignoreThesePaths: [
+      '/node_modules/'
+      '/vendor/'
     ]
 
   activate: (state) ->

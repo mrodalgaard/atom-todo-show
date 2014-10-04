@@ -1,6 +1,6 @@
 # TODO-show package
 
-Fetches TODO, FIXME, CHANGED comments from the project. Or anything else you want (settings).
+Fetches TODO, FIXME, CHANGED, XXX comments from the project. Or anything else you want (settings).
 
 Ignores anything in your .gitignore.
 
@@ -9,6 +9,7 @@ Ignores anything in your .gitignore.
 
 ## Coming features (PR's welcome)
 - ~~TODO, FIXME, CHANGED included in search~~
+- ~~ignore /vendor, /node_modules~~
 - goto result should start at comment, NOT at todo symbol
 - don't open multiple search windows when we search multiple times
 - how do we handle file changes?

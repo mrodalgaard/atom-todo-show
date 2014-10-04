@@ -16,13 +16,13 @@ module.exports =
   configDefaults:
     findTheseRegexes: [
       'FIXMEs'
-      '/FIXME:(.+$)/g'
+      '/FIXME:?(.+$)/g'
       'TODOs' #title
-      '/TODO:(.+$)/g'
+      '/TODO:?(.+$)/g'
       'CHANGEDs'
-      '/CHANGED:(.+$)/g'
+      '/CHANGED:?(.+$)/g'
       'XXXs'
-      '/XXX:(.+$)/g'
+      '/XXX:?(.+$)/g'
     ]
 
   activate: (state) ->

@@ -14,12 +14,12 @@
 
 @import "syntax-variables";
 
-@font-family: "Helvetica Neue", Helvetica, sans-serif;
 .show-todo-preview {
   font-family: @font-family;
   font-size: 14px;
   line-height: 1.6;
-  background-color: #fff;
+  background-color: @base-background-color;
+  color: @text-color;
   overflow: scroll;
   box-sizing: border-box;
   padding: 20px;
@@ -55,10 +55,10 @@
   }
 
   .result_heading_title {
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid @text-color-subtle;
 
     .regex {
-      color: #aaa;
+      color: @text-color-subtle;
       font-size: 14px;
     }
   }
@@ -74,7 +74,7 @@
   // }
   //
   a {
-    color: #4183c4;
+    color: @text-color-info;
   }
   //
   // ol > li {
@@ -95,7 +95,7 @@
   //
   // Link Colors
   a.absent {
-    color: #c00;
+    color: @text-color-error;
   }
 
   a.anchor {
@@ -310,10 +310,10 @@
 
     tr {
       // border-top: 1px solid #ccc;
-      background-color: #fff;
+      background-color: @base-background-color;
 
       &:nth-child(2n) {
-        background-color: #f8f8f8;
+        background-color: lighten(@base-background-color, 1%);
       }
     }
   }

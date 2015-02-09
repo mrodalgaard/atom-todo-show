@@ -142,7 +142,7 @@ class ShowTodoView extends ScrollView
       ignoreFromSettings = atom.config.get('todo-show.ignoreThesePaths')
 
       for ignorePath in ignoreFromSettings
-        ignoredPath = atom.project.getPath() + ignorePath
+        ignoredPath = atom.project.getPaths()[0] + ignorePath
 
         if e.filePath.substring(0, ignoredPath.length) == ignoredPath
           include = false

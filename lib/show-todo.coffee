@@ -30,13 +30,15 @@ module.exports =
     ]
 
   activate: (state) ->
-    atom.workspaceView.command 'todo-show:find-in-project', => #this one is tied to the one in package.json
+    # atom.workspaceView.command 'todo-show:find-in-project', =>
+    atom.commands.add 'atom-workspace', 'todo-show:find-in-project': =>
+    # @disposables.add atom.commands.add 'atom-workspace', 'todo-show:find-in-project': -> #this one is tied to the one in package.json
       @show()
     # @show()
     # @showTodoView = new ShowTodoView(state.showTodoViewState)
 
     # register the todolist URI. Which will then open our custom view
-    atom.workspace.registerOpener (uriToOpen) ->
+    atom.workspace.addOpener (uriToOpen) ->
       # console.log('REGISTER OPENER CALLED222', uriToOpen)
       {protocol, pathname} = url.parse(uriToOpen)
       pathname = querystring.unescape(pathname) if pathname
@@ -61,7 +63,7 @@ module.exports =
     # return unless editor?
 
     # unless editor.getGrammar().scopeName is "source.gfm"
-    #   console.warn("Cannot render markdown for '#{editor.getUri() ? 'untitled'}'")
+    #   console.warn("Cannot render markdown for '#{editor.getURI() ? 'untitled'}'")
     #   return
     #
     # unless fs.isFileSync(editor.getPath())

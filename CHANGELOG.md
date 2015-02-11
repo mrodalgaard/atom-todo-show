@@ -1,3 +1,8 @@
+## 0.7.0
+- Change color scheme to inherit from the UI theme
+- https://github.com/jamischarles/atom-todo-show/pull/32
+- Thanks mthadley
+
 ## 0.6.1
 - Fix deprecation errors
 - https://github.com/jamischarles/atom-todo-show/pull/38

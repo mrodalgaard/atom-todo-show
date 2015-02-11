@@ -21,3 +21,14 @@ Ignores anything in your .gitignore.
 - add test cases
 
 Inspired by the textmate TODO bundle.
+
+# To contribute
+1. `$ git clone https://github.com/jamischarles/atom-todo-show.git` (easiest is) to ~/github/
+2. `$ rm -rf ~/.atom/packages/todo-show` to remove the installed package (or from settings)
+3. `$ apm link` in your cloned repo (~/github/atom-todo-show) to symlink your version so atom will load that
+4. Open `~/github/atom-todo-show` in atom dev mode (View -> Developer -> Open in Dev Mode)
+5. Make your changes.
+6. Reload your atom to see the package changes take effect (View -> Reload)
+7. Test it.
+8. Issue your PR.
+9. Restore the package back normally (you can repeat #2, then reinstall it the official way)

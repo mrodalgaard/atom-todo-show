@@ -1,3 +1,8 @@
+## 0.8.0
+- Change how the ignore paths are handled.
+- https://github.com/jamischarles/atom-todo-show/pull/35
+- Thanks andischerer
+
 ## 0.7.0
 - Change color scheme to inherit from the UI theme
 - https://github.com/jamischarles/atom-todo-show/pull/32

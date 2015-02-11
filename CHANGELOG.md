@@ -1,3 +1,8 @@
+## 0.6.1
+- Fix deprecation errors
+- https://github.com/jamischarles/atom-todo-show/pull/38
+- Thanks @framerate.
+
 ## 0.6.0
 - ignore /vendor and /node_modules
 - colon after token is optional

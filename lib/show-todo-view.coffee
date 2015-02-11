@@ -16,6 +16,8 @@ $ = require 'jquery'
 # {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 _ = require 'underscore'
+slash = require 'slash'
+ignore = require 'ignore'
 
 
 module.exports =
@@ -136,18 +138,19 @@ class ShowTodoView extends ScrollView
     #abort if there's no valid pattern
     return false unless regexObj
 
+    # handle ignores from settings
+    ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
+    hasIgnores = ignoresFromSettings.length > 0
+    ignoreRules = ignore({ ignore:ignoresFromSettings });
+
     # console.log('pattern', pattern)
     # console.log('regexObj', regexObj)
     return atom.workspace.scan regexObj, (e) ->
       # Check against ignored paths
       include = true
-      ignoreFromSettings = atom.config.get('todo-show.ignoreThesePaths')
-
-      for ignorePath in ignoreFromSettings
-        ignoredPath = atom.project.getPaths()[0] + ignorePath
-
-        if e.filePath.substring(0, ignoredPath.length) == ignoredPath
-          include = false
+      pathToTest = slash(e.filePath.substring(atom.project.getPath().length))
+      if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
+        include = false
 
       if include
         # loop through the results in the file, strip out 'todo:', and allow an optional space after todo:

@@ -18,7 +18,7 @@ Ignores anything in your .gitignore.
 - have nice message when no results are found
 - refactor and clean up code
 - ~~fix / add keymap shortcut~~
-- add test cases
+- add test cases test
 
 Inspired by the textmate TODO bundle.
 

@@ -4,7 +4,7 @@ Fetches TODO, FIXME, CHANGED, XXX comments from the project. Or anything else yo
 
 ![](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 
-## Exculde files/folders from scan
+## Exclude files/folders from scan
 __globally__:
 - `Ignored Names` from atom core settings
 - `todo-show.ignoreThesePaths` in package settings (Syntax according to [.gitignore](http://git-scm.com/docs/gitignore))

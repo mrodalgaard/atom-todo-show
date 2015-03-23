@@ -1,5 +1,8 @@
 # TODO-show package
 
+**Update**:
+I no longer use Atom as my primary editor. Let me know if you want to share publish rights on this repo, or have shared git access. I don't have the time to keep up development on this repo anymore.
+
 Fetches TODO, FIXME, CHANGED, XXX comments from the project. Or anything else you want (settings).
 
 ![](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)

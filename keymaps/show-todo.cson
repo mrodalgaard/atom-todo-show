@@ -7,5 +7,5 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/advanced/keymaps
-'.atom-workspace':
-  'ctrl-shift-t': 'todo-show:find-in-project'
+'atom-workspace':
+  'cmd-shift-t': 'todo-show:find-in-project'

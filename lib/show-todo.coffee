@@ -30,11 +30,8 @@ module.exports =
     ]
 
   activate: (state) ->
-    # atom.workspaceView.command 'todo-show:find-in-project', =>
     atom.commands.add 'atom-workspace', 'todo-show:find-in-project': =>
-    # @disposables.add atom.commands.add 'atom-workspace', 'todo-show:find-in-project': -> #this one is tied to the one in package.json
       @show()
-    # @show()
     # @showTodoView = new ShowTodoView(state.showTodoViewState)
 
     # register the todolist URI. Which will then open our custom view
@@ -52,30 +49,28 @@ module.exports =
   #     console.log(e)
 
   deactivate: ->
-    @showTodoView.destroy()
+    @showTodoView?.destroy()
     #CHANGED
     #NOTE:
   serialize: ->
-    showTodoViewState: @showTodoView.serialize()
+    showTodoViewState: @showTodoView?.serialize()
 
-  show: (todoContent )->
-    # editor = atom.workspace.getActiveEditor()
-    # return unless editor?
-
-    # unless editor.getGrammar().scopeName is "source.gfm"
-    #   console.warn("Cannot render markdown for '#{editor.getURI() ? 'untitled'}'")
-    #   return
-    #
-    # unless fs.isFileSync(editor.getPath())
-    #   console.warn("Cannot render markdown for '#{editor.getPath() ? 'untitled'}'")
-    #   return
-
+  show: ->
     previousActivePane = atom.workspace.getActivePane()
     uri = "todolist-preview://TODOs"
-    atom.workspace.open(uri, split: 'right', searchAllPanes: true).done (showTodoView) ->
-      # TODO: we could require it in, and use a similar pattern as the other one...
-      # console.log(arguments)
-      arguments[0].innerHTML = "WE HAVE LIFTOFF"
-      if showTodoView instanceof ShowTodoView
-        showTodoView.renderTodos() #do the initial render
-      previousActivePane.activate()
+    pane = atom.workspace.paneForItem(@showTodoView)
+    
+    if pane
+      pane.destroyItem(@showTodoView)
+      # ignore core.destroyEmptyPanes and close empty pane
+      pane.destroy() if pane.getItems().length is 0
+    else
+      atom.workspace.open(uri, split: 'right', searchAllPanes: true).done (textEditorView) =>
+        @showTodoView = textEditorView;
+
+        # TODO: we could require it in, and use a similar pattern as the other one...
+        
+        arguments[0].innerHTML = "WE HAVE LIFTOFF"
+        if @showTodoView instanceof ShowTodoView
+          @showTodoView.renderTodos() #do the initial render
+        previousActivePane.activate()

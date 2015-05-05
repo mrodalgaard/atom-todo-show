@@ -7,7 +7,6 @@
 # - look at symbol generator for extracting comment blocks
 
 ShowTodoView = require '../lib/show-todo-view'
-{WorkspaceView} = require 'atom'
 
 # describe "ShowTodoView", ->
   # it "has one valid test", ->

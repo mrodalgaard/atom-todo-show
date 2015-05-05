@@ -4,9 +4,9 @@
   "version": "0.8.0",
   "private": true,
   "description": "Finds all the TODOs, FIXMEs, CHANGEDs in your project.",
-  "activationEvents": [
-    "todo-show:find-in-project"
-  ],
+  "activationCommands": {
+    "atom-workspace": "todo-show:find-in-project"
+  },
   "repository": "https://github.com/jamischarles/atom-todo-show",
   "license": "MIT",
   "engines": {

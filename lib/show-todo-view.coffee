@@ -9,11 +9,10 @@
 vm = require 'vm'  #needed for the Content Security Policy errors when executing JS from my template view
 Q = require 'q'
 path = require 'path'
-{Point} = require 'atom'
+{Disposable, Point} = require 'atom'
 {$$$, TextEditorView, ScrollView} = require 'atom-space-pen-views'
 $ = require 'jquery'
 {allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole' #needed for the Content Security Policy errors when executing JS from my template view
-# {File} = require 'pathwatcher'
 fs = require 'fs-plus'
 _ = require 'underscore'
 slash = require 'slash'
@@ -58,6 +57,9 @@ class ShowTodoView extends ScrollView
 
   getPath: ->
     # @file.getPath()
+
+  onDidChangeTitle: -> new Disposable()
+  onDidChangeModified: -> new Disposable()
 
   resolveImagePaths: (html) =>
     html = $(html)

@@ -1,9 +1,6 @@
 # TODO-show package
 
-**Update**:
-I no longer use Atom as my primary editor. Let me know if you want to share publish rights on this repo, or have shared git access. I don't have the time to keep up development on this repo anymore.
-
-Fetches TODO, FIXME, CHANGED, XXX comments from the project. Or anything else you want (settings).
+Finds all the TODO, FIXME, CHANGED, XXX comments in your project. Or anything else you want to fetch through settings.
 
 ![](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 
@@ -18,7 +15,7 @@ __locally__: Ignores anything in your .gitignore file if the current project is 
 - ~~TODO, FIXME, CHANGED included in search~~
 - ~~ignore /vendor, /node_modules~~
 - goto result should start at comment, NOT at todo symbol
-- don't open multiple search windows when we search multiple times
+- ~~don't open multiple search windows when we search multiple times~~
 - how do we handle file changes?
 - nicer styling
 - ignore TODOs outside of comment blocks
@@ -30,12 +27,11 @@ __locally__: Ignores anything in your .gitignore file if the current project is 
 Inspired by the textmate TODO bundle.
 
 # To contribute
-1. `$ git clone https://github.com/jamischarles/atom-todo-show.git` (easiest is) to ~/github/
-2. `$ rm -rf ~/.atom/packages/todo-show` to remove the installed package (or from settings)
-3. `$ apm link` in your cloned repo (~/github/atom-todo-show) to symlink your version so atom will load that
-4. Open `~/github/atom-todo-show` in atom dev mode (View -> Developer -> Open in Dev Mode)
-5. Make your changes.
-6. Reload your atom to see the package changes take effect (View -> Reload)
-7. Test it.
-8. Issue your PR.
-9. Restore the package back normally. `apm unlink`, then (you can repeat #2, then reinstall it the official way)
+1. `$ git clone https://github.com/jamischarles/atom-todo-show.git` to e.g. ~/github/
+2. `$ apm link` in your cloned repo to symlink your version for atom development mode
+3. Open `~/github/atom-todo-show` in atom dev mode (View -> Developer -> Open in Dev Mode) or `atom -d`
+4. Make your changes.
+5. Reload atom to see the package changes take effect (View -> Reload)
+6. Test it.
+7. Issue your PR.
+8. Optionally `apm unlink` to remove the symlink

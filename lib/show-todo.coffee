@@ -25,8 +25,9 @@ module.exports =
       '/XXX:?(.+$)/g'
     ],
     ignoreThesePaths: [
-      '/node_modules/'
-      '/vendor/'
+      '*/node_modules/'
+      '*/vendor/'
+      '*/bower_components/'
     ]
 
   activate: (state) ->

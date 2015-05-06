@@ -144,16 +144,16 @@ class ShowTodoView extends ScrollView
     ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
     hasIgnores = ignoresFromSettings.length > 0
     ignoreRules = ignore({ ignore:ignoresFromSettings });
-
+    
     # console.log('pattern', pattern)
     # console.log('regexObj', regexObj)
     return atom.workspace.scan regexObj, (e) ->
       # Check against ignored paths
       include = true
-      pathToTest = slash(e.filePath.substring(atom.project.getPath().length))
+      pathToTest = slash(e.filePath.substring(atom.project.getPaths()[0].length))
       if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
         include = false
-
+        
       if include
         # loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
         # regExMatch.matchText = regExMatch.matchText.match(regexObj)[1] for regExMatch in e.matches

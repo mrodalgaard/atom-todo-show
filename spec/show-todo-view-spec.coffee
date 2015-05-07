@@ -8,31 +8,28 @@
 
 ShowTodoView = require '../lib/show-todo-view'
 
-# describe "ShowTodoView", ->
-  # it "has one valid test", ->
-  #   expect("life").toBe "easy"
-
-# @FIXME: Put this in beforeEach?
-pathname = "dummyData"
-showTodoView = new ShowTodoView(pathname)
-
 describe "buildRegexLookups(regexes)", ->
+  showTodoView = null
+  
+  beforeEach ->
+    pathname = "dummyData"
+    showTodoView = new ShowTodoView(pathname)
+  
   it "should return an array of objects (title, regex, results) when passed an array of regexes (and titles)", ->
-    # @FIXME: Should this be outside of this fn?
     findTheseRegexes = [
       'FIXMEs'
       '/FIXME:(.+$)/g'
-      'TODOs' #title
+      'TODOs'
       '/TODO:(.+$)/g'
       'CHANGEDs'
       '/CHANGED:(.+$)/g'
     ]
 
-    # Build the regex
+    # build the regex
     regexes = showTodoView.buildRegexLookups(findTheseRegexes)
 
     # assert result should match the following
-    exp_regexes = [{
+    lookups = [{
       'title': 'FIXMEs',
       'regex': '/FIXME:(.+$)/g',
       'results': []
@@ -47,27 +44,54 @@ describe "buildRegexLookups(regexes)", ->
       'regex': '/CHANGED:(.+$)/g',
       'results': []
     }]
-    expect(regexes).toEqual(exp_regexes)
-
-
+    expect(regexes).toEqual(lookups)
 
 describe "makeRegexObj(regexStr)", ->
-  it "should return a RegExp obj when passed a regex literal (string)", ->
+  showTodoView = null
+  
+  beforeEach ->
+    pathname = "dummyData"
+    showTodoView = new ShowTodoView(pathname)
 
+  it "should return a RegExp obj when passed a regex literal (string)", ->
     regexStr = "/TODO:(.+$)/g"
     regexObj = showTodoView.makeRegexObj(regexStr)
 
-    # Assertions
-    # duck test. Am I a regex obj?
+    # assertions duck test. Am I a regex obj?
     expect(typeof regexObj.test).toBe("function")
     expect(typeof regexObj.exec).toBe("function")
 
   it "should return false bool when passed an invalid regex literal (string)", ->
-
     regexStr = "arstastTODO:.+$)/g"
     regexObj = showTodoView.makeRegexObj(regexStr)
 
     expect(regexObj).toBe(false)
+
+describe "fetchRegexItem: (lookupObj)", ->
+  showTodoView = null
+  
+  beforeEach ->
+    pathname = "dummyData"
+    showTodoView = new ShowTodoView(pathname)
+  
+  it "should scan the workspace for the regex that is passed and fill lookups results", ->
+    promise = null
+    
+    lookups = {
+      'title': 'TODOs',
+      'regex': '/TODO:(.+$)/g',
+      'results': []
+    }
+    
+    waitsForPromise ->
+      promise = showTodoView.fetchRegexItem(lookups)
+    
+    runs ->
+      # matches for sample.js (first file scraped)
+      matches = lookups.results[0].matches
+      expect(matches.length).toBe(2)
+      expect(matches[0].matchText).toBe("This is the first todo")
+      expect(matches[1].matchText).toBe("This is the second todo")
 
 
 

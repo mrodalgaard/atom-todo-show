@@ -1,3 +1,10 @@
+## 0.9.0
+- Removed all deprecation calls for Atom 1.0
+- Valid ignore syntax for node_modules, vendor and bower_components
+- Toggle todo view
+- Working keymap ctrl-shift-t
+- New maintainer of atom-todo-show @MRodalgaard
+
 ## 0.8.0
 - Change how the ignore paths are handled.
 - https://github.com/jamischarles/atom-todo-show/pull/35

@@ -13,8 +13,6 @@ describe 'ShowTodo', ->
 
   beforeEach ->
     workspaceElement = atom.views.getView(atom.workspace)
-    #atom.workspaceView = workspaceElement.__spacePenView
-    #jasmine.attachToDOM(workspaceElement)
     activationPromise = atom.packages.activatePackage('todo-show')
 
   describe 'when the show-todo:find-in-project event is triggered', ->

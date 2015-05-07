@@ -35,7 +35,6 @@ class ShowTodoView extends ScrollView
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1
 
   initialize: (serializeState) ->
-    # atom.workspaceView.command "show-todo:toggle", => @toggle()
     # Add the view click handler that goes to the marker (todo, fixme, whatnot)
     this.on 'click', '.file_url a',  (e) => # handle click here
       link = e.target
@@ -240,26 +239,15 @@ class ShowTodoView extends ScrollView
   openPath: (filePath, cursorCoords) ->
     return unless filePath
 
-    # if there's no workspace, create a workspace... Doesn't appear to be necessary?
-    atom.workspaceView.open(filePath, split: 'left', {@allowActiveEditorChange}).done =>
+    atom.workspace.open(filePath, split: 'left').done =>
       @moveCursorTo(cursorCoords)
 
-  # taken directly from atom/fuzzy-finder
+  # Open document and move cursor to positon
   moveCursorTo: (cursorCoords) ->
-    lineNumber = parseInt(cursorCoords[0]) #take the regex start char [0], [1]
+    lineNumber = parseInt(cursorCoords[0])
     charNumber = parseInt(cursorCoords[1])
-    # return unless lineNumber >= 0
 
-    if editorView = atom.workspaceView.getActiveView()
+    if textEditor = atom.workspace.getActiveTextEditor()
       position = [lineNumber, charNumber]
-      editorView.scrollToBufferPosition(position, center: true)
-      editorView.editor.setCursorBufferPosition(position)
-      # editorView.editor.moveCursorToFirstCharacterOfLine()
-
-  # toggle: ->
-  #   @renderTodos()
-  #   console.log "ShowTodoView was toggled!"
-  #   if @hasParent()
-  #     @detach()
-  #   else
-  #    atom.workspaceView.append(this)
+      textEditor.setCursorBufferPosition(position, autoscroll: false)
+      textEditor.scrollToCursorPosition(center: true)

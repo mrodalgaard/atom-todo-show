@@ -34,7 +34,6 @@ class ShowTodoView extends ScrollView
   @content: ->
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1
 
-
   initialize: (serializeState) ->
     # atom.workspaceView.command "show-todo:toggle", => @toggle()
     # Add the view click handler that goes to the marker (todo, fixme, whatnot)
@@ -75,33 +74,23 @@ class ShowTodoView extends ScrollView
 
   # currently broken. FIXME: Remove or replace
   resolveJSPaths: (html) =>
-    # console.log('INISDE RESOLVE')
     html = $(html)
-
 
     # scrList = html.find("#mainScript")
     scrList = [html[5]]
-
-    # console.log('html', html)
-    # console.log('hi')
-    # console.log('srcList', scrList)
 
     for scrElement in scrList
       js = $(scrElement)
       src = js.attr('src')
       # continue if src.match /^(https?:\/\/)/
       js.attr('src', path.resolve(path.dirname(@getPath()), src))
-      # console.log 'js', js
     html
 
   showLoading: ->
     @html $$$ ->
       @div class: 'markdown-spinner', 'Loading Todos...'
 
-
-
-
-  #get the regexes to look for from the settings
+  # Get the regexes to look for from settings
   # @FIXME: Add proper comments
   # @param settingsRegexes {array} - An array of regexes from settings.
   buildRegexLookups: (settingsRegexes) ->
@@ -118,37 +107,34 @@ class ShowTodoView extends ScrollView
 
     return regexes
 
-  # Pass in '/FIXME:(.+$)/g ' and returns a proper RegExp obj
+  # Pass in string and returns a proper RegExp object
   makeRegexObj: (regexStr) ->
     # extract the regex pattern
     pattern = regexStr.match(/\/(.+)\//)?[1] #extract anything between the slashes
     # extract the flags (after the last slash)
     flags = regexStr.match(/\/(\w+$)/)?[1] #extract any words after the last slash. Flags are optional
 
-    #abort if there's no valid pattern
+    # abort if there's no valid pattern
     return false unless pattern
 
     return new RegExp(pattern, flags)
 
-  #@TODO: Actually figure out how promises work.
-  # scan the project for the regex that is passed
+  # Scan the project for the regex that is passed
   # returns a promise that the project scan generates
   # @TODO: Improve the param name. Confusing
   fetchRegexItem: (lookupObj) ->
     regexObj = @makeRegexObj(lookupObj.regex)
 
-    #abort if there's no valid pattern
+    # abort if there's no valid pattern
     return false unless regexObj
 
     # handle ignores from settings
     ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
-    hasIgnores = ignoresFromSettings.length > 0
+    hasIgnores = ignoresFromSettings?.length > 0
     ignoreRules = ignore({ ignore:ignoresFromSettings });
     
-    # console.log('pattern', pattern)
-    # console.log('regexObj', regexObj)
     return atom.workspace.scan regexObj, (e) ->
-      # Check against ignored paths
+      # check against ignored paths
       include = true
       pathToTest = slash(e.filePath.substring(atom.project.getPaths()[0].length))
       if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
@@ -161,23 +147,22 @@ class ShowTodoView extends ScrollView
           # strip out the regex token from the found phrase (todo, fixme, etc)
           # FIXME: I have no idea why this requires a stupid while loop. Figure it out and/or fix it.
           while (match = regexObj.exec(regExMatch.matchText))
-            regExMatch.matchText = match[1]
+            regExMatch.matchText = match[1].trim()
 
         lookupObj.results.push(e) # add it to the array of results for this regex
 
   renderTodos: ->
     @showLoading()
 
-    #fetch the reges from the settings
+    # fetch the reges from the settings
     regexes = @buildRegexLookups(atom.config.get('todo-show.findTheseRegexes'))
 
-    #@FIXME: abstract this into a separate, testable function?
+    # @FIXME: abstract this into a separate, testable function?
     promises = []
     for regexObj in regexes
-      #scan the project for each regex, and get a promise in return
-      promise = @fetchRegexItem(regexObj)  #inspect -> {state: 'pending'}
-      promises.push(promise) #create array of promises so we can listen for completion
-
+      # scan the project for each regex, and get a promise in return
+      promise = @fetchRegexItem(regexObj)
+      promises.push(promise) # create array of promises so we can listen for completion
 
     # fire callback when ALL project scans are done
     Q.all(promises).then () =>
@@ -195,15 +180,15 @@ class ShowTodoView extends ScrollView
       if ( fs.isFileSync(templ_path) )
         template = fs.readFileSync(templ_path, {encoding: "utf8"})
 
-      #FIXME: Add better error handling if the template fails to load
+      # FIXME: Add better error handling if the template fails to load
       compiled = dust.compile(template, "todo-template")
 
-      #is this step necessary? Appears to be...
+      # is this step necessary? Appears to be...
       dust.loadSource(compiled)
 
       # content & filters
       context = {
-        #make the path to the result relative
+        # make the path to the result relative
         "filterPath": (chunk, context, bodies) =>
           return chunk.tap((data) =>
 
@@ -211,7 +196,7 @@ class ShowTodoView extends ScrollView
             return atom.project.relativize(data);
           ).render(bodies.block, context).untap();
         ,
-        "results": regexes #FIXME: fix the sort order in the results
+        "results": regexes # FIXME: fix the sort order in the results
         # "todo_items": todoArray,
         # "fixme_items": fixmeArray,
         # "changed_items": changedArray,
@@ -237,8 +222,7 @@ class ShowTodoView extends ScrollView
 
       # vm.evalInThisContext("doSomething()");
 
-
-  # events that handle showing of todos
+  # Events that handle showing of todos
   handleEvents: ->
     # @subscribe atom.grammars, 'grammar-added grammar-updated', _.debounce((=> @renderTodos()), 250)
     # @subscribe this, 'core:move-up', => @scrollUp()
@@ -251,14 +235,12 @@ class ShowTodoView extends ScrollView
     #     pane.activateItem(this)
 
 
-  # open a new window, and load the file that we need.
+  # Open a new window, and load the file that we need.
   # we call this from the results view. This will open the result file in the left pane.
   openPath: (filePath, cursorCoords) ->
     return unless filePath
 
-    #if there's no workspace, create a workspace... Doesn't appear to be necessary?
-    # console.log('workspace', atom.workspace)
-
+    # if there's no workspace, create a workspace... Doesn't appear to be necessary?
     atom.workspaceView.open(filePath, split: 'left', {@allowActiveEditorChange}).done =>
       @moveCursorTo(cursorCoords)
 
@@ -277,7 +259,7 @@ class ShowTodoView extends ScrollView
   # toggle: ->
   #   @renderTodos()
   #   console.log "ShowTodoView was toggled!"
-    # if @hasParent()
-    #   @detach()
-    # else
-    #   atom.workspaceView.append(this)
+  #   if @hasParent()
+  #     @detach()
+  #   else
+  #    atom.workspaceView.append(this)

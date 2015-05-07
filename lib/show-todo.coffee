@@ -2,33 +2,42 @@
 # 1) Defines Regex defaults
 # 2) Instantiates the commands, the panes, and then calls showTodoView.renderTodos()
 
-# Deps
 querystring = require 'querystring'
 url = require 'url'
 fs = require 'fs-plus'
 
-# Local files
 ShowTodoView = require './show-todo-view'
 
 
 module.exports =
   showTodoView: null
-  configDefaults:
-    findTheseRegexes: [
-      'FIXMEs'
-      '/FIXME:?(.+$)/g'
-      'TODOs' #title
-      '/TODO:?(.+$)/g'
-      'CHANGEDs'
-      '/CHANGED:?(.+$)/g'
-      'XXXs'
-      '/XXX:?(.+$)/g'
-    ],
-    ignoreThesePaths: [
-      '*/node_modules/'
-      '*/vendor/'
-      '*/bower_components/'
-    ]
+  
+  config:
+    # title, regex, title, regex...
+    findTheseRegexes:
+      type: 'array'
+      default: [
+        'FIXMEs'
+        '/FIXME:?(.+$)/g'
+        'TODOs'
+        '/TODO:?(.+$)/g'
+        'CHANGEDs'
+        '/CHANGED:?(.+$)/g'
+        'XXXs'
+        '/XXX:?(.+$)/g'
+      ]
+      items:
+        type: 'string'
+    # ignore filter using node-ignore
+    ignoreThesePaths:
+      type: 'array'
+      default: [
+        '*/node_modules/'
+        '*/vendor/'
+        '*/bower_components/'
+      ]
+      items:
+        type: 'string'
 
   activate: (state) ->
     atom.commands.add 'atom-workspace', 'todo-show:find-in-project': =>
@@ -44,15 +53,9 @@ module.exports =
       # console.log('REGISTER OPENER CALLED444', uriToOpen)
       new ShowTodoView(pathname)
 
-
-  # findTodos: ->
-  #   atom.project.scan /todo/, (e) ->
-  #     console.log(e)
-
   deactivate: ->
     @showTodoView?.destroy()
-    #CHANGED
-    #NOTE:
+
   serialize: ->
     showTodoViewState: @showTodoView?.serialize()
 

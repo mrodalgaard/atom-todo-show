@@ -17,33 +17,55 @@ describe "buildRegexLookups(regexes)", ->
   
   it "should return an array of objects (title, regex, results) when passed an array of regexes (and titles)", ->
     findTheseRegexes = [
-      'FIXMEs'
-      '/FIXME:(.+$)/g'
       'TODOs'
       '/TODO:(.+$)/g'
-      'CHANGEDs'
-      '/CHANGED:(.+$)/g'
     ]
-
+    
     # build the regex
     regexes = showTodoView.buildRegexLookups(findTheseRegexes)
 
     # assert result should match the following
     lookups = [{
-      'title': 'FIXMEs',
-      'regex': '/FIXME:(.+$)/g',
-      'results': []
-    },
-    {
       'title': 'TODOs',
       'regex': '/TODO:(.+$)/g',
       'results': []
-    },
-    {
-      'title': 'CHANGEDs',
-      'regex': '/CHANGED:(.+$)/g',
-      'results': []
     }]
+    expect(regexes).toEqual(lookups)
+  
+  it "should work a lot of regexes", ->
+    findTheseRegexes = [
+      'FIXMEs'
+      '/FIXME:?(.+$)/g'
+      'TODOs'
+      '/TODO:?(.+$)/g'
+      'CHANGEDs'
+      '/CHANGED:?(.+$)/g'
+      'XXXs'
+      '/XXX:?(.+$)/g'
+    ]
+    regexes = showTodoView.buildRegexLookups(findTheseRegexes)
+    lookups = [
+      {
+        'title': 'FIXMEs',
+        'regex': '/FIXME:?(.+$)/g',
+        'results': []
+      },
+      {
+        'title': 'TODOs',
+        'regex': '/TODO:?(.+$)/g',
+        'results': []
+      },
+      {
+        'title': 'CHANGEDs',
+        'regex': '/CHANGED:?(.+$)/g',
+        'results': []
+      },
+      {
+        'title': 'XXXs',
+        'regex': '/XXX:?(.+$)/g',
+        'results': []
+      }
+    ]
     expect(regexes).toEqual(lookups)
 
 describe "makeRegexObj(regexStr)", ->

@@ -6,13 +6,16 @@
 # FIXME: Realizing this is some pretty nasty code. This should really, REALLY be cleaned up. Testing should help.
 # Also, having a greater understanding of Atom should help.
 
-vm = require 'vm'  #needed for the Content Security Policy errors when executing JS from my template view
+# needed for the Content Security Policy errors when executing JS from my template view
+vm = require 'vm'
 Q = require 'q'
 path = require 'path'
 {Disposable, Point} = require 'atom'
 {$$$, TextEditorView, ScrollView} = require 'atom-space-pen-views'
 $ = require 'jquery'
-{allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole' #needed for the Content Security Policy errors when executing JS from my template view
+
+# needed for the Content Security Policy errors when executing JS from my template view
+{allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole'
 fs = require 'fs-plus'
 _ = require 'underscore'
 slash = require 'slash'
@@ -38,7 +41,7 @@ class ShowTodoView extends ScrollView
     # Add the view click handler that goes to the marker (todo, fixme, whatnot)
     this.on 'click', '.file_url a',  (e) => # handle click here
       link = e.target
-      @openPath(link.dataset.uri, link.dataset.coords.split(','));
+      @openPath(link.dataset.uri, link.dataset.coords.split(','))
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -130,7 +133,7 @@ class ShowTodoView extends ScrollView
     # handle ignores from settings
     ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
     hasIgnores = ignoresFromSettings?.length > 0
-    ignoreRules = ignore({ ignore:ignoresFromSettings });
+    ignoreRules = ignore({ ignore:ignoresFromSettings })
     
     return atom.workspace.scan regexObj, (e) ->
       # check against ignored paths
@@ -188,12 +191,11 @@ class ShowTodoView extends ScrollView
       # content & filters
       context = {
         # make the path to the result relative
-        "filterPath": (chunk, context, bodies) =>
-          return chunk.tap((data) =>
-
+        "filterPath": (chunk, context, bodies) ->
+          chunk.tap((data) ->
             # make it relative
-            return atom.project.relativize(data);
-          ).render(bodies.block, context).untap();
+            atom.project.relativize(data)
+          ).render(bodies.block, context).untap()
         ,
         "results": regexes # FIXME: fix the sort order in the results
         # "todo_items": todoArray,

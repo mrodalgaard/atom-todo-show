@@ -1,16 +1,10 @@
-# See https://atom.io/docs/latest/creating-a-package#menus for more details
-# 'context-menu':
-#   '.overlayer':
-#       'Enable TODO-show': 'show-todo:find'
-
 'menu': [
-  {
-    'label': 'Packages'
+  'label': 'Packages'
+  'submenu': [
+    'label': 'Todo-Show'
     'submenu': [
-      'label': 'Todo-show'
-      'submenu': [
-        { 'label': 'Find in Project', 'command': 'todo-show:find-in-project' }
-      ]
+      'label': 'Find in Project'
+      'command': 'todo-show:find-in-project'
     ]
-  }
+  ]
 ]

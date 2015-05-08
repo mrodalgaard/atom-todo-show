@@ -6,58 +6,43 @@
 # FIXME: Realizing this is some pretty nasty code. This should really, REALLY be cleaned up. Testing should help.
 # Also, having a greater understanding of Atom should help.
 
-# needed for the Content Security Policy errors when executing JS from my template view
-vm = require 'vm'
-Q = require 'q'
 path = require 'path'
-{Disposable, Point} = require 'atom'
-{$$$, TextEditorView, ScrollView} = require 'atom-space-pen-views'
-$ = require 'jquery'
-
-# needed for the Content Security Policy errors when executing JS from my template view
+{Emitter, Disposable, CompositeDisposable, Point} = require 'atom'
+{$, $$$, TextEditorView, ScrollView} = require 'atom-space-pen-views'
 {allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole'
+Q = require 'q'
 fs = require 'fs-plus'
-_ = require 'underscore'
 slash = require 'slash'
 ignore = require 'ignore'
 
-
 module.exports =
 class ShowTodoView extends ScrollView
-  atom.deserializers.add(this)
-
-  @deserialize: ({filePath}) ->
-    new ShowTodoView(filePath)
-
-  constructor: (filePath) ->
-    super
-    # @file = new File(filePath)
-    @handleEvents()
-
   @content: ->
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1
 
-  initialize: (serializeState) ->
+  constructor: ({@filePath}) ->
+    super
+    @emitter = new Emitter
+    @disposables = new CompositeDisposable
+  
+  initialize: ->
     # Add the view click handler that goes to the marker (todo, fixme, whatnot)
-    this.on 'click', '.file_url a',  (e) => # handle click here
+    @on 'click', '.file_url a',  (e) =>
       link = e.target
       @openPath(link.dataset.uri, link.dataset.coords.split(','))
 
-  # Returns an object that can be retrieved when package is activated
-  serialize: ->
-
-  # Tear down any state and detach
   destroy: ->
     @detach()
+    @disposables.dispose()
 
   getTitle: ->
-    "Todo-show Results" #just put this title in there
+    "Todo-Show Results"
 
   getURI: ->
     "todolist-preview://#{@getPath()}"
 
   getPath: ->
-    # @file.getPath()
+    "TODOs"
 
   onDidChangeTitle: -> new Disposable()
   onDidChangeModified: -> new Disposable()
@@ -222,19 +207,6 @@ class ShowTodoView extends ScrollView
         # @html 'hi'
 
       # vm.evalInThisContext("doSomething()");
-
-  # Events that handle showing of todos
-  handleEvents: ->
-    # @subscribe atom.grammars, 'grammar-added grammar-updated', _.debounce((=> @renderTodos()), 250)
-    # @subscribe this, 'core:move-up', => @scrollUp()
-    # @subscribe this, 'core:move-down', => @scrollDown()
-    # fixME: probably not necessary. Can Likely be removed.
-    # @subscribe @file, 'contents-changed', =>
-    #   @renderTodos()
-    #   pane = atom.workspace.paneForUri(@getURI())
-    #   if pane? and pane isnt atom.workspace.getActivePane()
-    #     pane.activateItem(this)
-
 
   # Open a new window, and load the file that we need.
   # we call this from the results view. This will open the result file in the left pane.

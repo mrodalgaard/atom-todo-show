@@ -14,6 +14,7 @@ describe "buildRegexLookups(regexes)", ->
   beforeEach ->
     pathname = "dummyData"
     showTodoView = new ShowTodoView(pathname)
+    atom.project.setPaths([path.join(__dirname, 'fixtures/sample1')])
   
   it "should return an array of objects (title, regex, results) when passed an array of regexes (and titles)", ->
     findTheseRegexes = [
@@ -97,8 +98,6 @@ describe "fetchRegexItem: (lookupObj)", ->
     showTodoView = new ShowTodoView(pathname)
   
   it "should scan the workspace for the regex that is passed and fill lookups results", ->
-    promise = null
-    
     lookups = {
       'title': 'TODOs',
       'regex': '/TODO:(.+$)/g',
@@ -106,14 +105,15 @@ describe "fetchRegexItem: (lookupObj)", ->
     }
     
     waitsForPromise ->
-      promise = showTodoView.fetchRegexItem(lookups)
+      showTodoView.fetchRegexItem(lookups)
     
     runs ->
-      # matches for sample.js (first file scraped)
-      matches = lookups.results[0].matches
+      # matches for sample.js (2nd file scraped)
+      matches = lookups.results[1].matches
       expect(matches.length).toBe(2)
       expect(matches[0].matchText).toBe("This is the first todo")
       expect(matches[1].matchText).toBe("This is the second todo")
+
 
 
 

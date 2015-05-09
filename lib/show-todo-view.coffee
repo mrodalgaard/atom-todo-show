@@ -22,6 +22,7 @@ class ShowTodoView extends ScrollView
 
   constructor: ({@filePath}) ->
     super
+    @handleEvents()
     @emitter = new Emitter
     @disposables = new CompositeDisposable
   
@@ -43,6 +44,9 @@ class ShowTodoView extends ScrollView
 
   getPath: ->
     "TODOs"
+  
+  getProjectPath: ->
+    atom.project.getPaths()[0]
 
   onDidChangeTitle: -> new Disposable()
   onDidChangeModified: -> new Disposable()
@@ -74,6 +78,7 @@ class ShowTodoView extends ScrollView
     html
 
   showLoading: ->
+    @loading = true
     @html $$$ ->
       @div class: 'markdown-spinner', 'Loading Todos...'
 
@@ -135,7 +140,7 @@ class ShowTodoView extends ScrollView
           # FIXME: I have no idea why this requires a stupid while loop. Figure it out and/or fix it.
           while (match = regexObj.exec(regExMatch.matchText))
             regExMatch.matchText = match[1].trim()
-
+        
         lookupObj.results.push(e) # add it to the array of results for this regex
 
   renderTodos: ->
@@ -153,7 +158,8 @@ class ShowTodoView extends ScrollView
 
     # fire callback when ALL project scans are done
     Q.all(promises).then () =>
-
+      @regexes = regexes
+      
       # wasn't able to load 'dust' properly for some reason
       dust = require('dust.js') #templating engine
 
@@ -198,6 +204,8 @@ class ShowTodoView extends ScrollView
       # doSomething: ->
 
       dust.render "todo-template", context, (err, out) =>
+        @loading = false
+        
         # console.log 'err', err
         # console.log('content to be rendered', out);
         # allowUnsafeEval  ->
@@ -207,6 +215,12 @@ class ShowTodoView extends ScrollView
         # @html 'hi'
 
       # vm.evalInThisContext("doSomething()");
+
+  handleEvents: ->
+    atom.commands.add @element,
+      'core:save-as': (event) =>
+        event.stopPropagation()
+        @saveAs()
 
   # Open a new window, and load the file that we need.
   # we call this from the results view. This will open the result file in the left pane.
@@ -225,3 +239,33 @@ class ShowTodoView extends ScrollView
       position = [lineNumber, charNumber]
       textEditor.setCursorBufferPosition(position, autoscroll: false)
       textEditor.scrollToCursorPosition(center: true)
+  
+  getMarkdown: ->
+    projectPath = @getProjectPath()
+    
+    @regexes.map((regex) ->
+      return unless regex.results.length
+      
+      out = '\n## ' + regex.title + '\n\n'
+      
+      regex.results?.map((result) ->
+        relativePath = path.relative(projectPath, result.filePath)
+        
+        result.matches?.map((match) ->
+          out += '- ' + match.matchText
+          out += ' _(' + relativePath + ')_\n'
+        )
+      )
+      out
+    ).join("")
+  
+  saveAs: ->
+    return if @loading
+    
+    filePath = path.parse(@getPath()).name + '.txt'
+    if @getProjectPath()
+      filePath = path.join(@getProjectPath(), filePath)
+
+    if outputFilePath = atom.showSaveDialogSync(filePath)
+      fs.writeFileSync(outputFilePath, @getMarkdown())
+      atom.workspace.open(outputFilePath)

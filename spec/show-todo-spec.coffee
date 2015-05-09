@@ -1,9 +1,10 @@
 # Tests in this file are all about ensuring the command works properly and loads the proper panes...
 
-ShowTodo = require '../lib/show-todo'
+fs = require 'fs-plus'
+temp = require 'temp'
 
 describe 'ShowTodo', ->
-  [workspaceElement, activationPromise] = []
+  [workspaceElement, activationPromise, showTodoModule] = []
 
   # needed to activate packages that are using activationCommands
   executeCommand = (callback) ->
@@ -12,8 +13,12 @@ describe 'ShowTodo', ->
     runs(callback)
 
   beforeEach ->
+    atom.project.setPaths([path.join(__dirname, 'fixtures/sample1')])
     workspaceElement = atom.views.getView(atom.workspace)
+    #jasmine.attachToDOM(workspaceElement)
     activationPromise = atom.packages.activatePackage('todo-show')
+    showTodoModule = atom.packages.loadedPackages["todo-show"].mainModule
+
 
   describe 'when the show-todo:find-in-project event is triggered', ->
     it 'attaches and then detaches the pane view', ->
@@ -55,4 +60,32 @@ describe 'ShowTodo', ->
       newPaths = ['/foobar/']
       atom.config.set(configPaths, newPaths)
       expect(atom.config.get(configPaths)).toEqual(newPaths)
+  
+  describe 'when core:save-as is triggered', ->
+    beforeEach ->
+      executeCommand ->
+    
+    it 'saves the list in markdown and opens it', ->
+      outputPath = temp.path(suffix: '.md')
+      expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output.md')
+      expectedOutput = fs.readFileSync(expectedFilePath).toString()
       
+      expect(fs.isFileSync(outputPath)).toBe false
+      
+      waitsFor ->
+        !showTodoModule.showTodoView.loading
+      
+      runs ->
+        spyOn(atom, 'showSaveDialogSync').andReturn(outputPath)
+        atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:save-as'
+        
+      waitsFor ->
+        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is fs.realpathSync(outputPath)
+
+      runs ->
+        expect(fs.isFileSync(outputPath)).toBe true
+        expect(atom.workspace.getActiveTextEditor().getText()).toBe expectedOutput
+        
+        
+        
+        

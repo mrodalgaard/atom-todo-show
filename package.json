@@ -12,12 +12,13 @@
     "atom": ">0.50.0"
   },
   "dependencies": {
-    "fs-plus": "2.x",
-    "dust.js": "~0.1.0",
-    "q": "^1.0.1",
-    "loophole": "^1.0.0",
     "atom-space-pen-views": "^2.0.3",
+    "dust.js": "~0.1.0",
+    "fs-plus": "2.x",
     "ignore": "^2.2.15",
-    "slash": "^1.0.0"
+    "loophole": "^1.0.0",
+    "q": "^1.0.1",
+    "slash": "^1.0.0",
+    "temp": "^0.8.1"
   }
 }

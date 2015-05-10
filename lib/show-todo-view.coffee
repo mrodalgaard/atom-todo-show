@@ -66,8 +66,8 @@ class ShowTodoView extends ScrollView
                 @tr =>
                   @td match.matchText
                   @td =>
-                    filePath = atom.project.relativize(result.filePath)
-                    @a class: 'todo-url', 'data-uri': filePath, 'data-coords': match.range, filePath
+                    relativePath = atom.project.relativize(result.filePath)
+                    @a class: 'todo-url', 'data-uri': result.filePath, 'data-coords': match.range, relativePath
 
     @loading = false
 

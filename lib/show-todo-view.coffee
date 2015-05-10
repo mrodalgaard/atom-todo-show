@@ -71,22 +71,12 @@ class ShowTodoView extends ScrollView
                     
     @loading = false
 
-  # Get the regexes to look for from settings
-  # @FIXME: Add proper comments
-  # @param settingsRegexes {array} - An array of regexes from settings.
+  # Get regexes to look for from settings
   buildRegexLookups: (settingsRegexes) ->
-    regexes = [] #[{title, regex, results}]
-
-    for regex, i in settingsRegexes
-      match = {
-        'title': regex
-        'regex': settingsRegexes[i+1]
-        'results': []
-      }
-      _i = _i+1    #_ overrides the one that coffeescript actually creates. Seems hackish. FIXME: maybe just use modulus
-      regexes.push(match)
-
-    return regexes
+    for regex, i in settingsRegexes by 2
+      'title': regex
+      'regex': settingsRegexes[i+1]
+      'results': []
 
   # Pass in string and returns a proper RegExp object
   makeRegexObj: (regexStr) ->

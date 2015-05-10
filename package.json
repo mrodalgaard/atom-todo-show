@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.3",
-    "dust.js": "~0.1.0",
     "fs-plus": "2.x",
     "ignore": "^2.2.15",
     "loophole": "^1.0.0",

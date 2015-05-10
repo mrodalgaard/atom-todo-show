@@ -2,16 +2,13 @@
 # Pane magic happens in show-todo.coffee.
 # Markup is in template/show-todo-template.html
 # Styling is in the stylesheets folder.
-#
-# FIXME: Realizing this is some pretty nasty code. This should really, REALLY be cleaned up. Testing should help.
-# Also, having a greater understanding of Atom should help.
 
 path = require 'path'
-{Emitter, Disposable, CompositeDisposable, Point} = require 'atom'
-{$, $$$, TextEditorView, ScrollView} = require 'atom-space-pen-views'
-{allowUnsafeEval, allowUnsafeNewFunction} = require 'loophole'
-Q = require 'q'
 fs = require 'fs-plus'
+{Emitter, Disposable, CompositeDisposable, Point} = require 'atom'
+{$$$, ScrollView} = require 'atom-space-pen-views'
+
+Q = require 'q'
 slash = require 'slash'
 ignore = require 'ignore'
 
@@ -45,36 +42,34 @@ class ShowTodoView extends ScrollView
   onDidChangeTitle: -> new Disposable()
   onDidChangeModified: -> new Disposable()
 
-  resolveImagePaths: (html) =>
-    html = $(html)
-    imgList = html.find("img")
-
-    for imgElement in imgList
-      img = $(imgElement)
-      src = img.attr('src')
-      continue if src.match /^(https?:\/\/)/
-      img.attr('src', path.resolve(path.dirname(@getPath()), src))
-
-    html
-
-  # currently broken. FIXME: Remove or replace
-  resolveJSPaths: (html) =>
-    html = $(html)
-
-    # scrList = html.find("#mainScript")
-    scrList = [html[5]]
-
-    for scrElement in scrList
-      js = $(scrElement)
-      src = js.attr('src')
-      # continue if src.match /^(https?:\/\/)/
-      js.attr('src', path.resolve(path.dirname(@getPath()), src))
-    html
-
   showLoading: ->
     @loading = true
     @html $$$ ->
       @div class: 'markdown-spinner', 'Loading Todos...'
+  
+  showTodos: (regexes) ->
+    @html $$$ ->
+      @div class: 'todo-action-items pull-right', =>
+        @a class: 'todo-save-as', =>
+          @span class: 'icon icon-cloud-download'
+        @a class: 'todo-refresh', =>
+          @span class: 'icon icon-sync'
+      
+      for regex in regexes
+        @section class: 'result_item', =>
+          @h2 class: 'result_heading_title', =>
+            @span regex.title
+            @span class: 'regex', regex.regex
+          @table class: 'result_table', =>
+            for result in regex.results
+              for match in result.matches
+                @tr =>
+                  @td class: 'text', match.matchText
+                  @td class: 'file_url', =>
+                    filePath = atom.project.relativize(result.filePath)
+                    @a 'data-uri': filePath, 'data-coords': match.range, filePath
+                    
+    @loading = false
 
   # Get the regexes to look for from settings
   # @FIXME: Add proper comments
@@ -135,7 +130,8 @@ class ShowTodoView extends ScrollView
           while (match = regexObj.exec(regExMatch.matchText))
             regExMatch.matchText = match[1].trim()
         
-        lookupObj.results.push(e) # add it to the array of results for this regex
+        # FIXME: fix the sort order of results
+        lookupObj.results.push(e)
 
   renderTodos: ->
     @showLoading()
@@ -152,63 +148,7 @@ class ShowTodoView extends ScrollView
 
     # fire callback when ALL project scans are done
     Q.all(promises).then () =>
-      @regexes = regexes
-      
-      # wasn't able to load 'dust' properly for some reason
-      dust = require('dust.js') #templating engine
-
-      # template = hogan.compile("Hello {name}!");
-
-      # team = ['jamis', 'adam', 'johnson']
-
-      # load up the template
-      # path.resolve __dirname, '../template/show-todo-template.html'
-      templ_path = path.resolve(__dirname, '../template/show-todo-template.html')
-      if ( fs.isFileSync(templ_path) )
-        template = fs.readFileSync(templ_path, {encoding: "utf8"})
-
-      # FIXME: Add better error handling if the template fails to load
-      compiled = dust.compile(template, "todo-template")
-
-      # is this step necessary? Appears to be...
-      dust.loadSource(compiled)
-
-      # content & filters
-      context = {
-        # make the path to the result relative
-        "filterPath": (chunk, context, bodies) ->
-          chunk.tap((data) ->
-            # make it relative
-            atom.project.relativize(data)
-          ).render(bodies.block, context).untap()
-        ,
-        "results": regexes # FIXME: fix the sort order in the results
-        # "todo_items": todoArray,
-        # "fixme_items": fixmeArray,
-        # "changed_items": changedArray,
-        # "todo_items_length": todo_total_length,
-        # "fixme_items_length": fixme_total_length,
-        # "changed_items_length": changed_total_length
-      }
-
-      # console.log('VM', vm);
-      # vm.evalInThisContext(console.log('hi something in vm'));
-
-      # render the template
-      # doSomething: ->
-
-      dust.render "todo-template", context, (err, out) =>
-        @loading = false
-        
-        # console.log 'err', err
-        # console.log('content to be rendered', out);
-        # allowUnsafeEval  ->
-        # console.log('hi ho')
-        # out = @resolveJSPaths out #resolve the relative JS paths for external <script> in view
-        @html(out)
-        # @html 'hi'
-
-      # vm.evalInThisContext("doSomething()");
+      @showTodos(@regexes = regexes)
 
   handleEvents: ->
     atom.commands.add @element,
@@ -246,19 +186,15 @@ class ShowTodoView extends ScrollView
       textEditor.scrollToCursorPosition(center: true)
   
   getMarkdown: ->
-    projectPath = @getProjectPath()
-    
     @regexes.map((regex) ->
       return unless regex.results.length
       
       out = '\n## ' + regex.title + '\n\n'
       
       regex.results?.map((result) ->
-        relativePath = path.relative(projectPath, result.filePath)
-        
         result.matches?.map((match) ->
           out += '- ' + match.matchText
-          out += ' _(' + relativePath + ')_\n'
+          out += ' _(' + atom.project.relativize(result.filePath) + ')_\n'
         )
       )
       out

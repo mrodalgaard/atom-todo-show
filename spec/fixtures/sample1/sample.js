@@ -13,10 +13,10 @@ var quicksort = function () {
     }
     return sort(left).concat(pivot).concat(sort(right));
   };
-  
+
   // TODO: This is the second todo
-  
-  return sort(Array.apply(this, arguments));
-  
+
+  return sort(Array.apply(this, arguments));  // DEBUG
+
   // FIXME: Add more annnotations :)
 };

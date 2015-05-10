@@ -1,128 +1,176 @@
-# Tests in this file are all about the TODO fetching logic, and how we handle that data and then pass to the views.
-# Good example:
-# https://github.com/atom/tabs/blob/master/spec/tabs-spec.coffee
-
-# TODO:
-# - make buildRegexLookups testable. Input, and output. It doesn't care about state. Functional goodness...
-# - look at symbol generator for extracting comment blocks
 
 ShowTodoView = require '../lib/show-todo-view'
 
-describe "buildRegexLookups(regexes)", ->
+describe 'ShowTodoView fetching logic and data handling', ->
   showTodoView = null
-  
+
   beforeEach ->
-    pathname = "dummyData"
+    pathname = 'dummyData'
     showTodoView = new ShowTodoView(pathname)
-    atom.project.setPaths([path.join(__dirname, 'fixtures/sample1')])
-  
-  it "should return an array of objects (title, regex, results) when passed an array of regexes (and titles)", ->
-    findTheseRegexes = [
-      'TODOs'
-      '/TODO:(.+$)/g'
-    ]
-    
-    # build the regex
-    regexes = showTodoView.buildRegexLookups(findTheseRegexes)
+    atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
 
-    # assert result should match the following
-    lookups = [{
-      'title': 'TODOs',
-      'regex': '/TODO:(.+$)/g',
-      'results': []
-    }]
-    expect(regexes).toEqual(lookups)
-  
-  it "should work a lot of regexes", ->
-    findTheseRegexes = [
-      'FIXMEs'
-      '/FIXME:?(.+$)/g'
-      'TODOs'
-      '/TODO:?(.+$)/g'
-      'CHANGEDs'
-      '/CHANGED:?(.+$)/g'
-      'XXXs'
-      '/XXX:?(.+$)/g'
-    ]
-    regexes = showTodoView.buildRegexLookups(findTheseRegexes)
-    lookups = [
-      {
-        'title': 'FIXMEs',
-        'regex': '/FIXME:?(.+$)/g',
-        'results': []
-      },
-      {
-        'title': 'TODOs',
-        'regex': '/TODO:?(.+$)/g',
-        'results': []
-      },
-      {
-        'title': 'CHANGEDs',
-        'regex': '/CHANGED:?(.+$)/g',
-        'results': []
-      },
-      {
-        'title': 'XXXs',
-        'regex': '/XXX:?(.+$)/g',
-        'results': []
-      }
-    ]
-    expect(regexes).toEqual(lookups)
+  describe 'buildRegexLookups(regexes)', ->
+    it 'should return an array of objects (title, regex, results) when passed an array of regexes (and titles)', ->
+      findTheseRegexes = [
+        'TODOs'
+        '/TODO:(.+$)/g'
+      ]
 
-describe "makeRegexObj(regexStr)", ->
-  showTodoView = null
-  
-  beforeEach ->
-    pathname = "dummyData"
-    showTodoView = new ShowTodoView(pathname)
+      regexes = showTodoView.buildRegexLookups(findTheseRegexes)
 
-  it "should return a RegExp obj when passed a regex literal (string)", ->
-    regexStr = "/TODO:(.+$)/g"
-    regexObj = showTodoView.makeRegexObj(regexStr)
+      lookups = [{
+        title: 'TODOs'
+        regex: '/TODO:(.+$)/g'
+        results: []
+      }]
+      expect(regexes).toEqual(lookups)
 
-    # assertions duck test. Am I a regex obj?
-    expect(typeof regexObj.test).toBe("function")
-    expect(typeof regexObj.exec).toBe("function")
+    it 'should work with a lot of regexes', ->
+      findTheseRegexes = [
+        'FIXMEs'
+        '/FIXME:?(.+$)/g'
+        'TODOs'
+        '/TODO:?(.+$)/g'
+        'CHANGEDs'
+        '/CHANGED:?(.+$)/g'
+        'XXXs'
+        '/XXX:?(.+$)/g'
+      ]
+      regexes = showTodoView.buildRegexLookups(findTheseRegexes)
+      lookups = [
+        {
+          title: 'FIXMEs'
+          regex: '/FIXME:?(.+$)/g'
+          results: []
+        }
+        {
+          title: 'TODOs'
+          regex: '/TODO:?(.+$)/g'
+          results: []
+        }
+        {
+          title: 'CHANGEDs'
+          regex: '/CHANGED:?(.+$)/g'
+          results: []
+        }
+        {
+          title: 'XXXs'
+          regex: '/XXX:?(.+$)/g'
+          results: []
+        }
+      ]
+      expect(regexes).toEqual(lookups)
 
-  it "should return false bool when passed an invalid regex literal (string)", ->
-    regexStr = "arstastTODO:.+$)/g"
-    regexObj = showTodoView.makeRegexObj(regexStr)
+  describe 'makeRegexObj(regexStr)', ->
+    it 'should return a RegExp obj when passed a regex literal (string)', ->
+      regexStr = '/TODO:(.+$)/g'
+      regexObj = showTodoView.makeRegexObj(regexStr)
 
-    expect(regexObj).toBe(false)
+      # Assertions duck test. Am I a regex obj?
+      expect(typeof regexObj.test).toBe('function')
+      expect(typeof regexObj.exec).toBe('function')
 
-describe "fetchRegexItem: (lookupObj)", ->
-  showTodoView = null
-  
-  beforeEach ->
-    pathname = "dummyData"
-    showTodoView = new ShowTodoView(pathname)
-  
-  it "should scan the workspace for the regex that is passed and fill lookups results", ->
-    lookups = {
-      'title': 'TODOs',
-      'regex': '/TODO:(.+$)/g',
-      'results': []
-    }
-    
-    waitsForPromise ->
-      showTodoView.fetchRegexItem(lookups)
-    
-    runs ->
-      # matches for sample.js (2nd file scraped)
-      matches = lookups.results[1].matches
-      expect(matches.length).toBe(2)
-      expect(matches[0].matchText).toBe("This is the first todo")
-      expect(matches[1].matchText).toBe("This is the second todo")
+    it 'should return false bool when passed an invalid regex literal (string)', ->
+      regexStr = 'arstastTODO:.+$)/g'
+      regexObj = showTodoView.makeRegexObj(regexStr)
 
+      expect(regexObj).toBe(false)
 
+  describe 'fetchRegexItem: (lookupObj)', ->
+    todoLookup = []
+
+    beforeEach ->
+      todoLookup =
+        title: 'TODOs'
+        regex: '/TODO:(.+$)/g'
+        results: []
+
+    it 'should scan the workspace for the regex that is passed and fill lookups results', ->
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(todoLookup)
+
+      runs ->
+        expect(todoLookup.results.length).toBe(2)
+        expect(todoLookup.results[0].matches[0].matchText).toBe 'Comment in C'
+        expect(todoLookup.results[1].matches[0].matchText).toBe 'This is the first todo'
+        expect(todoLookup.results[1].matches[1].matchText).toBe 'This is the second todo'
+
+    it 'should respect ignored paths', ->
+      atom.config.set('todo-show.ignoreThesePaths', '*/sample.js')
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(todoLookup)
+      runs ->
+        expect(todoLookup.results.length).toBe(1)
+        expect(todoLookup.results[0].matches[0].matchText).toBe 'Comment in C'
+
+    it 'should handle other regexes', ->
+      lookup =
+        title: 'Includes'
+        regex: '/#include(.+)/g'
+        results: []
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(lookup)
+      runs ->
+        expect(lookup.results[0].matches[0].matchText).toBe '<stdio.h>'
+
+    it 'should handle specieal character regexes', ->
+      lookup =
+        title: 'Todos'
+        regex: '/ This is the (?:first|second) todo/g'
+        results: []
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(lookup)
+      runs ->
+        expect(lookup.results[0].matches[0].matchText).toBe 'This is the first todo'
+        expect(lookup.results[0].matches[1].matchText).toBe 'This is the second todo'
+
+    it 'should handle regex without capture group', ->
+      lookup =
+        title: 'This is Code'
+        regex: '/[\\w\\s]+code[\\w\\s]*/g'
+        results: []
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(lookup)
+      runs ->
+        expect(lookup.results[0].matches[0].matchText).toBe 'Sample quicksort code'
+
+    it 'should handle post-annotations with special regex', ->
+      lookup =
+        title: 'Pre-DEBUG'
+        regex: '/(.+).{3}DEBUG\\s*$/g'
+        results: []
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(lookup)
+      runs ->
+        expect(lookup.results[0].matches[0].matchText).toBe 'return sort(Array.apply(this, arguments));'
+
+    it 'should handle post-annotations with non-capturing group', ->
+      lookup =
+        title: 'Pre-DEBUG'
+        regex: '/(.+?(?=.{3}DEBUG\\s*$))/'
+        results: []
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(lookup)
+      runs ->
+        expect(lookup.results[0].matches[0].matchText).toBe 'return sort(Array.apply(this, arguments));'
 
 
 scan_mock = require './fixtures/atom_scan_mock_result.json'
 
 
+# TODO:
+# - make buildRegexLookups testable. Input, and output. It doesn't care about state. Functional goodness...
+# - look at symbol generator for extracting comment blocks
+
+
 # TODO: make some test fixtures? pages... load those in require those instead? We really just want to unit test it
 # and not run the whole thing... The more we can split it up the better...
-
 
 
 

@@ -35,7 +35,7 @@ class ShowTodoView extends ScrollView
 
   getPath: ->
     "TODOs"
-  
+
   getProjectPath: ->
     atom.project.getPaths()[0]
 
@@ -46,7 +46,7 @@ class ShowTodoView extends ScrollView
     @loading = true
     @html $$$ ->
       @div class: 'markdown-spinner', 'Loading Todos...'
-  
+
   showTodos: (regexes) ->
     @html $$$ ->
       @div class: 'todo-action-items pull-right', =>
@@ -54,7 +54,7 @@ class ShowTodoView extends ScrollView
           @span class: 'icon icon-cloud-download'
         @a class: 'todo-refresh', =>
           @span class: 'icon icon-sync'
-      
+
       for regex in regexes
         @section =>
           @h1 =>
@@ -68,7 +68,7 @@ class ShowTodoView extends ScrollView
                   @td =>
                     filePath = atom.project.relativize(result.filePath)
                     @a class: 'todo-url', 'data-uri': filePath, 'data-coords': match.range, filePath
-                    
+
     @loading = false
 
   # Get regexes to look for from settings
@@ -80,48 +80,42 @@ class ShowTodoView extends ScrollView
 
   # Pass in string and returns a proper RegExp object
   makeRegexObj: (regexStr) ->
-    # extract the regex pattern
-    pattern = regexStr.match(/\/(.+)\//)?[1] #extract anything between the slashes
-    # extract the flags (after the last slash)
-    flags = regexStr.match(/\/(\w+$)/)?[1] #extract any words after the last slash. Flags are optional
+    # Extract the regex pattern (anything between the slashes)
+    pattern = regexStr.match(/\/(.+)\//)?[1]
+    # Extract the flags (after last slash)
+    flags = regexStr.match(/\/(\w+$)/)?[1]
 
-    # abort if there's no valid pattern
     return false unless pattern
+    new RegExp(pattern, flags)
 
-    return new RegExp(pattern, flags)
-
-  # Scan the project for the regex that is passed
-  # returns a promise that the project scan generates
-  # @TODO: Improve the param name. Confusing
-  fetchRegexItem: (lookupObj) ->
-    regexObj = @makeRegexObj(lookupObj.regex)
-
-    # abort if there's no valid pattern
+  # Scan project for the lookup that is passed
+  # returns a promise that the scan generates
+  fetchRegexItem: (regexLookup) ->
+    regexObj = @makeRegexObj(regexLookup.regex)
     return false unless regexObj
 
-    # handle ignores from settings
+    # Handle ignores from settings
     ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
     hasIgnores = ignoresFromSettings?.length > 0
     ignoreRules = ignore({ ignore:ignoresFromSettings })
-    
+
     return atom.workspace.scan regexObj, (e) ->
-      # check against ignored paths
-      include = true
+      # Check against ignored paths
       pathToTest = slash(e.filePath.substring(atom.project.getPaths()[0].length))
-      if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
-        include = false
-        
-      if include
-        # loop through the results in the file, strip out 'todo:', and allow an optional space after todo:
-        # regExMatch.matchText = regExMatch.matchText.match(regexObj)[1] for regExMatch in e.matches
-        for regExMatch in e.matches
-          # strip out the regex token from the found phrase (todo, fixme, etc)
-          # FIXME: I have no idea why this requires a stupid while loop. Figure it out and/or fix it.
-          while (match = regexObj.exec(regExMatch.matchText))
-            regExMatch.matchText = match[1].trim()
-        
-        # FIXME: fix the sort order of results
-        lookupObj.results.push(e)
+      return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
+
+      # Loop through the workspace file results
+      for regExMatch in e.matches
+        matchText = regExMatch.matchText
+
+        # Strip out the regex token from the found annotation
+        while (match = regexObj.exec(matchText))
+          matchText = match.pop()
+
+        regExMatch.matchText = matchText.trim()
+
+      # FIXME: Fix the sort order of results
+      regexLookup.results.push(e)
 
   renderTodos: ->
     @showLoading()
@@ -148,7 +142,7 @@ class ShowTodoView extends ScrollView
       'core:refresh': (event) =>
         event.stopPropagation()
         @renderTodos()
-    
+
     @on 'click', '.todo-url',  (e) =>
       link = e.target
       @openPath(link.dataset.uri, link.dataset.coords.split(','))
@@ -174,13 +168,13 @@ class ShowTodoView extends ScrollView
       position = [lineNumber, charNumber]
       textEditor.setCursorBufferPosition(position, autoscroll: false)
       textEditor.scrollToCursorPosition(center: true)
-  
+
   getMarkdown: ->
     @regexes.map((regex) ->
       return unless regex.results.length
-      
+
       out = '\n## ' + regex.title + '\n\n'
-      
+
       regex.results?.map((result) ->
         result.matches?.map((match) ->
           out += '- ' + match.matchText
@@ -189,10 +183,10 @@ class ShowTodoView extends ScrollView
       )
       out
     ).join("")
-  
+
   saveAs: ->
     return if @loading
-    
+
     filePath = path.parse(@getPath()).name + '.txt'
     if @getProjectPath()
       filePath = path.join(@getProjectPath(), filePath)

@@ -33,6 +33,11 @@ module.exports =
       ]
       items:
         type: 'string'
+    # split direction to open list
+    openListInDirection:
+      type: 'string'
+      default: 'right'
+      enum: ['up', 'right', 'down', 'left', 'ontop']
 
   activate: ->
     atom.commands.add 'atom-workspace', 'todo-show:find-in-project': =>
@@ -46,15 +51,22 @@ module.exports =
       new ShowTodoView(filePath: pathname)
 
   show: ->
-    previousActivePane = atom.workspace.getActivePane()
     uri = "todolist-preview://TODOs"
+    prevPane = atom.workspace.getActivePane()
     pane = atom.workspace.paneForItem(@showTodoView)
-    
+    direction = atom.config.get('todo-show.openListInDirection')
+
     if pane
       pane.destroyItem(@showTodoView)
       # ignore core.destroyEmptyPanes and close empty pane
       pane.destroy() if pane.getItems().length is 0
-    else
-      atom.workspace.open(uri, split: 'right', searchAllPanes: true).done (@showTodoView) =>
-        @showTodoView.renderTodos() if @showTodoView instanceof ShowTodoView
-        previousActivePane.activate()
+      return
+
+    if direction == 'down'
+      prevPane.splitDown() if prevPane.parent.orientation != 'vertical'
+    else if direction == 'up'
+      prevPane.splitUp() if prevPane.parent.orientation != 'vertical'
+
+    atom.workspace.open(uri, split: direction).done (@showTodoView) =>
+      @showTodoView.renderTodos() if @showTodoView instanceof ShowTodoView
+      prevPane.activate()

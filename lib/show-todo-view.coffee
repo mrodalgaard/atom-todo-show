@@ -56,18 +56,18 @@ class ShowTodoView extends ScrollView
           @span class: 'icon icon-sync'
       
       for regex in regexes
-        @section class: 'result_item', =>
-          @h2 class: 'result_heading_title', =>
-            @span regex.title
+        @section =>
+          @h1 =>
+            @span regex.title + ' '
             @span class: 'regex', regex.regex
-          @table class: 'result_table', =>
+          @table =>
             for result in regex.results
               for match in result.matches
                 @tr =>
-                  @td class: 'text', match.matchText
-                  @td class: 'file_url', =>
+                  @td match.matchText
+                  @td =>
                     filePath = atom.project.relativize(result.filePath)
-                    @a 'data-uri': filePath, 'data-coords': match.range, filePath
+                    @a class: 'todo-url', 'data-uri': filePath, 'data-coords': match.range, filePath
                     
     @loading = false
 
@@ -159,7 +159,7 @@ class ShowTodoView extends ScrollView
         event.stopPropagation()
         @renderTodos()
     
-    @on 'click', '.file_url a',  (e) =>
+    @on 'click', '.todo-url',  (e) =>
       link = e.target
       @openPath(link.dataset.uri, link.dataset.coords.split(','))
     @on 'click', '.todo-save-as', =>

@@ -7,18 +7,21 @@ describe 'ShowTodo', ->
   [workspaceElement, activationPromise, showTodoModule] = []
 
   # needed to activate packages that are using activationCommands
+  # and wait for loading to stop
   executeCommand = (callback) ->
     atom.commands.dispatch(workspaceElement, 'todo-show:find-in-project')
     waitsForPromise -> activationPromise
-    runs(callback)
+    runs ->
+      showTodoModule = atom.packages.loadedPackages["todo-show"].mainModule
+      waitsFor ->
+        !showTodoModule.showTodoView.loading
+      runs(callback)
 
   beforeEach ->
     atom.project.setPaths([path.join(__dirname, 'fixtures/sample1')])
     workspaceElement = atom.views.getView(atom.workspace)
-    #jasmine.attachToDOM(workspaceElement)
+    jasmine.attachToDOM(workspaceElement)
     activationPromise = atom.packages.activatePackage('todo-show')
-    showTodoModule = atom.packages.loadedPackages["todo-show"].mainModule
-
 
   describe 'when the show-todo:find-in-project event is triggered', ->
     it 'attaches and then detaches the pane view', ->
@@ -61,10 +64,7 @@ describe 'ShowTodo', ->
       atom.config.set(configPaths, newPaths)
       expect(atom.config.get(configPaths)).toEqual(newPaths)
   
-  describe 'when core:save-as is triggered', ->
-    beforeEach ->
-      executeCommand ->
-    
+  describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->
       outputPath = temp.path(suffix: '.md')
       expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output.md')
@@ -72,13 +72,10 @@ describe 'ShowTodo', ->
       
       expect(fs.isFileSync(outputPath)).toBe false
       
-      waitsFor ->
-        !showTodoModule.showTodoView.loading
-      
-      runs ->
+      executeCommand ->
         spyOn(atom, 'showSaveDialogSync').andReturn(outputPath)
-        atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:save-as'
-        
+        workspaceElement.querySelector('.show-todo-preview .todo-save-as').click()
+
       waitsFor ->
         fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is fs.realpathSync(outputPath)
 
@@ -86,6 +83,15 @@ describe 'ShowTodo', ->
         expect(fs.isFileSync(outputPath)).toBe true
         expect(atom.workspace.getActiveTextEditor().getText()).toBe expectedOutput
         
+  describe 'when core:refresh is triggered', ->
+    it 'refreshes the list', ->
+      executeCommand ->
+        atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:refresh'
+
+        expect(showTodoModule.showTodoView.loading).toBe true
         
+        waitsFor ->
+          !showTodoModule.showTodoView.loading
         
-        
+        runs ->
+          expect(showTodoModule.showTodoView.loading).toBe false

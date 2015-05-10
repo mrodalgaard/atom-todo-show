@@ -25,12 +25,6 @@ class ShowTodoView extends ScrollView
     @handleEvents()
     @emitter = new Emitter
     @disposables = new CompositeDisposable
-  
-  initialize: ->
-    # Add the view click handler that goes to the marker (todo, fixme, whatnot)
-    @on 'click', '.file_url a',  (e) =>
-      link = e.target
-      @openPath(link.dataset.uri, link.dataset.coords.split(','))
 
   destroy: ->
     @detach()
@@ -221,6 +215,17 @@ class ShowTodoView extends ScrollView
       'core:save-as': (event) =>
         event.stopPropagation()
         @saveAs()
+      'core:refresh': (event) =>
+        event.stopPropagation()
+        @renderTodos()
+    
+    @on 'click', '.file_url a',  (e) =>
+      link = e.target
+      @openPath(link.dataset.uri, link.dataset.coords.split(','))
+    @on 'click', '.todo-save-as', =>
+      @saveAs()
+    @on 'click', '.todo-refresh', =>
+      @renderTodos()
 
   # Open a new window, and load the file that we need.
   # we call this from the results view. This will open the result file in the left pane.

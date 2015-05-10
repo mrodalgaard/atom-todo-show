@@ -12,4 +12,5 @@
 'context-menu':
   '.show-todo-preview': [
     {label: 'Save As Text\u2026', command: 'core:save-as'}
+    {label: 'Refresh Todos', command: 'core:refresh'}
   ]

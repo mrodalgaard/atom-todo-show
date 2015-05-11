@@ -91,6 +91,8 @@ class ShowTodoView extends ScrollView
   # Scan project for the lookup that is passed
   # returns a promise that the scan generates
   fetchRegexItem: (regexLookup) ->
+    maxLength = 120
+
     regexObj = @makeRegexObj(regexLookup.regex)
     return false unless regexObj
 
@@ -106,15 +108,18 @@ class ShowTodoView extends ScrollView
 
       # Loop through the workspace file results
       for regExMatch in e.matches
-        matchText = regExMatch.matchText
+        matchText = regExMatch.matchText.trim()
 
         # Strip out the regex token from the found annotation
+        # not all objects will have an exec match
         while (match = regexObj.exec(matchText))
-          matchText = match.pop()
+          matchText = match.pop().trim()
 
-        regExMatch.matchText = matchText.trim()
+        if matchText.length >= maxLength
+          matchText = matchText.substring(0, maxLength - 3) + '...'
 
-      # FIXME: Fix the sort order of results
+        regExMatch.matchText = matchText
+
       regexLookup.results.push(e)
 
   renderTodos: ->

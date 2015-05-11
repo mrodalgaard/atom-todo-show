@@ -13,14 +13,14 @@ describe 'ShowTodoView fetching logic and data handling', ->
     it 'should return an array of objects (title, regex, results) when passed an array of regexes (and titles)', ->
       findTheseRegexes = [
         'TODOs'
-        '/TODO:(.+$)/g'
+        '/TODO:?(.+$)/g'
       ]
 
       regexes = showTodoView.buildRegexLookups(findTheseRegexes)
 
       lookups = [{
         title: 'TODOs'
-        regex: '/TODO:(.+$)/g'
+        regex: '/TODO:?(.+$)/g'
         results: []
       }]
       expect(regexes).toEqual(lookups)
@@ -63,7 +63,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
 
   describe 'makeRegexObj(regexStr)', ->
     it 'should return a RegExp obj when passed a regex literal (string)', ->
-      regexStr = '/TODO:(.+$)/g'
+      regexStr = '/TODO:?(.+$)/g'
       regexObj = showTodoView.makeRegexObj(regexStr)
 
       # Assertions duck test. Am I a regex obj?
@@ -82,7 +82,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
     beforeEach ->
       todoLookup =
         title: 'TODOs'
-        regex: '/TODO:(.+$)/g'
+        regex: '/TODO:?(.+$)/g'
         results: []
 
     it 'should scan the workspace for the regex that is passed and fill lookups results', ->
@@ -159,6 +159,21 @@ describe 'ShowTodoView fetching logic and data handling', ->
         showTodoView.fetchRegexItem(lookup)
       runs ->
         expect(lookup.results[0].matches[0].matchText).toBe 'return sort(Array.apply(this, arguments));'
+
+    it 'should clip matches longer than the defined max length of 120', ->
+      lookup =
+        title: 'Long Annotation'
+        regex: '/LOONG:?(.+$)/g'
+        results: []
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(lookup)
+      runs ->
+        matchText =  'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
+        matchText += ' id ante molestias, ipsum lorem magnis et. A eleifend i...'
+
+        expect(lookup.results.length).toBe 1
+        expect(lookup.results[0].matches[0].matchText).toBe matchText
 
 
 scan_mock = require './fixtures/atom_scan_mock_result.json'

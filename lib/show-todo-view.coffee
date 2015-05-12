@@ -108,13 +108,17 @@ class ShowTodoView extends ScrollView
 
       # Loop through the workspace file results
       for regExMatch in e.matches
-        matchText = regExMatch.matchText.trim()
+        matchText = regExMatch.matchText
 
         # Strip out the regex token from the found annotation
         # not all objects will have an exec match
         while (match = regexObj.exec(matchText))
-          matchText = match.pop().trim()
+          matchText = match.pop()
 
+        # Strip common block comment endings and whitespaces
+        matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
+
+        # Truncate long match strings
         if matchText.length >= maxLength
           matchText = matchText.substring(0, maxLength - 3) + '...'
 

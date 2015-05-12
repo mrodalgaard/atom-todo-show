@@ -1,0 +1,5 @@
+/* TODO: C block comment */
+<!-- TODO: HTML comment -->
+<# TODO: PowerShell comment #>
+{- TODO: Haskell comment -}
+--[[ TODO: Lua comment ]]

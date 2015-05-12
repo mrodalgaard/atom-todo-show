@@ -160,7 +160,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
       runs ->
         expect(lookup.results[0].matches[0].matchText).toBe 'return sort(Array.apply(this, arguments));'
 
-    it 'should clip matches longer than the defined max length of 120', ->
+    it 'should truncate matches longer than the defined max length of 120', ->
       lookup =
         title: 'Long Annotation'
         regex: '/LOONG:?(.+$)/g'
@@ -172,9 +172,21 @@ describe 'ShowTodoView fetching logic and data handling', ->
         matchText =  'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
         matchText += ' id ante molestias, ipsum lorem magnis et. A eleifend i...'
 
-        expect(lookup.results.length).toBe 1
+        expect(lookup.results[0].matches[0].matchText.length).toBe 120
         expect(lookup.results[0].matches[0].matchText).toBe matchText
 
+    it 'should strip common block comment endings', ->
+      atom.project.setPaths [path.join(__dirname, 'fixtures/sample2')]
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(todoLookup)
+      runs ->
+        expect(todoLookup.results[0].matches.length).toBe 5
+        expect(todoLookup.results[0].matches[0].matchText).toBe 'C block comment'
+        expect(todoLookup.results[0].matches[1].matchText).toBe 'HTML comment'
+        expect(todoLookup.results[0].matches[2].matchText).toBe 'PowerShell comment'
+        expect(todoLookup.results[0].matches[3].matchText).toBe 'Haskell comment'
+        expect(todoLookup.results[0].matches[4].matchText).toBe 'Lua comment'
 
 scan_mock = require './fixtures/atom_scan_mock_result.json'
 

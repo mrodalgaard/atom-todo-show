@@ -1,3 +1,10 @@
+## 0.10.0
+- Strip common block comment endings (e.g. '*/')
+- Truncate matches over 120 characters
+- Configurable where the pane opens with openListInDirection
+- Updated styling
+- Save and refresh buttons
+
 ## 0.9.0
 - Removed all deprecation calls for Atom 1.0
 - Valid ignore syntax for node_modules, vendor and bower_components

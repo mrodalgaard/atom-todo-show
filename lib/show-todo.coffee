@@ -1,6 +1,4 @@
-# All this file really does is handle the following
-# 1) Defines Regex defaults
-# 2) Instantiates the commands, the panes, and then calls showTodoView.renderTodos()
+# This file handles configuration defaults, opening of pane and commands
 
 url = require 'url'
 

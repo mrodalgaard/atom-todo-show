@@ -1,7 +1,4 @@
 # This file handles all the fetching and displaying logic. It doesn't handle any of the pane magic.
-# Pane magic happens in show-todo.coffee.
-# Markup is in template/show-todo-template.html
-# Styling is in the stylesheets folder.
 
 path = require 'path'
 fs = require 'fs-plus'
@@ -24,6 +21,7 @@ class ShowTodoView extends ScrollView
     @disposables = new CompositeDisposable
 
   destroy: ->
+    @cancelScan()
     @detach()
     @disposables.dispose()
 
@@ -45,7 +43,8 @@ class ShowTodoView extends ScrollView
   showLoading: ->
     @loading = true
     @html $$$ ->
-      @div class: 'markdown-spinner', 'Loading Todos...'
+      @div class: 'markdown-spinner'
+      @h5 class: 'text-center searched-count', 'Loading Todos...'
 
   showTodos: (regexes) ->
     @html $$$ ->
@@ -93,55 +92,74 @@ class ShowTodoView extends ScrollView
   fetchRegexItem: (regexLookup) ->
     maxLength = 120
 
-    regexObj = @makeRegexObj(regexLookup.regex)
-    return false unless regexObj
+    regex = @makeRegexObj(regexLookup.regex)
+    return false unless regex
 
     # Handle ignores from settings
     ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
     hasIgnores = ignoresFromSettings?.length > 0
     ignoreRules = ignore({ ignore:ignoresFromSettings })
 
-    return atom.workspace.scan regexObj, (e) ->
-      # Check against ignored paths
-      pathToTest = slash(e.filePath.substring(atom.project.getPaths()[0].length))
-      return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
+    # TODO: Test if paths can be used for ignoreRules
 
-      # Loop through the workspace file results
-      for regExMatch in e.matches
-        matchText = regExMatch.matchText
+    # Only track progress on first scan
+    options = {}
+    if !@firstRegex
+      @firstRegex = true
+      onPathsSearched = (nPaths) =>
+        if @loading
+          @find('.searched-count').text(nPaths + ' paths searched...')
+      options = {paths: "*", onPathsSearched}
 
-        # Strip out the regex token from the found annotation
-        # not all objects will have an exec match
-        while (match = regexObj.exec(matchText))
-          matchText = match.pop()
+    # TODO: This function is doing too much, refactor
+    return atom.workspace.scan regex, options, (result, error) ->
+      if result
+        # Check against ignored paths
+        pathToTest = slash(result.filePath.substring(atom.project.getPaths()[0].length))
+        return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
 
-        # Strip common block comment endings and whitespaces
-        matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
+        # Loop through the workspace file results
+        for regExMatch in result.matches
+          matchText = regExMatch.matchText
 
-        # Truncate long match strings
-        if matchText.length >= maxLength
-          matchText = matchText.substring(0, maxLength - 3) + '...'
+          # Strip out the regex token from the found annotation
+          # not all objects will have an exec match
+          while (match = regex.exec(matchText))
+            matchText = match.pop()
 
-        regExMatch.matchText = matchText
+          # Strip common block comment endings and whitespaces
+          matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
 
-      regexLookup.results.push(e)
+          # Truncate long match strings
+          if matchText.length >= maxLength
+            matchText = matchText.substring(0, maxLength - 3) + '...'
+
+          regExMatch.matchText = matchText
+
+        regexLookup.results.push(result)
+
+      # TODO: Handle errors and no results
 
   renderTodos: ->
     @showLoading()
 
-    # fetch the reges from the settings
+    # Fetch the regexes from settings
     regexes = @buildRegexLookups(atom.config.get('todo-show.findTheseRegexes'))
 
-    # @FIXME: abstract this into a separate, testable function?
-    promises = []
+    # FIXME: Abstract this into a separate, testable function?
+    @searchPromises = []
     for regexObj in regexes
-      # scan the project for each regex, and get a promise in return
+      # Scan the project for each regex, and get correct promises
       promise = @fetchRegexItem(regexObj)
-      promises.push(promise) # create array of promises so we can listen for completion
+      @searchPromises.push(promise)
 
-    # fire callback when ALL project scans are done
-    Q.all(promises).then () =>
+    # Fire callback when ALL project scans are done
+    Q.all(@searchPromises).then () =>
       @showTodos(@regexes = regexes)
+
+  cancelScan: ->
+    for promise in @searchPromises
+      promise.cancel() if promise
 
   handleEvents: ->
     atom.commands.add @element,

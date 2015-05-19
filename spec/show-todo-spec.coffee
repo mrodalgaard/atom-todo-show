@@ -1,4 +1,5 @@
 
+path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
 

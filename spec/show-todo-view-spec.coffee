@@ -1,4 +1,6 @@
 
+path = require 'path'
+
 ShowTodoView = require '../lib/show-todo-view'
 
 describe 'ShowTodoView fetching logic and data handling', ->

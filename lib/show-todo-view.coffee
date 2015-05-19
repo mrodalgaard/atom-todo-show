@@ -107,6 +107,7 @@ class ShowTodoView extends ScrollView
     if !@firstRegex
       @firstRegex = true
       onPathsSearched = (nPaths) =>
+        console.log nPaths
         if @loading
           @find('.searched-count').text(nPaths + ' paths searched...')
       options = {paths: "*", onPathsSearched}

@@ -171,11 +171,17 @@ describe 'ShowTodoView fetching logic and data handling', ->
       waitsForPromise ->
         showTodoView.fetchRegexItem(lookup)
       runs ->
-        matchText =  'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
+        matchText = 'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
         matchText += ' id ante molestias, ipsum lorem magnis et. A eleifend i...'
+
+        matchText2 = '_SpgLE84Ms1K4DSumtJDoNn8ZECZLL+VR0DoGydy54vUoSpgLE84Ms1K4DSum'
+        matchText2 += 'tJDoNn8ZECZLLVR0DoGydy54vUonRClXwLbFhX2gMwZgjx250ay+V0lF...'
 
         expect(lookup.results[0].matches[0].matchText.length).toBe 120
         expect(lookup.results[0].matches[0].matchText).toBe matchText
+
+        expect(lookup.results[0].matches[1].matchText.length).toBe 120
+        expect(lookup.results[0].matches[1].matchText).toBe matchText2
 
     it 'should strip common block comment endings', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures/sample2')]

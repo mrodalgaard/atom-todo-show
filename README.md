@@ -2,7 +2,7 @@
 
 Finds all the TODO, FIXME, CHANGED, XXX comments in your project. Or anything else you want to fetch through settings.
 
-![](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
+![todo-show-package](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 
 ## Exclude files/folders from scan
 __globally__:

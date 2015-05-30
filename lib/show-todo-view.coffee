@@ -61,12 +61,18 @@ class ShowTodoView extends ScrollView
             @span class: 'regex', regex.regex
           @table =>
             for result in regex.results
+              relativePath = atom.project.relativize(result.filePath)
+
               for match in result.matches
                 @tr =>
                   @td match.matchText
                   @td =>
-                    relativePath = atom.project.relativize(result.filePath)
-                    @a class: 'todo-url', 'data-uri': result.filePath, 'data-coords': match.range, relativePath
+                    # Make sure range is serialized to produce correct rendered format
+                    # See https://github.com/jamischarles/atom-todo-show/issues/27
+                    range = match.range.toString()
+                    range = match.range.serialize().toString() if match.range.serialize
+
+                    @a class: 'todo-url', 'data-uri': result.filePath, 'data-coords': range, relativePath
 
     @loading = false
 
@@ -107,7 +113,6 @@ class ShowTodoView extends ScrollView
     if !@firstRegex
       @firstRegex = true
       onPathsSearched = (nPaths) =>
-        console.log nPaths
         if @loading
           @find('.searched-count').text(nPaths + ' paths searched...')
       options = {paths: "*", onPathsSearched}

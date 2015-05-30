@@ -11,6 +11,8 @@ ignore = require 'ignore'
 
 module.exports =
 class ShowTodoView extends ScrollView
+  maxLength: 120
+
   @content: ->
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1
 
@@ -93,11 +95,30 @@ class ShowTodoView extends ScrollView
     return false unless pattern
     new RegExp(pattern, flags)
 
+  # Parses and strips result from workplace scan
+  handleScanResult: (result, regex) ->
+    # Loop through the workspace file results
+    for regExMatch in result.matches
+      matchText = regExMatch.matchText
+
+      # Strip out the regex token from the found annotation
+      # not all objects will have an exec match
+      while (match = regex?.exec(matchText))
+        matchText = match.pop()
+
+      # Strip common block comment endings and whitespaces
+      matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
+
+      # Truncate long match strings
+      if matchText.length >= @maxLength
+        matchText = matchText.substring(0, @maxLength - 3) + '...'
+
+      regExMatch.matchText = matchText
+    result
+
   # Scan project for the lookup that is passed
   # returns a promise that the scan generates
   fetchRegexItem: (regexLookup) ->
-    maxLength = 120
-
     regex = @makeRegexObj(regexLookup.regex)
     return false unless regex
 
@@ -106,7 +127,11 @@ class ShowTodoView extends ScrollView
     hasIgnores = ignoresFromSettings?.length > 0
     ignoreRules = ignore({ ignore:ignoresFromSettings })
 
-    # TODO: Test if paths can be used for ignoreRules
+    # TODO: Use paths option as ignoreRules by adding them as an array
+    # of exclusions (!) after atom fix: https://github.com/atom/atom/pull/6386
+    # otherwise use full pattern; e.g. `!*/node_modules/**/*.*`
+    # This would hopefully also remove dependency on slash and ignore, while
+    # using default node-minimatch.
 
     # Only track progress on first scan
     options = {}
@@ -114,37 +139,18 @@ class ShowTodoView extends ScrollView
       @firstRegex = true
       onPathsSearched = (nPaths) =>
         if @loading
-          @find('.searched-count').text(nPaths + ' paths searched...')
-      options = {paths: "*", onPathsSearched}
+          @find('.searched-count').text("#{nPaths} paths searched...")
+      options = {paths: '*', onPathsSearched}
 
-    # TODO: This function is doing too much, refactor
-    return atom.workspace.scan regex, options, (result, error) ->
+    atom.workspace.scan regex, options, (result, error) =>
+      console.debug error.message if error
+
       if result
         # Check against ignored paths
         pathToTest = slash(result.filePath.substring(atom.project.getPaths()[0].length))
         return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
 
-        # Loop through the workspace file results
-        for regExMatch in result.matches
-          matchText = regExMatch.matchText
-
-          # Strip out the regex token from the found annotation
-          # not all objects will have an exec match
-          while (match = regex.exec(matchText))
-            matchText = match.pop()
-
-          # Strip common block comment endings and whitespaces
-          matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
-
-          # Truncate long match strings
-          if matchText.length >= maxLength
-            matchText = matchText.substring(0, maxLength - 3) + '...'
-
-          regExMatch.matchText = matchText
-
-        regexLookup.results.push(result)
-
-      # TODO: Handle errors and no results
+        regexLookup.results.push @handleScanResult(result, regex)
 
   renderTodos: ->
     @showLoading()

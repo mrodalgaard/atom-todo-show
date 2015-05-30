@@ -78,6 +78,26 @@ describe 'ShowTodoView fetching logic and data handling', ->
 
       expect(regexObj).toBe(false)
 
+  describe 'handleScanResult(result, regex)', ->
+    it 'should handle results from workspace scan (also tested in fetchRegexItem)', ->
+      result =
+        matches: [
+          matchText: ' TODO: Comment in C '
+        ]
+
+      output = showTodoView.handleScanResult(result)
+      expect(output.matches[0].matchText).toEqual 'TODO: Comment in C'
+
+    it 'should remove regex part', ->
+      result =
+        filePath: 'foo.js'
+        matches: [
+          matchText: ' TODO: Comment in C '
+        ]
+
+      output = showTodoView.handleScanResult(result, /TODO:?(.+$)/g)
+      expect(output.matches[0].matchText).toEqual 'Comment in C'
+
   describe 'fetchRegexItem: (lookupObj)', ->
     todoLookup = []
 
@@ -196,22 +216,6 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(todoLookup.results[0].matches[3].matchText).toBe 'Haskell comment'
         expect(todoLookup.results[0].matches[4].matchText).toBe 'Lua comment'
 
-scan_mock = require './fixtures/atom_scan_mock_result.json'
-
-
 # TODO:
 # - make buildRegexLookups testable. Input, and output. It doesn't care about state. Functional goodness...
 # - look at symbol generator for extracting comment blocks
-
-
-# TODO: make some test fixtures? pages... load those in require those instead? We really just want to unit test it
-# and not run the whole thing... The more we can split it up the better...
-
-
-
-# Should truncate really long comments
-# Should only show TODOs in sections marked as 'comment'?
-
-
-# buildRegexLookups
-# test that regexes work from override settings as well as from default

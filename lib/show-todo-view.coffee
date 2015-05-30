@@ -163,6 +163,8 @@ class ShowTodoView extends ScrollView
     Q.all(@searchPromises).then () =>
       @showTodos(@regexes = regexes)
 
+    return this
+
   cancelScan: ->
     for promise in @searchPromises
       promise.cancel() if promise

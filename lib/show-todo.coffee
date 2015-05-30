@@ -46,7 +46,7 @@ module.exports =
       {protocol, host, pathname} = url.parse(uriToOpen)
       pathname = decodeURI(pathname) if pathname
       return unless protocol is 'todolist-preview:'
-      new ShowTodoView(filePath: pathname)
+      new ShowTodoView(filePath: pathname).renderTodos()
 
   show: ->
     uri = "todolist-preview://TODOs"
@@ -66,5 +66,5 @@ module.exports =
       prevPane.splitUp() if prevPane.parent.orientation != 'vertical'
 
     atom.workspace.open(uri, split: direction).done (@showTodoView) =>
-      @showTodoView.renderTodos() if @showTodoView instanceof ShowTodoView
+      #@showTodoView.renderTodos() if @showTodoView instanceof ShowTodoView
       prevPane.activate()

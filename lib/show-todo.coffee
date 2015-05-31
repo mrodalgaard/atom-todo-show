@@ -9,15 +9,23 @@ module.exports =
     # title, regex, title, regex...
     findTheseRegexes:
       type: 'array'
-      default: [
+      default: [ # based on atom/language-todo
         'FIXMEs'
-        '/FIXME:?(.+$)/g'
+        '/\\b@?FIXME:?(.+$)/g'
         'TODOs'
-        '/TODO:?(.+$)/g'
+        '/\\b@?TODO:?(.+$)/g'
         'CHANGEDs'
-        '/CHANGED:?(.+$)/g'
+        '/\\b@?CHANGED:?(.+$)/g'
         'XXXs'
-        '/XXX:?(.+$)/g'
+        '/\\b@?XXX:?(.+$)/g'
+        'IDEAs'
+        '/\\b@?IDEA:?(.+$)/g'
+        'HACKs'
+        '/\\b@?HACK:?(.+$)/g'
+        'NOTEs'
+        '/\\b@?NOTE:?(.+$)/g'
+        'REVIEWs'
+        '/\\b@?REVIEW:?(.+$)/g'
       ]
       items:
         type: 'string'

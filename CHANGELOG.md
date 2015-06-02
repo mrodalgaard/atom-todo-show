@@ -1,3 +1,10 @@
+## 0.11.0
+- Use alt+shift+t on windows and linux
+- Same patterns as language-todo, thanks @KylePDavis
+- Work on reopen tabs
+- Line break long match texts
+- Scan progress when loading todos
+
 ## 0.10.0
 - Strip common block comment endings (e.g. '*/')
 - Truncate matches over 120 characters

@@ -1,6 +1,6 @@
 # TODO-show package
 
-Finds all the TODO, FIXME, CHANGED, XXX comments in your project. Or anything else you want to fetch through settings.
+Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in your project. Or anything else you want to fetch through settings.
 
 ![todo-show-package](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 

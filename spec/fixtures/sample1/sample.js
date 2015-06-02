@@ -22,4 +22,41 @@ var quicksort = function () {
   return sort(Array.apply(this, arguments));  // DEBUG
 
   // FIXME: Add more annnotations :)
+
+  // CHANGED one
+  // CHANGED: two
+  // @CHANGED three
+  // @CHANGED: four
+  // changed: non-matching tag
+
+  // XXX one
+  // XXX: two
+  // @XXX three
+  // @XXX: four
+  //xxx: non-matching tag
+
+  // IDEA one
+  // IDEA: two
+  // @IDEA three
+  // @IDEA: four
+  //idea: non-matching tag
+
+  // HACK one
+  // HACK: two
+  // @HACK three
+  // @HACK: four
+  //hack: non-matching tag
+
+  // NOTE one
+  // NOTE: two
+  // @NOTE three
+  // @NOTE: four
+  //note: non-matching tag
+
+  // REVIEW one
+  // REVIEW: two
+  // @REVIEW three
+  // @REVIEW: four
+  //review: non-matching tag
+
 };

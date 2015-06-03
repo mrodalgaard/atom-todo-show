@@ -2,7 +2,7 @@
   "name": "todo-show",
   "version": "0.11.0",
   "main": "./lib/show-todo",
-  "description": "Finds all the TODOs, FIXMEs, CHANGEDs in your project.",
+  "description": "Finds all the TODOs, FIXMEs, CHANGEDs, etc. in your project.",
   "activationCommands": {
     "atom-workspace": [
       "todo-show:find-in-project",
@@ -18,7 +18,6 @@
     "atom-space-pen-views": "^2.0.3",
     "fs-plus": "2.x",
     "ignore": "^2.2.15",
-    "loophole": "^1.0.0",
     "q": "^1.0.1",
     "slash": "^1.0.0",
     "temp": "^0.8.1"

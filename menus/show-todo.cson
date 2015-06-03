@@ -3,8 +3,14 @@
   'submenu': [
     'label': 'Todo-Show'
     'submenu': [
-      'label': 'Find in Project'
-      'command': 'todo-show:find-in-project'
+      {
+        'label': 'Find in Project'
+        'command': 'todo-show:find-in-project'
+      }
+      {
+        'label': 'Find in Open Files'
+        'command': 'todo-show:find-in-open-files'
+      }
     ]
   ]
 ]

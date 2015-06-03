@@ -22,19 +22,22 @@ class ShowTodoView extends ScrollView
     @emitter = new Emitter
     @disposables = new CompositeDisposable
 
+    # Determine if you are searching full workspace or just open files
+    @searchWorkspace = @filePath isnt '/Open-TODOs'
+
   destroy: ->
     @cancelScan()
     @detach()
     @disposables.dispose()
 
   getTitle: ->
-    "Todo-Show Results"
+    if @searchWorkspace then "Todo-Show Results" else "Todo-Show Open Files"
 
   getURI: ->
-    "todolist-preview://#{@getPath()}"
+    "todolist-preview:///#{@getPath()}"
 
   getPath: ->
-    "TODOs"
+    @filePath
 
   getProjectPath: ->
     atom.project.getPaths()[0]
@@ -95,9 +98,9 @@ class ShowTodoView extends ScrollView
     return false unless pattern
     new RegExp(pattern, flags)
 
-  # Parses and strips result from workplace scan
+  # Parses and strips result from scan
   handleScanResult: (result, regex) ->
-    # Loop through the workspace file results
+    # Loop through the scan results
     for regExMatch in result.matches
       matchText = regExMatch.matchText
 
@@ -116,7 +119,7 @@ class ShowTodoView extends ScrollView
       regExMatch.matchText = matchText
     result
 
-  # Scan project for the lookup that is passed
+  # Scan project workspace for the lookup that is passed
   # returns a promise that the scan generates
   fetchRegexItem: (regexLookup) ->
     regex = @makeRegexObj(regexLookup.regex)
@@ -152,20 +155,61 @@ class ShowTodoView extends ScrollView
 
         regexLookup.results.push @handleScanResult(result, regex)
 
+  # Scan open files for the lookup that is passed
+  fetchOpenRegexItem: (regexLookup) ->
+    regex = @makeRegexObj(regexLookup.regex)
+    return false unless regex
+
+    deferred = Q.defer()
+
+    for editor in atom.workspace.getTextEditors()
+      # Use same object layout as workspace scan with single match
+      result =
+        filePath: editor.getPath()
+        matches: []
+
+      editor.scan regex, (scanResult, error) ->
+        console.debug error.message if error
+
+        if scanResult
+          result.matches.push
+            matchText: scanResult.matchText
+            lineText: scanResult.matchText
+            range: [
+              [
+                scanResult.computedRange.start.row
+                scanResult.computedRange.start.column
+              ]
+              [
+                scanResult.computedRange.end.row
+                scanResult.computedRange.end.column
+              ]
+            ]
+
+      if result.matches.length > 0
+        regexLookup.results.push @handleScanResult(result, regex)
+
+    # No async operations, so just return a resolved promise
+    deferred.resolve()
+    deferred.promise
+
   renderTodos: ->
     @showLoading()
 
     # Fetch the regexes from settings
     regexes = @buildRegexLookups(atom.config.get('todo-show.findTheseRegexes'))
 
-    # FIXME: Abstract this into a separate, testable function?
+    # Scan for each regex and get promises
     @searchPromises = []
     for regexObj in regexes
-      # Scan the project for each regex, and get correct promises
-      promise = @fetchRegexItem(regexObj)
+      if @searchWorkspace
+        promise = @fetchRegexItem(regexObj)
+      else
+        promise = @fetchOpenRegexItem(regexObj)
+
       @searchPromises.push(promise)
 
-    # Fire callback when ALL project scans are done
+    # Fire callback when ALL scans are done
     Q.all(@searchPromises).then () =>
       @showTodos(@regexes = regexes)
 

@@ -4,7 +4,10 @@
   "main": "./lib/show-todo",
   "description": "Finds all the TODOs, FIXMEs, CHANGEDs in your project.",
   "activationCommands": {
-    "atom-workspace": "todo-show:find-in-project"
+    "atom-workspace": [
+      "todo-show:find-in-project",
+      "todo-show:find-in-open-files"
+    ]
   },
   "repository": "https://github.com/jamischarles/atom-todo-show",
   "license": "MIT",

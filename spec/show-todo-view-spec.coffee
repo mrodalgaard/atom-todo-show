@@ -107,12 +107,12 @@ describe 'ShowTodoView fetching logic and data handling', ->
         regex: '/TODO:?(.+$)/g'
         results: []
 
-    it 'should scan the workspace for the regex that is passed and fill lookups results', ->
+    it 'should scan the workspace for the regex that is passed and fill lookup results', ->
       waitsForPromise ->
         showTodoView.fetchRegexItem(todoLookup)
 
       runs ->
-        expect(todoLookup.results.length).toBe(2)
+        expect(todoLookup.results.length).toBe 2
         expect(todoLookup.results[0].matches[0].matchText).toBe 'Comment in C'
         expect(todoLookup.results[1].matches[0].matchText).toBe 'This is the first todo'
         expect(todoLookup.results[1].matches[1].matchText).toBe 'This is the second todo'
@@ -123,7 +123,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
       waitsForPromise ->
         showTodoView.fetchRegexItem(todoLookup)
       runs ->
-        expect(todoLookup.results.length).toBe(1)
+        expect(todoLookup.results.length).toBe 1
         expect(todoLookup.results[0].matches[0].matchText).toBe 'Comment in C'
 
     it 'should handle other regexes', ->
@@ -215,6 +215,40 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(todoLookup.results[0].matches[2].matchText).toBe 'PowerShell comment'
         expect(todoLookup.results[0].matches[3].matchText).toBe 'Haskell comment'
         expect(todoLookup.results[0].matches[4].matchText).toBe 'Lua comment'
+
+  describe 'fetchOpenRegexItem: (lookupObj)', ->
+    todoLookup = []
+
+    beforeEach ->
+      todoLookup =
+        title: 'TODOs'
+        regex: '/TODO:?(.+$)/g'
+        results: []
+      waitsForPromise ->
+        atom.workspace.open 'sample.c'
+
+    it 'should scan open files for the regex that is passed and fill lookup results', ->
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(todoLookup)
+
+      runs ->
+        expect(todoLookup.results.length).toBe 1
+        expect(todoLookup.results[0].matches.length).toBe 1
+        expect(todoLookup.results[0].matches[0].matchText).toBe 'Comment in C'
+
+    it 'should work with files outside of workspace', ->
+      waitsForPromise ->
+        atom.workspace.open '../sample2/sample.txt'
+
+      runs ->
+        waitsForPromise ->
+          showTodoView.fetchOpenRegexItem(todoLookup)
+
+        runs ->
+          expect(todoLookup.results.length).toBe 2
+          expect(todoLookup.results[0].matches[0].matchText).toBe 'Comment in C'
+          expect(todoLookup.results[1].matches[0].matchText).toBe 'C block comment'
+
 
 # TODO:
 # - make buildRegexLookups testable. Input, and output. It doesn't care about state. Functional goodness...

@@ -115,3 +115,35 @@ describe 'ShowTodo opening panes and executing commands', ->
 
         runs ->
           expect(showTodoModule.showTodoView.loading).toBe false
+
+  describe 'when the show-todo:find-in-open-files event is triggered', ->
+    beforeEach ->
+      atom.commands.dispatch(workspaceElement, 'todo-show:find-in-open-files')
+      waitsForPromise -> activationPromise
+      runs ->
+        showTodoModule = atom.packages.loadedPackages['todo-show'].mainModule
+        waitsFor ->
+          !showTodoModule.showTodoView.loading
+
+    it 'does not show any results with no open files', ->
+      # TODO: Regexes with no results should be removed
+      todoRegex = showTodoModule.showTodoView.regexes[1]
+      expect(todoRegex.title).toBe 'TODOs'
+      expect(todoRegex.results.length).toBe 0
+
+    it 'only shows todos from open files', ->
+      waitsForPromise ->
+        atom.workspace.open 'sample.c'
+
+      runs ->
+        atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:refresh'
+
+        waitsFor ->
+          !showTodoModule.showTodoView.loading
+
+        runs ->
+          todoRegex = showTodoModule.showTodoView.regexes[1]
+          expect(todoRegex.title).toBe 'TODOs'
+          expect(todoRegex.results.length).toBe 1
+          expect(todoRegex.results[0].matches.length).toBe 1
+          expect(todoRegex.results[0].matches[0].matchText).toBe 'Comment in C'

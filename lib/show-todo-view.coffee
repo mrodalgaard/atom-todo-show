@@ -70,7 +70,8 @@ class ShowTodoView extends ScrollView
                 @tr =>
                   @td match.matchText
                   @td =>
-                    @a class: 'todo-url', 'data-uri': result.filePath, 'data-coords': match.rangeString, result.relativePath
+                    @a class: 'todo-url', 'data-uri': result.filePath,
+                    'data-coords': match.rangeString, result.relativePath
 
       unless regexes.length
         @section =>
@@ -119,7 +120,7 @@ class ShowTodoView extends ScrollView
 
       # Truncate long match strings
       if matchText.length >= @maxLength
-        matchText = matchText.substring(0, @maxLength - 3) + '...'
+        matchText = "#{matchText.substring(0, @maxLength - 3)}..."
 
       match.matchText = matchText
 
@@ -274,21 +275,20 @@ class ShowTodoView extends ScrollView
     @regexes.map((regex) ->
       return unless regex.results.length
 
-      out = '\n## ' + regex.title + '\n\n'
+      out = "\n## #{regex.title}\n\n"
 
-      regex.results?.map((result) ->
-        result.matches?.map((match) ->
-          out += '- ' + match.matchText
-          out += ' _(' + atom.project.relativize(result.filePath) + ')_\n'
-        )
-      )
-      out
-    ).join("")
+      for result in regex.results
+        for match in result.matches
+          out += "- #{match.matchText}"
+          out += " `#{result.relativePath}:#{match.range[0][0] + 1}`\n"
+
+      return out
+    ).join('')
 
   saveAs: ->
     return if @loading
 
-    filePath = path.parse(@getPath()).name + '.txt'
+    filePath = "#{path.parse(@getPath()).name}.md"
     if @getProjectPath()
       filePath = path.join(@getProjectPath(), filePath)
 

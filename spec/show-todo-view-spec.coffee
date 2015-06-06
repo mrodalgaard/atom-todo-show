@@ -79,24 +79,32 @@ describe 'ShowTodoView fetching logic and data handling', ->
       expect(regexObj).toBe(false)
 
   describe 'handleScanResult(result, regex)', ->
-    it 'should handle results from workspace scan (also tested in fetchRegexItem)', ->
+    {result, regex} = []
+
+    beforeEach ->
+      regex = /TODO:?(.+$)/g
       result =
+        filePath: "#{atom.project.getPaths()[0]}/sample.c"
         matches: [
           matchText: ' TODO: Comment in C '
+          range: [
+            [0, 1]
+            [0, 20]
+          ]
         ]
 
+    it 'should handle results from workspace scan (also tested in fetchRegexItem)', ->
       output = showTodoView.handleScanResult(result)
       expect(output.matches[0].matchText).toEqual 'TODO: Comment in C'
 
     it 'should remove regex part', ->
-      result =
-        filePath: 'foo.js'
-        matches: [
-          matchText: ' TODO: Comment in C '
-        ]
-
-      output = showTodoView.handleScanResult(result, /TODO:?(.+$)/g)
+      output = showTodoView.handleScanResult(result, regex)
       expect(output.matches[0].matchText).toEqual 'Comment in C'
+
+    it 'should serialize range and relativize path', ->
+      output = showTodoView.handleScanResult(result, regex)
+      expect(output.relativePath).toEqual 'sample.c'
+      expect(output.matches[0].rangeString).toEqual '0,1,0,20'
 
   describe 'fetchRegexItem: (lookupObj)', ->
     todoLookup = []

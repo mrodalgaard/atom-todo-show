@@ -66,18 +66,23 @@ class ShowTodoView extends ScrollView
             @span class: 'regex', regex.regex
           @table =>
             for result in regex.results
-              relativePath = atom.project.relativize(result.filePath)
-
               for match in result.matches
                 @tr =>
                   @td match.matchText
                   @td =>
-                    # Make sure range is serialized to produce correct rendered format
-                    # See https://github.com/jamischarles/atom-todo-show/issues/27
-                    range = match.range.toString()
-                    range = match.range.serialize().toString() if match.range.serialize
+                    @a class: 'todo-url', 'data-uri': result.filePath, 'data-coords': match.rangeString, result.relativePath
 
-                    @a class: 'todo-url', 'data-uri': result.filePath, 'data-coords': range, relativePath
+      unless regexes.length
+        @section =>
+          @h1 'No results'
+          @table =>
+            @tr =>
+              @td =>
+                @h5 'Did not find any todos. Searched for:'
+                @ul =>
+                  for regex in atom.config.get('todo-show.findTheseRegexes') by 2
+                    @li regex
+                @h5 'Use your configuration to add more patterns.'
 
     @loading = false
 
@@ -101,13 +106,13 @@ class ShowTodoView extends ScrollView
   # Parses and strips result from scan
   handleScanResult: (result, regex) ->
     # Loop through the scan results
-    for regExMatch in result.matches
-      matchText = regExMatch.matchText
+    for match in result.matches
+      matchText = match.matchText
 
       # Strip out the regex token from the found annotation
       # not all objects will have an exec match
-      while (match = regex?.exec(matchText))
-        matchText = match.pop()
+      while (_match = regex?.exec(matchText))
+        matchText = _match.pop()
 
       # Strip common block comment endings and whitespaces
       matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
@@ -116,8 +121,17 @@ class ShowTodoView extends ScrollView
       if matchText.length >= @maxLength
         matchText = matchText.substring(0, @maxLength - 3) + '...'
 
-      regExMatch.matchText = matchText
-    result
+      match.matchText = matchText
+
+      # Make sure range is serialized to produce correct rendered format
+      # See https://github.com/jamischarles/atom-todo-show/issues/27
+      if match.range.serialize
+        match.rangeString = match.range.serialize().toString()
+      else
+        match.rangeString = match.range.toString()
+
+    result.relativePath = atom.project.relativize(result.filePath)
+    return result
 
   # Scan project workspace for the lookup that is passed
   # returns a promise that the scan generates
@@ -211,7 +225,9 @@ class ShowTodoView extends ScrollView
 
     # Fire callback when ALL scans are done
     Q.all(@searchPromises).then () =>
-      @showTodos(@regexes = regexes)
+      @regexes = regexes.filter (regex) ->
+        regex.results.length
+      @showTodos(@regexes)
 
     return this
 

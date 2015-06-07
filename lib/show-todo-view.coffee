@@ -71,7 +71,7 @@ class ShowTodoView extends ScrollView
                   @td match.matchText
                   @td =>
                     @a class: 'todo-url', 'data-uri': result.filePath,
-                    'data-coords': match.rangeString, result.relativePath
+                    'data-coords': match.rangeString, "#{result.relativePath}:#{match.range[0][0] + 1}"
 
       unless regexes.length
         @section =>

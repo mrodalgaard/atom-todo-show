@@ -1,3 +1,7 @@
+## 0.13.0
+- Enforce a trailing space on todos
+- Add line numbers to saved output
+
 ## 0.12.0
 - Do not show match groups with no matches
 - Show what happened when no matches where found

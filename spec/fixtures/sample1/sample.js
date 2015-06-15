@@ -60,3 +60,7 @@ var quicksort = function () {
   //review: non-matching tag
 
 };
+
+// Don't match the following
+define("_JS_TODO_ALERT_", "js:alert(&quot;TODO&quot;);");
+// XXXe�d��RPPP0�

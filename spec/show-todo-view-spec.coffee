@@ -82,7 +82,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
     {result, regex} = []
 
     beforeEach ->
-      regex = /TODO:?(.+$)/g
+      regex = /\b@?TODO:?\s(.+$)/g
       result =
         filePath: "#{atom.project.getPaths()[0]}/sample.c"
         matches: [
@@ -112,7 +112,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
     beforeEach ->
       todoLookup =
         title: 'TODOs'
-        regex: '/TODO:?(.+$)/g'
+        regex: '/\\b@?TODO:?\\s(.+$)/g'
         results: []
 
     it 'should scan the workspace for the regex that is passed and fill lookup results', ->
@@ -230,7 +230,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
     beforeEach ->
       todoLookup =
         title: 'TODOs'
-        regex: '/TODO:?(.+$)/g'
+        regex: '/\\b@?TODO:?\\s(.+$)/g'
         results: []
       waitsForPromise ->
         atom.workspace.open 'sample.c'

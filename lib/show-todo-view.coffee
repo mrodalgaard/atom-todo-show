@@ -1,34 +1,55 @@
-# This file handles all the fetching and displaying logic. It doesn't handle any of the pane magic.
-
+{CompositeDisposable} = require 'atom'
+{ScrollView} = require 'atom-space-pen-views'
 path = require 'path'
 fs = require 'fs-plus'
-{Emitter, Disposable, CompositeDisposable, Point} = require 'atom'
-{$$$, ScrollView} = require 'atom-space-pen-views'
 
 Q = require 'q'
 slash = require 'slash'
 ignore = require 'ignore'
+
+TodoItemView = require './todo-item-view'
+TodoEmptyView = require './todo-empty-view'
 
 module.exports =
 class ShowTodoView extends ScrollView
   maxLength: 120
 
   @content: ->
-    @div class: 'show-todo-preview native-key-bindings', tabindex: -1
+    @div class: 'show-todo-preview native-key-bindings', tabindex: -1, =>
+      @div class: 'todo-action-items pull-right', =>
+        @a outlet: 'saveAsButton', class: 'icon icon-cloud-download'
+        @a outlet: 'refreshButton', class: 'icon icon-sync'
+
+      @div outlet: 'todoLoading', =>
+        @div class: 'markdown-spinner'
+        @h5 outlet: 'searchCount', class: 'text-center', "Loading Todos..."
+
+      @div outlet: 'todoList'
 
   constructor: ({@filePath}) ->
     super
-    @handleEvents()
-    @emitter = new Emitter
     @disposables = new CompositeDisposable
+    @handleEvents()
 
     # Determine if you are searching full workspace or just open files
     @searchWorkspace = @filePath isnt '/Open-TODOs'
 
+  handleEvents: ->
+    @disposables.add atom.commands.add @element,
+      'core:save-as': (event) =>
+        event.stopPropagation()
+        @saveAs()
+      'core:refresh': (event) =>
+        event.stopPropagation()
+        @renderTodos()
+
+    @saveAsButton.on 'click', => @saveAs()
+    @refreshButton.on 'click', => @renderTodos()
+
   destroy: ->
     @cancelScan()
     @detach()
-    @disposables.dispose()
+    @disposables?.dispose()
 
   getTitle: ->
     if @searchWorkspace then "Todo-Show Results" else "Todo-Show Open Files"
@@ -42,50 +63,14 @@ class ShowTodoView extends ScrollView
   getProjectPath: ->
     atom.project.getPaths()[0]
 
-  onDidChangeTitle: -> new Disposable()
-  onDidChangeModified: -> new Disposable()
-
-  showLoading: ->
+  startLoading: ->
     @loading = true
-    @html $$$ ->
-      @div class: 'markdown-spinner'
-      @h5 class: 'text-center searched-count', 'Loading Todos...'
+    @todoList.empty()
+    @todoLoading.show()
 
-  showTodos: (regexes) ->
-    @html $$$ ->
-      @div class: 'todo-action-items pull-right', =>
-        @a class: 'todo-save-as', =>
-          @span class: 'icon icon-cloud-download'
-        @a class: 'todo-refresh', =>
-          @span class: 'icon icon-sync'
-
-      for regex in regexes
-        @section =>
-          @h1 =>
-            @span regex.title + ' '
-            @span class: 'regex', regex.regex
-          @table =>
-            for result in regex.results
-              for match in result.matches
-                @tr =>
-                  @td match.matchText
-                  @td =>
-                    @a class: 'todo-url', 'data-uri': result.filePath,
-                    'data-coords': match.rangeString, result.relativePath
-
-      unless regexes.length
-        @section =>
-          @h1 'No results'
-          @table =>
-            @tr =>
-              @td =>
-                @h5 'Did not find any todos. Searched for:'
-                @ul =>
-                  for regex in atom.config.get('todo-show.findTheseRegexes') by 2
-                    @li regex
-                @h5 'Use your configuration to add more patterns.'
-
+  stopLoading: ->
     @loading = false
+    @todoLoading.hide()
 
   # Get regexes to look for from settings
   buildRegexLookups: (settingsRegexes) ->
@@ -156,8 +141,7 @@ class ShowTodoView extends ScrollView
     if !@firstRegex
       @firstRegex = true
       onPathsSearched = (nPaths) =>
-        if @loading
-          @find('.searched-count').text("#{nPaths} paths searched...")
+        @searchCount.text("#{nPaths} paths searched...") if @loading
       options = {paths: '*', onPathsSearched}
 
     atom.workspace.scan regex, options, (result, error) =>
@@ -209,7 +193,7 @@ class ShowTodoView extends ScrollView
     deferred.promise
 
   renderTodos: ->
-    @showLoading()
+    @startLoading()
 
     # Fetch the regexes from settings
     regexes = @buildRegexLookups(atom.config.get('todo-show.findTheseRegexes'))
@@ -226,50 +210,20 @@ class ShowTodoView extends ScrollView
 
     # Fire callback when ALL scans are done
     Q.all(@searchPromises).then () =>
-      @regexes = regexes.filter (regex) ->
+      @stopLoading()
+
+      # Remove empty regex matches
+      @regexes = regexes.filter (regex) =>
+        @todoList.append new TodoItemView(regex) if regex.results.length
         regex.results.length
-      @showTodos(@regexes)
+
+      @todoList.append new TodoEmptyView unless @regexes.length
 
     return this
 
   cancelScan: ->
     for promise in @searchPromises
       promise.cancel() if promise
-
-  handleEvents: ->
-    atom.commands.add @element,
-      'core:save-as': (event) =>
-        event.stopPropagation()
-        @saveAs()
-      'core:refresh': (event) =>
-        event.stopPropagation()
-        @renderTodos()
-
-    @on 'click', '.todo-url',  (e) =>
-      link = e.target
-      @openPath(link.dataset.uri, link.dataset.coords.split(','))
-    @on 'click', '.todo-save-as', =>
-      @saveAs()
-    @on 'click', '.todo-refresh', =>
-      @renderTodos()
-
-  # Open a new window, and load the file that we need.
-  # we call this from the results view. This will open the result file in the left pane.
-  openPath: (filePath, cursorCoords) ->
-    return unless filePath
-
-    atom.workspace.open(filePath, split: 'left').done =>
-      @moveCursorTo(cursorCoords)
-
-  # Open document and move cursor to positon
-  moveCursorTo: (cursorCoords) ->
-    lineNumber = parseInt(cursorCoords[0])
-    charNumber = parseInt(cursorCoords[1])
-
-    if textEditor = atom.workspace.getActiveTextEditor()
-      position = [lineNumber, charNumber]
-      textEditor.setCursorBufferPosition(position, autoscroll: false)
-      textEditor.scrollToCursorPosition(center: true)
 
   getMarkdown: ->
     @regexes.map((regex) ->

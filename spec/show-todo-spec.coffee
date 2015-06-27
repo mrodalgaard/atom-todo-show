@@ -46,9 +46,6 @@ describe 'ShowTodo opening panes and executing commands', ->
         expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
         expect(pane.parent.orientation).toBe 'vertical'
 
-        executeCommand ->
-          expect(workspaceElement.querySelector('.show-todo-preview')).not.toExist()
-
     it 'can open ontop of current view', ->
       atom.config.set 'todo-show.openListInDirection', 'ontop'
 
@@ -56,6 +53,12 @@ describe 'ShowTodo opening panes and executing commands', ->
         pane = atom.workspace.paneForItem(showTodoModule.showTodoView)
         expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
         expect(pane.parent.orientation).not.toExist()
+
+    it 'has visible elements in view', ->
+      executeCommand ->
+        element = showTodoModule.showTodoView.find('a').last()
+        expect(element.text()).toEqual 'sample.js'
+        expect(element.isVisible()).toBe true
 
   describe 'when config changes', ->
     configRegexes = 'todo-show.findTheseRegexes'
@@ -78,11 +81,11 @@ describe 'ShowTodo opening panes and executing commands', ->
     it 'should be able to override defaults', ->
       newRegexes = ['New Regex', '/ReGeX/g']
       atom.config.set(configRegexes, newRegexes)
-      expect(atom.config.get(configRegexes)).toEqual(newRegexes)
+      expect(atom.config.get(configRegexes)).toEqual newRegexes
 
       newPaths = ['/foobar/']
       atom.config.set(configPaths, newPaths)
-      expect(atom.config.get(configPaths)).toEqual(newPaths)
+      expect(atom.config.get(configPaths)).toEqual newPaths
 
   describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->
@@ -94,7 +97,7 @@ describe 'ShowTodo opening panes and executing commands', ->
 
       executeCommand ->
         spyOn(atom, 'showSaveDialogSync').andReturn(outputPath)
-        workspaceElement.querySelector('.show-todo-preview .todo-save-as').click()
+        showTodoModule.showTodoView.saveAs()
 
       waitsFor ->
         fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is fs.realpathSync(outputPath)
@@ -126,7 +129,11 @@ describe 'ShowTodo opening panes and executing commands', ->
           !showTodoModule.showTodoView.loading
 
     it 'does not show any results with no open files', ->
+      element = showTodoModule.showTodoView.find('h1').last()
+
       expect(showTodoModule.showTodoView.regexes.length).toBe 0
+      expect(element.text()).toContain 'No results'
+      expect(element.isVisible()).toBe true
 
     it 'only shows todos from open files', ->
       waitsForPromise ->

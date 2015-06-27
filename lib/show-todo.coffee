@@ -1,5 +1,4 @@
-# This file handles configuration defaults, opening of pane and commands
-
+{CompositeDisposable} = require 'atom'
 url = require 'url'
 
 ShowTodoView = require './show-todo-view'
@@ -46,11 +45,10 @@ module.exports =
       enum: ['up', 'right', 'down', 'left', 'ontop']
 
   activate: ->
-    atom.commands.add 'atom-workspace', 'todo-show:find-in-project': =>
-      @show('todolist-preview:///TODOs')
-
-    atom.commands.add 'atom-workspace', 'todo-show:find-in-open-files': =>
-      @show('todolist-preview:///Open-TODOs')
+    @disposables = new CompositeDisposable
+    @disposables.add atom.commands.add 'atom-workspace',
+      'todo-show:find-in-project': => @show('todolist-preview:///TODOs')
+      'todo-show:find-in-open-files': => @show('todolist-preview:///Open-TODOs')
 
     # Register the todolist URI, which will then open our custom view
     atom.workspace.addOpener (uriToOpen) ->
@@ -58,6 +56,9 @@ module.exports =
       pathname = decodeURI(pathname) if pathname
       return unless protocol is 'todolist-preview:'
       new ShowTodoView(filePath: pathname).renderTodos()
+
+  deactivate: ->
+    @disposables?.dispose()
 
   show: (uri) ->
     prevPane = atom.workspace.getActivePane()

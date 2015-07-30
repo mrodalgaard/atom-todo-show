@@ -99,7 +99,7 @@ class ShowTodoView extends ScrollView
       matchText = _match.pop()
 
     # Strip common block comment endings and whitespaces
-    matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
+    matchText = matchText.replace(/(\*\/|\?>|-->|#>|-}|\]\])\s*$/, '').trim()
 
     # Truncate long match strings
     if matchText.length >= @maxLength

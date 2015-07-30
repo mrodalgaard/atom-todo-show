@@ -209,12 +209,13 @@ describe 'ShowTodoView fetching logic and data handling', ->
       waitsForPromise ->
         showTodoView.fetchRegexItem(todoLookup)
       runs ->
-        expect(showTodoView.matches).toHaveLength 5
+        expect(showTodoView.matches).toHaveLength 6
         expect(showTodoView.matches[0].matchText).toBe 'C block comment'
         expect(showTodoView.matches[1].matchText).toBe 'HTML comment'
         expect(showTodoView.matches[2].matchText).toBe 'PowerShell comment'
         expect(showTodoView.matches[3].matchText).toBe 'Haskell comment'
         expect(showTodoView.matches[4].matchText).toBe 'Lua comment'
+        expect(showTodoView.matches[5].matchText).toBe 'PHP comment'
 
   describe 'fetchOpenRegexItem: (lookupObj)', ->
     todoLookup = []
@@ -245,6 +246,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
           showTodoView.fetchOpenRegexItem(todoLookup)
 
         runs ->
-          expect(showTodoView.matches).toHaveLength 6
+          expect(showTodoView.matches).toHaveLength 7
           expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
           expect(showTodoView.matches[1].matchText).toBe 'C block comment'
+          expect(showTodoView.matches[6].matchText).toBe 'PHP comment'

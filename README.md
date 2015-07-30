@@ -4,12 +4,14 @@ Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in yo
 
 ![todo-show-package](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
 
-## Exclude files/folders from scan
-__globally__:
-- `Ignored Names` from atom core settings
-- `todo-show.ignoreThesePaths` in package settings (Syntax according to [.gitignore](http://git-scm.com/docs/gitignore))
+## Config
 
-__locally__: Ignores anything in your .gitignore file if the current project is a valid git repository and atom core setting `Exclude VCS Ignored Paths` is checked.
+* __findTheseRegexes__: An array of titles and regexes to look for (`['title1', 'regex1', 'title2', 'regex2', ...]`). Look at [show-todo.coffee](https://github.com/jamischarles/atom-todo-show/blob/master/lib/show-todo.coffee#L12) for current defaults.
+* __ignoreThesePaths__: An array of files / folders to exclude (syntax according to [.gitignore](http://git-scm.com/docs/gitignore)).
+  - __globally__: `Ignored Names` from atom core settings.
+  - __locally__: Ignores anything in your `.gitignore` file if the current project is a valid git repository and atom core setting `Exclude VCS Ignored Paths` is checked.
+* __openListInDirection__: Defines where the todo list is shown.
+* __groupMatchesBy__: Sets the grouping / sorting of matches.
 
 ## Coming features (PR's welcome)
 - ~~TODO, FIXME, CHANGED included in search~~

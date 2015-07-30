@@ -5,10 +5,11 @@ ShowTodoView = require './show-todo-view'
 
 module.exports =
   config:
-    # title, regex, title, regex...
+    # Title, regex, title, regex...
     findTheseRegexes:
       type: 'array'
-      default: [ # based on atom/language-todo
+      # Based on https://github.com/atom/language-todo
+      default: [
         'FIXMEs'
         '/\\b@?FIXME:?\\s(.+$)/g'
         'TODOs'
@@ -28,7 +29,7 @@ module.exports =
       ]
       items:
         type: 'string'
-    # ignore filter using node-ignore
+    # Ignore filter using node-ignore
     ignoreThesePaths:
       type: 'array'
       default: [
@@ -38,11 +39,16 @@ module.exports =
       ]
       items:
         type: 'string'
-    # split direction to open list
+    # Split direction to open list
     openListInDirection:
       type: 'string'
       default: 'right'
       enum: ['up', 'right', 'down', 'left', 'ontop']
+    # Change list grouping / sorting
+    groupMatchesBy:
+      type: 'string'
+      default: 'regex'
+      enum: ['regex', 'file', 'none']
 
   activate: ->
     @disposables = new CompositeDisposable
@@ -55,7 +61,7 @@ module.exports =
       {protocol, host, pathname} = url.parse(uriToOpen)
       pathname = decodeURI(pathname) if pathname
       return unless protocol is 'todolist-preview:'
-      new ShowTodoView(filePath: pathname).renderTodos()
+      new ShowTodoView(filePath: pathname).getTodos()
 
   deactivate: ->
     @disposables?.dispose()

@@ -2,17 +2,18 @@
 {ScrollView} = require 'atom-space-pen-views'
 path = require 'path'
 fs = require 'fs-plus'
+_ = require 'underscore-plus'
 
 Q = require 'q'
 slash = require 'slash'
 ignore = require 'ignore'
 
-TodoItemView = require './todo-item-view'
-TodoEmptyView = require './todo-empty-view'
+{TodoRegexView, TodoFileView, TodoNoneView, TodoEmptyView} = require './todo-item-view'
 
 module.exports =
 class ShowTodoView extends ScrollView
   maxLength: 120
+  matches: []
 
   @content: ->
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1, =>
@@ -41,10 +42,10 @@ class ShowTodoView extends ScrollView
         @saveAs()
       'core:refresh': (event) =>
         event.stopPropagation()
-        @renderTodos()
+        @getTodos()
 
     @saveAsButton.on 'click', => @saveAs()
-    @refreshButton.on 'click', => @renderTodos()
+    @refreshButton.on 'click', => @getTodos()
 
   destroy: ->
     @cancelScan()
@@ -65,6 +66,7 @@ class ShowTodoView extends ScrollView
 
   startLoading: ->
     @loading = true
+    @matches = []
     @todoList.empty()
     @todoLoading.show()
 
@@ -77,7 +79,6 @@ class ShowTodoView extends ScrollView
     for regex, i in settingsRegexes by 2
       'title': regex
       'regex': settingsRegexes[i+1]
-      'results': []
 
   # Pass in string and returns a proper RegExp object
   makeRegexObj: (regexStr) ->
@@ -89,35 +90,32 @@ class ShowTodoView extends ScrollView
     return false unless pattern
     new RegExp(pattern, flags)
 
-  # Parses and strips result from scan
-  handleScanResult: (result, regex) ->
-    # Loop through the scan results
-    for match in result.matches
-      matchText = match.matchText
+  handleScanMatch: (match, regex) ->
+    matchText = match.matchText
 
-      # Strip out the regex token from the found annotation
-      # not all objects will have an exec match
-      while (_match = regex?.exec(matchText))
-        matchText = _match.pop()
+    # Strip out the regex token from the found annotation
+    # not all objects will have an exec match
+    while (_match = regex?.exec(matchText))
+      matchText = _match.pop()
 
-      # Strip common block comment endings and whitespaces
-      matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
+    # Strip common block comment endings and whitespaces
+    matchText = matchText.replace(/(\*\/|-->|#>|-}|\]\])\s*$/, '').trim()
 
-      # Truncate long match strings
-      if matchText.length >= @maxLength
-        matchText = "#{matchText.substring(0, @maxLength - 3)}..."
+    # Truncate long match strings
+    if matchText.length >= @maxLength
+      matchText = "#{matchText.substring(0, @maxLength - 3)}..."
 
-      match.matchText = matchText
+    match.matchText = matchText
 
-      # Make sure range is serialized to produce correct rendered format
-      # See https://github.com/jamischarles/atom-todo-show/issues/27
-      if match.range.serialize
-        match.rangeString = match.range.serialize().toString()
-      else
-        match.rangeString = match.range.toString()
+    # Make sure range is serialized to produce correct rendered format
+    # See https://github.com/jamischarles/atom-todo-show/issues/27
+    if match.range.serialize
+      match.rangeString = match.range.serialize().toString()
+    else
+      match.rangeString = match.range.toString()
 
-    result.relativePath = atom.project.relativize(result.filePath)
-    return result
+    match.relativePath = atom.project.relativize(match.path)
+    return match
 
   # Scan project workspace for the lookup that is passed
   # returns a promise that the scan generates
@@ -146,13 +144,17 @@ class ShowTodoView extends ScrollView
 
     atom.workspace.scan regex, options, (result, error) =>
       console.debug error.message if error
+      return unless result
 
-      if result
-        # Check against ignored paths
-        pathToTest = slash(result.filePath.substring(atom.project.getPaths()[0].length))
-        return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
+      # Check against ignored paths
+      pathToTest = slash(result.filePath.substring(atom.project.getPaths()[0].length))
+      return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
 
-        regexLookup.results.push @handleScanResult(result, regex)
+      for match in result.matches
+        match.title = regexLookup.title
+        match.regex = regexLookup.regex
+        match.path = result.filePath
+        @matches.push @handleScanMatch(match, regex)
 
   # Scan open files for the lookup that is passed
   fetchOpenRegexItem: (regexLookup) ->
@@ -162,37 +164,33 @@ class ShowTodoView extends ScrollView
     deferred = Q.defer()
 
     for editor in atom.workspace.getTextEditors()
-      # Use same object layout as workspace scan with single match
-      result =
-        filePath: editor.getPath()
-        matches: []
-
-      editor.scan regex, (scanResult, error) ->
+      editor.scan regex, (result, error) =>
         console.debug error.message if error
+        return unless result
 
-        if scanResult
-          result.matches.push
-            matchText: scanResult.matchText
-            lineText: scanResult.matchText
-            range: [
-              [
-                scanResult.computedRange.start.row
-                scanResult.computedRange.start.column
-              ]
-              [
-                scanResult.computedRange.end.row
-                scanResult.computedRange.end.column
-              ]
+        match =
+          title: regexLookup.title
+          regex: regexLookup.regex
+          path: editor.getPath()
+          matchText: result.matchText
+          lineText: result.matchText
+          range: [
+            [
+              result.computedRange.start.row
+              result.computedRange.start.column
             ]
-
-      if result.matches.length > 0
-        regexLookup.results.push @handleScanResult(result, regex)
+            [
+              result.computedRange.end.row
+              result.computedRange.end.column
+            ]
+          ]
+        @matches.push @handleScanMatch(match, regex)
 
     # No async operations, so just return a resolved promise
     deferred.resolve()
     deferred.promise
 
-  renderTodos: ->
+  getTodos: ->
     @startLoading()
 
     # Fetch the regexes from settings
@@ -211,33 +209,72 @@ class ShowTodoView extends ScrollView
     # Fire callback when ALL scans are done
     Q.all(@searchPromises).then () =>
       @stopLoading()
-
-      # Remove empty regex matches
-      @regexes = regexes.filter (regex) =>
-        @todoList.append new TodoItemView(regex) if regex.results.length
-        regex.results.length
-
-      @todoList.append new TodoEmptyView unless @regexes.length
+      @renderTodos @matches
 
     return this
+
+  groupMatches: (matches, cb) ->
+    regexes = atom.config.get('todo-show.findTheseRegexes')
+    groupBy = atom.config.get('todo-show.groupMatchesBy')
+
+    switch groupBy
+      when 'file'
+        iteratee = 'relativePath'
+        sortedMatches = _.sortBy(matches, iteratee)
+      when 'none'
+        sortedMatches = _.sortBy(matches, 'matchText')
+        return cb(sortedMatches, groupBy)
+      else
+        iteratee = 'title'
+        sortedMatches = _.sortBy(matches, (match) ->
+          regexes.indexOf(match[iteratee])
+        )
+
+    for own key, group of _.groupBy(sortedMatches, iteratee)
+      cb(group, groupBy)
+
+  renderTodos: (matches) ->
+    unless matches.length
+      return @todoList.append new TodoEmptyView
+
+    @groupMatches(matches, (group, groupBy) =>
+      switch groupBy
+        when 'file'
+          @todoList.append new TodoFileView(group)
+        when 'none'
+          @todoList.append new TodoNoneView(group)
+        else
+          @todoList.append new TodoRegexView(group)
+    )
 
   cancelScan: ->
     for promise in @searchPromises
       promise.cancel() if promise
 
   getMarkdown: ->
-    @regexes.map((regex) ->
-      return unless regex.results.length
+    markdown = []
+    @groupMatches(@matches, (group, groupBy) ->
+      switch groupBy
+        when 'file'
+          out = "\n## #{group[0].relativePath}\n\n"
+          for match in group
+            out += "- #{match.matchText}"
+            out += " `#{match.title}`\n"
 
-      out = "\n## #{regex.title}\n\n"
+        when 'none'
+          out = "\n## All Matches\n\n"
+          for match in group
+            out += "- #{match.matchText} _(#{match.title})_"
+            out += " `#{match.relativePath}:#{match.range[0][0] + 1}`\n"
 
-      for result in regex.results
-        for match in result.matches
-          out += "- #{match.matchText}"
-          out += " `#{result.relativePath}:#{match.range[0][0] + 1}`\n"
-
-      return out
-    ).join('')
+        else
+          out = "\n## #{group[0].title}\n\n"
+          for match in group
+            out += "- #{match.matchText}"
+            out += " `#{match.relativePath}:#{match.range[0][0] + 1}`\n"
+      markdown.push out
+    )
+    markdown.join('')
 
   saveAs: ->
     return if @loading
@@ -246,6 +283,6 @@ class ShowTodoView extends ScrollView
     if @getProjectPath()
       filePath = path.join(@getProjectPath(), filePath)
 
-    if outputFilePath = atom.showSaveDialogSync(filePath)
+    if outputFilePath = atom.showSaveDialogSync(filePath.toLowerCase())
       fs.writeFileSync(outputFilePath, @getMarkdown())
       atom.workspace.open(outputFilePath)

@@ -60,38 +60,64 @@ describe 'ShowTodo opening panes and executing commands', ->
         expect(element.text()).toEqual 'sample.js'
         expect(element.isVisible()).toBe true
 
-  describe 'when config changes', ->
-    configRegexes = 'todo-show.findTheseRegexes'
-    configPaths = 'todo-show.ignoreThesePaths'
-
-    # TODO: Test results from change of configs instead of just setting it
-
-    beforeEach ->
+    it 'groups matches by regex titles', ->
       executeCommand ->
+        headers = showTodoModule.showTodoView.find('h1')
+        expect(headers).toHaveLength 8
+        expect(headers.eq(0).text().split(' ')[0]).toBe 'FIXMEs'
+        expect(headers.eq(1).text().split(' ')[0]).toBe 'TODOs'
+        expect(headers.eq(7).text().split(' ')[0]).toBe 'REVIEWs'
 
-    it 'has default configs set', ->
-      defaultRegexes = atom.config.get(configRegexes)
-      expect(defaultRegexes).toBeDefined()
-      expect(defaultRegexes.length).toBeGreaterThan 3
+    it 'can group matches by filename', ->
+      atom.config.set 'todo-show.groupMatchesBy', 'file'
+      executeCommand ->
+        headers = showTodoModule.showTodoView.find('h1')
+        expect(headers).toHaveLength 2
+        expect(headers.eq(0).text().split(' ')[0]).toBe 'sample.c'
+        expect(headers.eq(1).text().split(' ')[0]).toBe 'sample.js'
 
-      defaultPaths = atom.config.get(configPaths)
-      expect(defaultPaths).toBeDefined()
-      expect(defaultPaths.length).toBeGreaterThan 2
+        t1 = showTodoModule.showTodoView.find('table').eq(0).find('td').first().text()
+        t2 = showTodoModule.showTodoView.find('table').eq(1).find('td').first().text()
+        expect(t1).toBe 'Comment in C'
+        expect(t2).toBe 'Add more annnotations :)'
 
-    it 'should be able to override defaults', ->
-      newRegexes = ['New Regex', '/ReGeX/g']
-      atom.config.set(configRegexes, newRegexes)
-      expect(atom.config.get(configRegexes)).toEqual newRegexes
+    it 'can group matches by text (no grouping)', ->
+      atom.config.set 'todo-show.groupMatchesBy', 'none'
+      executeCommand ->
+        expect(showTodoModule.showTodoView.find('h1')).toHaveLength 1
+        expect(showTodoModule.showTodoView.find('table')).toHaveLength 1
 
-      newPaths = ['/foobar/']
-      atom.config.set(configPaths, newPaths)
-      expect(atom.config.get(configPaths)).toEqual newPaths
+        t1 = showTodoModule.showTodoView.find('td').eq(0).text()
+        t2 = showTodoModule.showTodoView.find('td').eq(-2).text()
+        expect(t1).toBe 'Add more annnotations :) (FIXMEs)'
+        expect(t2.substring(0,3)).toBe 'two'
 
   describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->
       outputPath = temp.path(suffix: '.md')
       expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output.md')
       expectedOutput = fs.readFileSync(expectedFilePath).toString()
+
+      expect(fs.isFileSync(outputPath)).toBe false
+
+      executeCommand ->
+        spyOn(atom, 'showSaveDialogSync').andReturn(outputPath)
+        showTodoModule.showTodoView.saveAs()
+
+      waitsFor ->
+        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is fs.realpathSync(outputPath)
+
+      runs ->
+        expect(fs.isFileSync(outputPath)).toBe true
+        expect(atom.workspace.getActiveTextEditor().getText()).toBe expectedOutput
+
+    it 'saves the list in markdown grouped by filename', ->
+      outputPath = temp.path(suffix: '.md')
+      expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output-grouped.md')
+      expectedOutput = fs.readFileSync(expectedFilePath).toString()
+
+      atom.config.set 'todo-show.findTheseRegexes', ['TODOs', '/\\b@?TODO:?\\s(.+$)/g']
+      atom.config.set 'todo-show.groupMatchesBy', 'file'
 
       expect(fs.isFileSync(outputPath)).toBe false
 
@@ -131,7 +157,7 @@ describe 'ShowTodo opening panes and executing commands', ->
     it 'does not show any results with no open files', ->
       element = showTodoModule.showTodoView.find('h1').last()
 
-      expect(showTodoModule.showTodoView.regexes.length).toBe 0
+      expect(showTodoModule.showTodoView.matches.length).toBe 0
       expect(element.text()).toContain 'No results'
       expect(element.isVisible()).toBe true
 
@@ -146,8 +172,8 @@ describe 'ShowTodo opening panes and executing commands', ->
           !showTodoModule.showTodoView.loading
 
         runs ->
-          todoRegex = showTodoModule.showTodoView.regexes[0]
-          expect(todoRegex.title).toBe 'TODOs'
-          expect(todoRegex.results.length).toBe 1
-          expect(todoRegex.results[0].matches.length).toBe 1
-          expect(todoRegex.results[0].matches[0].matchText).toBe 'Comment in C'
+          todoMatch = showTodoModule.showTodoView.matches[0]
+          expect(showTodoModule.showTodoView.matches).toHaveLength 1
+          expect(todoMatch.title).toBe 'TODOs'
+          expect(todoMatch.matchText).toBe 'Comment in C'
+          expect(todoMatch.relativePath).toBe 'sample.c'

@@ -251,27 +251,33 @@ class ShowTodoView extends ScrollView
     for promise in @searchPromises
       promise.cancel() if promise
 
-  getMarkdown: ->
+  getMarkdown: (matches) ->
     markdown = []
-    @groupMatches(@matches, (group, groupBy) ->
+    @groupMatches(matches, (group, groupBy) ->
       switch groupBy
         when 'file'
-          out = "\n## #{group[0].relativePath}\n\n"
+          out = "\n## #{group[0].relativePath || 'Unknown File'}\n\n"
           for match in group
-            out += "- #{match.matchText}"
-            out += " `#{match.title}`\n"
+            out += "- #{match.matchText || 'empty'}"
+            out += " `#{match.title}`" if match.title
+            out += "\n"
 
         when 'none'
           out = "\n## All Matches\n\n"
           for match in group
-            out += "- #{match.matchText} _(#{match.title})_"
-            out += " `#{match.relativePath}:#{match.range[0][0] + 1}`\n"
+            out += "- #{match.matchText || 'empty'}"
+            out += " _(#{match.title})_" if match.title
+            out += " `#{match.relativePath}`" if match.relativePath
+            out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
+            out += "\n"
 
         else
-          out = "\n## #{group[0].title}\n\n"
+          out = "\n## #{group[0].title || 'No Title'}\n\n"
           for match in group
-            out += "- #{match.matchText}"
-            out += " `#{match.relativePath}:#{match.range[0][0] + 1}`\n"
+            out += "- #{match.matchText || 'empty'}"
+            out += " `#{match.relativePath}`" if match.relativePath
+            out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
+            out += "\n"
       markdown.push out
     )
     markdown.join('')
@@ -284,5 +290,5 @@ class ShowTodoView extends ScrollView
       filePath = path.join(@getProjectPath(), filePath)
 
     if outputFilePath = atom.showSaveDialogSync(filePath.toLowerCase())
-      fs.writeFileSync(outputFilePath, @getMarkdown())
+      fs.writeFileSync(outputFilePath, @getMarkdown(@matches))
       atom.workspace.open(outputFilePath)

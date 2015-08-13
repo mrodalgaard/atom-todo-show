@@ -100,7 +100,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
       expect(output.relativePath).toEqual 'sample.c'
       expect(output.rangeString).toEqual '0,1,0,20'
 
-  describe 'fetchRegexItem: (lookupObj)', ->
+  describe 'fetchRegexItem(lookupObj)', ->
     todoLookup = []
 
     beforeEach ->
@@ -217,7 +217,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(showTodoView.matches[4].matchText).toBe 'Lua comment'
         expect(showTodoView.matches[5].matchText).toBe 'PHP comment'
 
-  describe 'fetchOpenRegexItem: (lookupObj)', ->
+  describe 'fetchOpenRegexItem(lookupObj)', ->
     todoLookup = []
 
     beforeEach ->
@@ -250,3 +250,97 @@ describe 'ShowTodoView fetching logic and data handling', ->
           expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
           expect(showTodoView.matches[1].matchText).toBe 'C block comment'
           expect(showTodoView.matches[6].matchText).toBe 'PHP comment'
+
+  describe 'getMarkdown()', ->
+    matches = []
+
+    beforeEach ->
+      atom.config.set 'todo-show.findTheseRegexes', [
+        'FIXMEs'
+        '/\\b@?FIXME:?\\s(.+$)/g'
+        'TODOs'
+        '/\\b@?TODO:?\\s(.+$)/g'
+      ]
+
+      matches = [
+        {
+          matchText: 'fixme #1'
+          relativePath: 'file1.txt'
+          title: 'FIXMEs'
+          range: [
+            [3,6]
+            [3,10]
+          ]
+        },
+        {
+          matchText: 'todo #1'
+          relativePath: 'file1.txt'
+          title: 'TODOs'
+          range: [
+            [4,5]
+            [4,9]
+          ]
+        },
+        {
+          matchText: 'fixme #2'
+          relativePath: 'file2.txt'
+          title: 'FIXMEs'
+          range: [
+            [5,7]
+            [5,11]
+          ]
+        }
+      ]
+
+    it 'creates a markdown string from regexes', ->
+      markdown =  '\n## FIXMEs\n\n- fixme #1 `file1.txt` `:4`\n- fixme #2 `file2.txt` `:6`\n'
+      markdown += '\n## TODOs\n\n- todo #1 `file1.txt` `:5`\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+    it 'creates markdown with file grouping', ->
+      atom.config.set 'todo-show.groupMatchesBy', 'file'
+      markdown =  '\n## file1.txt\n\n- fixme #1 `FIXMEs`\n- todo #1 `TODOs`\n'
+      markdown += '\n## file2.txt\n\n- fixme #2 `FIXMEs`\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+    it 'creates markdown with non grouping', ->
+      atom.config.set 'todo-show.groupMatchesBy', 'none'
+      markdown =  '\n## All Matches\n\n- fixme #1 _(FIXMEs)_ `file1.txt` `:4`'
+      markdown += '\n- fixme #2 _(FIXMEs)_ `file2.txt` `:6`\n- todo #1 _(TODOs)_ `file1.txt` `:5`\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+    it 'accepts missing ranges and paths in regexes', ->
+      matches = [
+        {
+          matchText: 'fixme #1'
+          title: 'FIXMEs'
+        }
+      ]
+      markdown = '\n## FIXMEs\n\n- fixme #1\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+      atom.config.set 'todo-show.groupMatchesBy', 'file'
+      markdown = '\n## Unknown File\n\n- fixme #1 `FIXMEs`\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+      atom.config.set 'todo-show.groupMatchesBy', 'none'
+      markdown = '\n## All Matches\n\n- fixme #1 _(FIXMEs)_\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+    it 'accepts missing title in regexes', ->
+      matches = [
+        {
+          matchText: 'fixme #1'
+          relativePath: 'file1.txt'
+        }
+      ]
+      markdown = '\n## No Title\n\n- fixme #1 `file1.txt`\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+      atom.config.set 'todo-show.groupMatchesBy', 'file'
+      markdown = '\n## file1.txt\n\n- fixme #1\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown
+
+      atom.config.set 'todo-show.groupMatchesBy', 'none'
+      markdown = '\n## All Matches\n\n- fixme #1 `file1.txt`\n'
+      expect(showTodoView.getMarkdown(matches)).toEqual markdown

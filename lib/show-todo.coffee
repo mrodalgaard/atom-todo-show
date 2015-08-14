@@ -49,6 +49,10 @@ module.exports =
       type: 'string'
       default: 'regex'
       enum: ['regex', 'file', 'none']
+    # Persist pane width / height
+    rememberViewSize:
+      type: 'boolean'
+      default: true
 
   activate: ->
     @disposables = new CompositeDisposable
@@ -64,18 +68,23 @@ module.exports =
       new ShowTodoView(filePath: pathname).getTodos()
 
   deactivate: ->
+    @paneDisposables?.dispose()
     @disposables?.dispose()
+
+  destroyPaneItem: ->
+    pane = atom.workspace.paneForItem(@showTodoView)
+    return false unless pane
+
+    pane.destroyItem(@showTodoView)
+    # Ignore core.destroyEmptyPanes and close empty pane
+    pane.destroy() if pane.getItems().length is 0
+    return true
 
   show: (uri) ->
     prevPane = atom.workspace.getActivePane()
-    pane = atom.workspace.paneForItem(@showTodoView)
     direction = atom.config.get('todo-show.openListInDirection')
 
-    if pane
-      pane.destroyItem(@showTodoView)
-      # Ignore core.destroyEmptyPanes and close empty pane
-      pane.destroy() if pane.getItems().length is 0
-      return
+    return if @destroyPaneItem()
 
     if direction is 'down'
       prevPane.splitDown() if prevPane.parent.orientation isnt 'vertical'

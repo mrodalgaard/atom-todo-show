@@ -44,13 +44,28 @@ class ShowTodoView extends ScrollView
         event.stopPropagation()
         @getTodos()
 
+    # Persist pane size by saving to local storage
+    pane = atom.workspace.getActivePane()
+    @restorePaneFlex(pane) if atom.config.get('todo-show.rememberViewSize')
+    @disposables.add pane.observeFlexScale (flexScale) =>
+      @savePaneFlex(flexScale)
+
     @saveAsButton.on 'click', => @saveAs()
     @refreshButton.on 'click', => @getTodos()
 
   destroy: ->
     @cancelScan()
-    @detach()
     @disposables?.dispose()
+    @detach()
+
+  savePaneFlex: (flex) ->
+    console.log "Set flex #{flex}"
+    localStorage.setItem 'todo-show.flex', flex
+
+  restorePaneFlex: (pane) ->
+    flex = localStorage.getItem 'todo-show.flex'
+    console.log "Get flex #{flex}"
+    pane.setFlexScale parseFloat(flex)
 
   getTitle: ->
     if @searchWorkspace then "Todo-Show Results" else "Todo-Show Open Files"

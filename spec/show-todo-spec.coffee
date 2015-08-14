@@ -60,6 +60,56 @@ describe 'ShowTodo opening panes and executing commands', ->
         expect(element.text()).toEqual 'sample.js'
         expect(element.isVisible()).toBe true
 
+    it 'persists pane width', ->
+      executeCommand ->
+        pane = atom.workspace.paneForItem showTodoModule.showTodoView
+        originalFlex = pane.getFlexScale()
+        newFlex = originalFlex * 1.1
+        expect(typeof originalFlex).toEqual "number"
+
+        pane.setFlexScale(newFlex)
+        executeCommand ->
+          pane = atom.workspace.paneForItem showTodoModule.showTodoView
+          expect(pane).not.toExist()
+          executeCommand ->
+            pane = atom.workspace.paneForItem showTodoModule.showTodoView
+            expect(pane.getFlexScale()).toEqual newFlex
+            pane.setFlexScale(originalFlex)
+
+    it 'does not persist pane width if asked not to', ->
+      atom.config.set('todo-show.rememberViewSize', false)
+
+      executeCommand ->
+        pane = atom.workspace.paneForItem showTodoModule.showTodoView
+        originalFlex = pane.getFlexScale()
+        newFlex = originalFlex * 1.1
+        expect(typeof originalFlex).toEqual "number"
+
+        pane.setFlexScale(newFlex)
+        executeCommand ->
+          executeCommand ->
+            pane = atom.workspace.paneForItem showTodoModule.showTodoView
+            expect(pane.getFlexScale()).not.toEqual newFlex
+            expect(pane.getFlexScale()).toEqual originalFlex
+
+    it 'persists horizontal pane height', ->
+      atom.config.set('todo-show.openListInDirection', 'down')
+
+      executeCommand ->
+        pane = atom.workspace.paneForItem showTodoModule.showTodoView
+        originalFlex = pane.getFlexScale()
+        newFlex = originalFlex * 1.1
+        expect(typeof originalFlex).toEqual "number"
+
+        pane.setFlexScale(newFlex)
+        executeCommand ->
+          pane = atom.workspace.paneForItem showTodoModule.showTodoView
+          expect(pane).not.toExist()
+          executeCommand ->
+            pane = atom.workspace.paneForItem showTodoModule.showTodoView
+            expect(pane.getFlexScale()).toEqual newFlex
+            pane.setFlexScale(originalFlex)
+
     it 'groups matches by regex titles', ->
       executeCommand ->
         headers = showTodoModule.showTodoView.find('h1')

@@ -59,12 +59,10 @@ class ShowTodoView extends ScrollView
     @detach()
 
   savePaneFlex: (flex) ->
-    console.log "Set flex #{flex}"
     localStorage.setItem 'todo-show.flex', flex
 
   restorePaneFlex: (pane) ->
     flex = localStorage.getItem 'todo-show.flex'
-    console.log "Get flex #{flex}"
     pane.setFlexScale parseFloat(flex)
 
   getTitle: ->

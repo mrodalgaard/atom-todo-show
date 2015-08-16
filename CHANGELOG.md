@@ -1,3 +1,9 @@
+## 0.14.0
+- Group matches by regex, file or none (groupMatchesBy config)
+- Remember todo list width (rememberViewSize config)
+- Improved markdown output when saving todo list
+- Remove PHP comment endings
+
 ## 0.13.0
 - Enforce a trailing space on todos
 - Add line numbers to saved output

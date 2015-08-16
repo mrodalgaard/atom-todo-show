@@ -12,6 +12,7 @@ Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in yo
   - __locally__: Ignores anything in your `.gitignore` file if the current project is a valid git repository and atom core setting `Exclude VCS Ignored Paths` is checked.
 * __openListInDirection__: Defines where the todo list is shown.
 * __groupMatchesBy__: Sets the grouping / sorting of matches.
+* __rememberViewSize__: Remember the todo list width or split in the middle.
 
 ## Coming features (PR's welcome)
 - ~~TODO, FIXME, CHANGED included in search~~

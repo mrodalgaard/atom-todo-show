@@ -61,7 +61,7 @@ module.exports =
       'todo-show:find-in-open-files': => @show('todolist-preview:///Open-TODOs')
 
     # Register the todolist URI, which will then open our custom view
-    atom.workspace.addOpener (uriToOpen) ->
+    @disposables.add atom.workspace.addOpener (uriToOpen) ->
       {protocol, host, pathname} = url.parse(uriToOpen)
       pathname = decodeURI(pathname) if pathname
       return unless protocol is 'todolist-preview:'

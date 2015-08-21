@@ -118,7 +118,7 @@ class ShowTodoView extends ScrollView
     if matchText.length >= @maxLength
       matchText = "#{matchText.substring(0, @maxLength - 3)}..."
 
-    match.matchText = matchText
+    match.matchText = matchText || 'No details'
 
     # Make sure range is serialized to produce correct rendered format
     # See https://github.com/jamischarles/atom-todo-show/issues/27

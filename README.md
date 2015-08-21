@@ -6,7 +6,7 @@ Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in yo
 
 ## Config
 
-* __findTheseRegexes__: An array of titles and regexes to look for (`['title1', 'regex1', 'title2', 'regex2', ...]`). Look at [show-todo.coffee](https://github.com/jamischarles/atom-todo-show/blob/master/lib/show-todo.coffee#L12) for current defaults.
+* __findTheseRegexes__: An array of titles and regexes to look for (`['title1', 'regex1', 'title2', 'regex2', ...]`). Look at the "Regex Details" section below for more information.
 * __ignoreThesePaths__: An array of files / folders to exclude (syntax according to [.gitignore](http://git-scm.com/docs/gitignore)).
   - __globally__: `Ignored Names` from atom core settings.
   - __locally__: Ignores anything in your `.gitignore` file if the current project is a valid git repository and atom core setting `Exclude VCS Ignored Paths` is checked.
@@ -14,20 +14,20 @@ Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in yo
 * __groupMatchesBy__: Sets the grouping / sorting of matches.
 * __rememberViewSize__: Remember the todo list width or split in the middle.
 
-## Coming features (PR's welcome)
-- ~~TODO, FIXME, CHANGED included in search~~
-- ~~ignore /vendor, /node_modules~~
-- goto result should start at comment, NOT at todo symbol
-- ~~don't open multiple search windows when we search multiple times~~
-- how do we handle file changes?
-- ~~nicer styling~~
-- ignore TODOs outside of comment blocks
-- ~~have nice message when no results are found~~
-- ~~refactor and clean up code~~
-- ~~fix / add keymap shortcut~~
-- ~~add test cases~~
+## Regex Details
 
-Inspired by the textmate TODO bundle.
+The regexes in `findTheseRegexes` are used for searching the workspace for todo matches. They are configurable to match the users specific needs.
+
+Default regex form: `'/\\b@?TODO:?\\d*($|\\s.*$)/g'`
+* `@?`: an optional @ in front of todo
+* `TODO`: the todo string itself
+* `:?` an optional semicolon after todo
+* `\d*` optional digits for supporting the [imdone](http://imdone.io/) sorting
+* `$` to end todos without additional text (newline)
+* Or `\s.*$` to match the todo text with a non-optional space in front
+* As the config only accepts strings all `\` characters are also escaped.
+
+To extend the default list of regexes the existing array needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/jamischarles/atom-todo-show/blob/master/lib/show-todo.coffee#L12) for current defaults.
 
 # To contribute
 1. `$ git clone https://github.com/jamischarles/atom-todo-show.git` to e.g. ~/github/

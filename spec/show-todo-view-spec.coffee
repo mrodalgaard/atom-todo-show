@@ -1,67 +1,42 @@
-
 path = require 'path'
-
 ShowTodoView = require '../lib/show-todo-view'
 
 describe 'ShowTodoView fetching logic and data handling', ->
-  showTodoView = null
+  [showTodoView, defaultRegexes, defaultLookup] = []
 
   beforeEach ->
-    pathname = 'dummyData'
-    showTodoView = new ShowTodoView(pathname)
+    defaultRegexes = [
+      'FIXMEs'
+      '/\\bFIXME:?\\d*($|\\s.*$)/g'
+      'TODOs'
+      '/\\bTODO:?\\d*($|\\s.*$)/g'
+    ]
+    defaultLookup =
+      title: defaultRegexes[2]
+      regex: defaultRegexes[3]
+
+    showTodoView = new ShowTodoView('dummyPath')
     showTodoView.matches = []
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
 
   describe 'buildRegexLookups(regexes)', ->
-    it 'should return an array of objects (title, regex, results) when passed an array of regexes (and titles)', ->
-      findTheseRegexes = [
-        'TODOs'
-        '/TODO:?(.+$)/g'
-      ]
-
-      regexes = showTodoView.buildRegexLookups(findTheseRegexes)
-
-      lookups = [{
-        title: 'TODOs'
-        regex: '/TODO:?(.+$)/g'
-      }]
-      expect(regexes).toEqual(lookups)
-
-    it 'should work with a lot of regexes', ->
-      findTheseRegexes = [
-        'FIXMEs'
-        '/FIXME:?(.+$)/g'
-        'TODOs'
-        '/TODO:?(.+$)/g'
-        'CHANGEDs'
-        '/CHANGED:?(.+$)/g'
-        'XXXs'
-        '/XXX:?(.+$)/g'
-      ]
-      regexes = showTodoView.buildRegexLookups(findTheseRegexes)
+    it 'should return an array of lookup objects when passed an array of regexes', ->
+      regexes = showTodoView.buildRegexLookups(defaultRegexes)
       lookups = [
         {
-          title: 'FIXMEs'
-          regex: '/FIXME:?(.+$)/g'
+          title: defaultRegexes[0]
+          regex: defaultRegexes[1]
         }
         {
-          title: 'TODOs'
-          regex: '/TODO:?(.+$)/g'
-        }
-        {
-          title: 'CHANGEDs'
-          regex: '/CHANGED:?(.+$)/g'
-        }
-        {
-          title: 'XXXs'
-          regex: '/XXX:?(.+$)/g'
+          title: defaultRegexes[2]
+          regex: defaultRegexes[3]
         }
       ]
       expect(regexes).toEqual(lookups)
 
   describe 'makeRegexObj(regexStr)', ->
     it 'should return a RegExp obj when passed a regex literal (string)', ->
-      regexStr = '/TODO:?(.+$)/g'
+      regexStr = defaultLookup.regex
       regexObj = showTodoView.makeRegexObj(regexStr)
 
       # Assertions duck test. Am I a regex obj?
@@ -78,7 +53,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
     {match, regex} = []
 
     beforeEach ->
-      regex = /\b@?TODO:?\s(.+$)/g
+      regex = /\b@?TODO:?\d*($|\s.*$)/g
       match =
         path: "#{atom.project.getPaths()[0]}/sample.c"
         matchText: ' TODO: Comment in C '
@@ -101,16 +76,9 @@ describe 'ShowTodoView fetching logic and data handling', ->
       expect(output.rangeString).toEqual '0,1,0,20'
 
   describe 'fetchRegexItem(lookupObj)', ->
-    todoLookup = []
-
-    beforeEach ->
-      todoLookup =
-        title: 'TODOs'
-        regex: '/\\b@?TODO:?\\s(.+$)/g'
-
     it 'should scan the workspace for the regex that is passed and fill lookup results', ->
       waitsForPromise ->
-        showTodoView.fetchRegexItem(todoLookup)
+        showTodoView.fetchRegexItem(defaultLookup)
 
       runs ->
         expect(showTodoView.matches).toHaveLength 3
@@ -122,7 +90,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
       atom.config.set('todo-show.ignoreThesePaths', '*/sample.js')
 
       waitsForPromise ->
-        showTodoView.fetchRegexItem(todoLookup)
+        showTodoView.fetchRegexItem(defaultLookup)
       runs ->
         expect(showTodoView.matches).toHaveLength 1
         expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
@@ -207,7 +175,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures/sample2')]
 
       waitsForPromise ->
-        showTodoView.fetchRegexItem(todoLookup)
+        showTodoView.fetchRegexItem(defaultLookup)
       runs ->
         expect(showTodoView.matches).toHaveLength 6
         expect(showTodoView.matches[0].matchText).toBe 'C block comment'
@@ -218,32 +186,30 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(showTodoView.matches[5].matchText).toBe 'PHP comment'
 
   describe 'fetchOpenRegexItem(lookupObj)', ->
-    todoLookup = []
+    editor = null
 
     beforeEach ->
-      todoLookup =
-        title: 'TODOs'
-        regex: '/\\b@?TODO:?\\s(.+$)/g'
-
       waitsForPromise ->
         atom.workspace.open 'sample.c'
+      runs ->
+        editor = atom.workspace.getActiveTextEditor()
 
-    it 'should scan open files for the regex that is passed and fill lookup results', ->
+    it 'scans open files for the regex that is passed and fill lookup results', ->
       waitsForPromise ->
-        showTodoView.fetchOpenRegexItem(todoLookup)
+        showTodoView.fetchOpenRegexItem(defaultLookup)
 
       runs ->
         expect(showTodoView.matches).toHaveLength 1
         expect(showTodoView.matches.length).toBe 1
         expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
 
-    it 'should work with files outside of workspace', ->
+    it 'works with files outside of workspace', ->
       waitsForPromise ->
         atom.workspace.open '../sample2/sample.txt'
 
       runs ->
         waitsForPromise ->
-          showTodoView.fetchOpenRegexItem(todoLookup)
+          showTodoView.fetchOpenRegexItem(defaultLookup)
 
         runs ->
           expect(showTodoView.matches).toHaveLength 7
@@ -251,16 +217,116 @@ describe 'ShowTodoView fetching logic and data handling', ->
           expect(showTodoView.matches[1].matchText).toBe 'C block comment'
           expect(showTodoView.matches[6].matchText).toBe 'PHP comment'
 
+    it 'handles unsaved documents', ->
+      editor.setText 'TODO: New todo'
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 1
+        expect(showTodoView.matches[0].title).toBe 'TODOs'
+        expect(showTodoView.matches[0].matchText).toBe 'New todo'
+
+    it 'respects imdone syntax (https://github.com/imdone/imdone-atom)', ->
+      editor.setText '''
+        TODO:10 todo1
+        TODO:0 todo2
+      '''
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 2
+        expect(showTodoView.matches[0].title).toBe 'TODOs'
+        expect(showTodoView.matches[0].matchText).toBe 'todo1'
+        expect(showTodoView.matches[1].matchText).toBe 'todo2'
+
+    it 'handles number in todo (as long as its not without space)', ->
+      editor.setText """
+        Line 1 //TODO: 1 2 3
+        Line 1 // TODO:1 2 3
+      """
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 2
+        expect(showTodoView.matches[0].matchText).toBe '1 2 3'
+        expect(showTodoView.matches[1].matchText).toBe '2 3'
+
+    it 'handles empty todos', ->
+      editor.setText """
+        Line 1 // TODO
+        Line 2 //TODO
+      """
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 2
+        expect(showTodoView.matches[0].matchText).toBe 'No details'
+        expect(showTodoView.matches[1].matchText).toBe 'No details'
+
+    it 'handles todos with @ in front', ->
+      editor.setText """
+        Line 1 //@TODO: text
+        Line 2 //@TODO: text
+        Line 3 @TODO: text
+      """
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 3
+        expect(showTodoView.matches[0].matchText).toBe 'text'
+        expect(showTodoView.matches[1].matchText).toBe 'text'
+        expect(showTodoView.matches[2].matchText).toBe 'text'
+
+    it 'handles tabs in todos', ->
+      editor.setText 'Line //TODO:\ttext'
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches[0].matchText).toBe 'text'
+
+    it 'handles todo without semicolon', ->
+      editor.setText 'A line // TODO text'
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches[0].matchText).toBe 'text'
+
+    it 'ignores todos without leading space', ->
+      editor.setText 'A line // TODO:text'
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 0
+
+    it 'ignores todo if unwanted chars are present', ->
+      editor.setText 'define("_JS_TODO_ALERT_", "js:alert(&quot;TODO&quot;);");'
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 0
+
+    it 'ignores binary data', ->
+      editor.setText '// TODOe�d��RPPP0�'
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 0
+
   describe 'getMarkdown()', ->
     matches = []
 
     beforeEach ->
-      atom.config.set 'todo-show.findTheseRegexes', [
-        'FIXMEs'
-        '/\\b@?FIXME:?\\s(.+$)/g'
-        'TODOs'
-        '/\\b@?TODO:?\\s(.+$)/g'
-      ]
+      atom.config.set 'todo-show.findTheseRegexes', defaultRegexes
 
       matches = [
         {

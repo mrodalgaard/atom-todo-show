@@ -63,7 +63,7 @@ class ShowTodoView extends ScrollView
 
   restorePaneFlex: (pane) ->
     flex = localStorage.getItem 'todo-show.flex'
-    pane.setFlexScale parseFloat(flex)
+    pane.setFlexScale parseFloat(flex) if flex
 
   getTitle: ->
     if @searchWorkspace then "Todo-Show Results" else "Todo-Show Open Files"

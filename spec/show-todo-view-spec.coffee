@@ -20,9 +20,9 @@ describe 'ShowTodoView fetching logic and data handling', ->
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
 
   describe 'buildRegexLookups(regexes)', ->
-    it 'should return an array of lookup objects when passed an array of regexes', ->
-      regexes = showTodoView.buildRegexLookups(defaultRegexes)
-      lookups = [
+    it 'returns an array of lookup objects when passed an array of regexes', ->
+      lookups1 = showTodoView.buildRegexLookups(defaultRegexes)
+      lookups2 = [
         {
           title: defaultRegexes[0]
           regex: defaultRegexes[1]
@@ -32,10 +32,21 @@ describe 'ShowTodoView fetching logic and data handling', ->
           regex: defaultRegexes[3]
         }
       ]
-      expect(regexes).toEqual(lookups)
+      expect(lookups1).toEqual(lookups2)
 
-  describe 'makeRegexObj(regexStr)', ->
-    it 'should return a RegExp obj when passed a regex literal (string)', ->
+    it 'handles invalid input', ->
+      atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      regexes = ['TODO']
+      lookups = showTodoView.buildRegexLookups(regexes)
+      expect(lookups).toHaveLength 0
+
+      notification = notificationSpy.mostRecentCall.args[0]
+      expect(notificationSpy).toHaveBeenCalled()
+      expect(notification.getType()).toBe 'error'
+
+  fdescribe 'makeRegexObj(regexStr)', ->
+    it 'returns a RegExp obj when passed a regex literal (string)', ->
       regexStr = defaultLookup.regex
       regexObj = showTodoView.makeRegexObj(regexStr)
 
@@ -43,10 +54,19 @@ describe 'ShowTodoView fetching logic and data handling', ->
       expect(typeof regexObj.test).toBe('function')
       expect(typeof regexObj.exec).toBe('function')
 
-    it 'should return false bool when passed an invalid regex literal (string)', ->
+    it 'returns false and shows notification on invalid input', ->
+      atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
       regexStr = 'arstastTODO:.+$)/g'
       regexObj = showTodoView.makeRegexObj(regexStr)
+      expect(regexObj).toBe(false)
 
+      notification = notificationSpy.mostRecentCall.args[0]
+      expect(notificationSpy).toHaveBeenCalled()
+      expect(notification.getType()).toBe 'error'
+
+    it 'handles empty input', ->
+      regexObj = showTodoView.makeRegexObj()
       expect(regexObj).toBe(false)
 
   describe 'handleScanMatch(match, regex)', ->

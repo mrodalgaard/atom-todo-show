@@ -90,21 +90,31 @@ class ShowTodoView extends ScrollView
     @loading = false
     @todoLoading.hide()
 
+  showError: (message) ->
+    atom.notifications.addError 'todo-show', detail: message, dismissable: true
+
   # Get regexes to look for from settings
-  buildRegexLookups: (settingsRegexes) ->
-    for regex, i in settingsRegexes by 2
+  buildRegexLookups: (regexes) ->
+    if regexes.length % 2
+      @showError "Invalid number of regexes: #{regexes.length}"
+      return []
+
+    for regex, i in regexes by 2
       'title': regex
-      'regex': settingsRegexes[i+1]
+      'regex': regexes[i+1]
 
   # Pass in string and returns a proper RegExp object
-  makeRegexObj: (regexStr) ->
+  makeRegexObj: (regexStr = '') ->
     # Extract the regex pattern (anything between the slashes)
     pattern = regexStr.match(/\/(.+)\//)?[1]
     # Extract the flags (after last slash)
     flags = regexStr.match(/\/(\w+$)/)?[1]
 
-    return false unless pattern
-    new RegExp(pattern, flags)
+    if pattern
+      new RegExp(pattern, flags)
+    else
+      @showError "Invalid regex: #{regexStr or 'empty'}"
+      false
 
   handleScanMatch: (match, regex) ->
     matchText = match.matchText

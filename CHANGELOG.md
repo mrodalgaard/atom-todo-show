@@ -1,3 +1,8 @@
+## 0.15.0
+- Improved default regex with full description
+- Respect imdone numbering syntax
+- Support for empty todos (e.g. // TODO)
+
 ## 0.14.0
 - Group matches by regex, file or none (groupMatchesBy config)
 - Remember todo list width (rememberViewSize config)

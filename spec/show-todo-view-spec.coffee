@@ -267,6 +267,19 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(showTodoView.matches[0].matchText).toBe 'No details'
         expect(showTodoView.matches[1].matchText).toBe 'No details'
 
+    it 'handles empty block todos', ->
+      editor.setText """
+        /* TODO */
+        Line 2 /* TODO */
+      """
+
+      waitsForPromise ->
+        showTodoView.fetchOpenRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 2
+        expect(showTodoView.matches[0].matchText).toBe 'No details'
+        expect(showTodoView.matches[1].matchText).toBe 'No details'
+
     it 'handles todos with @ in front', ->
       editor.setText """
         Line 1 //@TODO: text

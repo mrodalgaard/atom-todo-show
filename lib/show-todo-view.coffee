@@ -12,6 +12,9 @@ ignore = require 'ignore'
 
 module.exports =
 class ShowTodoView extends ScrollView
+  @URI: 'atom://todo-show/todos'
+  @URIopen: 'atom://todo-show/open-todos'
+
   maxLength: 120
   matches: []
 
@@ -27,13 +30,10 @@ class ShowTodoView extends ScrollView
 
       @div outlet: 'todoList'
 
-  constructor: ({@filePath}) ->
+  constructor: (@searchWorkspace = true) ->
     super
     @disposables = new CompositeDisposable
     @handleEvents()
-
-    # Determine if you are searching full workspace or just open files
-    @searchWorkspace = @filePath isnt '/Open-TODOs'
 
   handleEvents: ->
     @disposables.add atom.commands.add @element,
@@ -68,14 +68,17 @@ class ShowTodoView extends ScrollView
   getTitle: ->
     if @searchWorkspace then "Todo-Show Results" else "Todo-Show Open Files"
 
-  getURI: ->
-    "todolist-preview:///#{@getPath()}"
+  getIconName: ->
+    "checklist"
 
-  getPath: ->
-    @filePath
+  getURI: ->
+    if @searchWorkspace then @constructor.URI else @constructor.URIopen
 
   getProjectPath: ->
     atom.project.getPaths()[0]
+
+  getProjectName: ->
+    atom.project.getDirectories()[0]?.getBaseName()
 
   startLoading: ->
     @loading = true
@@ -298,9 +301,9 @@ class ShowTodoView extends ScrollView
   saveAs: ->
     return if @loading
 
-    filePath = "#{path.parse(@getPath()).name}.md"
-    if @getProjectPath()
-      filePath = path.join(@getProjectPath(), filePath)
+    filePath = "#{@getProjectName() or 'todos'}.md"
+    if projectPath = @getProjectPath()
+      filePath = path.join(projectPath, filePath)
 
     if outputFilePath = atom.showSaveDialogSync(filePath.toLowerCase())
       fs.writeFileSync(outputFilePath, @getMarkdown(@matches))

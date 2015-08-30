@@ -1,5 +1,4 @@
 {CompositeDisposable} = require 'atom'
-url = require 'url'
 
 ShowTodoView = require './show-todo-view'
 
@@ -57,15 +56,14 @@ module.exports =
   activate: ->
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
-      'todo-show:find-in-project': => @show('todolist-preview:///TODOs')
-      'todo-show:find-in-open-files': => @show('todolist-preview:///Open-TODOs')
+      'todo-show:find-in-project': => @show(ShowTodoView.URI)
+      'todo-show:find-in-open-files': => @show(ShowTodoView.URIopen)
 
     # Register the todolist URI, which will then open our custom view
     @disposables.add atom.workspace.addOpener (uriToOpen) ->
-      {protocol, host, pathname} = url.parse(uriToOpen)
-      pathname = decodeURI(pathname) if pathname
-      return unless protocol is 'todolist-preview:'
-      new ShowTodoView(filePath: pathname).getTodos()
+      switch uriToOpen
+        when ShowTodoView.URI then new ShowTodoView(true).getTodos()
+        when ShowTodoView.URIopen then new ShowTodoView(false).getTodos()
 
   deactivate: ->
     @paneDisposables?.dispose()

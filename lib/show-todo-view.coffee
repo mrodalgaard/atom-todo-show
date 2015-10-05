@@ -14,9 +14,7 @@ module.exports =
 class ShowTodoView extends ScrollView
   @URI: 'atom://todo-show/todos'
   @URIopen: 'atom://todo-show/open-todos'
-
   maxLength: 120
-  matches: []
 
   @content: ->
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1, =>
@@ -33,6 +31,7 @@ class ShowTodoView extends ScrollView
   constructor: (@searchWorkspace = true) ->
     super
     @disposables = new CompositeDisposable
+    @matches = []
     @handleEvents()
 
   handleEvents: ->

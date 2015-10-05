@@ -16,7 +16,6 @@ describe 'ShowTodoView fetching logic and data handling', ->
       regex: defaultRegexes[3]
 
     showTodoView = new ShowTodoView('dummyPath')
-    showTodoView.matches = []
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
 
   describe 'buildRegexLookups(regexes)', ->
@@ -45,7 +44,7 @@ describe 'ShowTodoView fetching logic and data handling', ->
       expect(notificationSpy).toHaveBeenCalled()
       expect(notification.getType()).toBe 'error'
 
-  fdescribe 'makeRegexObj(regexStr)', ->
+  describe 'makeRegexObj(regexStr)', ->
     it 'returns a RegExp obj when passed a regex literal (string)', ->
       regexStr = defaultLookup.regex
       regexObj = showTodoView.makeRegexObj(regexStr)

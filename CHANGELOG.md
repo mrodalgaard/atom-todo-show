@@ -1,3 +1,8 @@
+## 0.16.0
+- Use native exclude for ignoreThesePaths
+- Notification on invalid config input
+- Tab icon
+
 ## 0.15.0
 - Improved default regex with full description
 - Respect imdone numbering syntax

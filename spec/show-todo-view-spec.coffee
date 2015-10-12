@@ -105,15 +105,6 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(showTodoView.matches[1].matchText).toBe 'This is the first todo'
         expect(showTodoView.matches[2].matchText).toBe 'This is the second todo'
 
-    it 'should respect ignored paths', ->
-      atom.config.set('todo-show.ignoreThesePaths', '*/sample.js')
-
-      waitsForPromise ->
-        showTodoView.fetchRegexItem(defaultLookup)
-      runs ->
-        expect(showTodoView.matches).toHaveLength 1
-        expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
-
     it 'should handle other regexes', ->
       lookup =
         title: 'Includes'
@@ -203,6 +194,65 @@ describe 'ShowTodoView fetching logic and data handling', ->
         expect(showTodoView.matches[3].matchText).toBe 'Haskell comment'
         expect(showTodoView.matches[4].matchText).toBe 'Lua comment'
         expect(showTodoView.matches[5].matchText).toBe 'PHP comment'
+
+  describe 'ignore path rules', ->
+    it 'works with no paths added', ->
+      atom.config.set('todo-show.ignoreThesePaths', [])
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 3
+
+    it 'must be an array', ->
+      atom.notifications.onDidAddNotification notificationSpy = jasmine.createSpy()
+
+      atom.config.set('todo-show.ignoreThesePaths', '123')
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 3
+
+        notification = notificationSpy.mostRecentCall.args[0]
+        expect(notificationSpy).toHaveBeenCalled()
+        expect(notification.getType()).toBe 'error'
+
+    it 'respects ignored files', ->
+      atom.config.set('todo-show.ignoreThesePaths', ['sample.js'])
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 1
+        expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
+
+    it 'respects ignored directories and filetypes', ->
+      atom.project.setPaths [path.join(__dirname, 'fixtures')]
+      atom.config.set('todo-show.ignoreThesePaths', ['sample1', '*.md'])
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 6
+        expect(showTodoView.matches[0].matchText).toBe 'C block comment'
+
+    it 'respects ignored wildcard directories', ->
+      atom.project.setPaths [path.join(__dirname, 'fixtures')]
+      atom.config.set('todo-show.ignoreThesePaths', ['**/sample.js', '**/sample.txt', '*.md'])
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 1
+        expect(showTodoView.matches[0].matchText).toBe 'Comment in C'
+
+    it 'respects more advanced ignores', ->
+      atom.project.setPaths [path.join(__dirname, 'fixtures')]
+      atom.config.set('todo-show.ignoreThesePaths', ['output(-grouped)?\\.*', '*1/**'])
+
+      waitsForPromise ->
+        showTodoView.fetchRegexItem(defaultLookup)
+      runs ->
+        expect(showTodoView.matches).toHaveLength 6
+        expect(showTodoView.matches[0].matchText).toBe 'C block comment'
 
   describe 'fetchOpenRegexItem(lookupObj)', ->
     editor = null

@@ -32,9 +32,9 @@ module.exports =
     ignoreThesePaths:
       type: 'array'
       default: [
-        '*/node_modules/'
-        '*/vendor/'
-        '*/bower_components/'
+        '**/node_modules/'
+        '**/vendor/'
+        '**/bower_components/'
       ]
       items:
         type: 'string'

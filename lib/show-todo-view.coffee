@@ -3,10 +3,7 @@
 path = require 'path'
 fs = require 'fs-plus'
 _ = require 'underscore-plus'
-
 Q = require 'q'
-slash = require 'slash'
-ignore = require 'ignore'
 
 {TodoRegexView, TodoFileView, TodoNoneView, TodoEmptyView} = require './todo-item-view'
 
@@ -148,32 +145,17 @@ class ShowTodoView extends ScrollView
     regex = @makeRegexObj(regexLookup.regex)
     return false unless regex
 
-    # Handle ignores from settings
-    ignoresFromSettings = atom.config.get('todo-show.ignoreThesePaths')
-    hasIgnores = ignoresFromSettings?.length > 0
-    ignoreRules = ignore({ ignore:ignoresFromSettings })
-
-    # TODO: Use paths option as ignoreRules by adding them as an array
-    # of exclusions (!) after atom fix: https://github.com/atom/atom/pull/6386
-    # otherwise use full pattern; e.g. `!*/node_modules/**/*.*`
-    # This would hopefully also remove dependency on slash and ignore, while
-    # using default node-minimatch.
+    options = {paths: @getIgnorePaths()}
 
     # Only track progress on first scan
-    options = {}
     if !@firstRegex
       @firstRegex = true
-      onPathsSearched = (nPaths) =>
+      options.onPathsSearched = (nPaths) =>
         @searchCount.text("#{nPaths} paths searched...") if @loading
-      options = {paths: '*', onPathsSearched}
 
     atom.workspace.scan regex, options, (result, error) =>
       console.debug error.message if error
       return unless result
-
-      # Check against ignored paths
-      pathToTest = slash(result.filePath.substring(atom.project.getPaths()[0].length))
-      return if (hasIgnores && ignoreRules.filter([pathToTest]).length == 0)
 
       for match in result.matches
         match.title = regexLookup.title
@@ -237,6 +219,14 @@ class ShowTodoView extends ScrollView
       @renderTodos @matches
 
     return this
+
+  getIgnorePaths: ->
+    ignores = atom.config.get('todo-show.ignoreThesePaths')
+    return ['*'] unless ignores?
+    if Object.prototype.toString.call(ignores) isnt '[object Array]'
+      @showError('ignoreThesePaths must be an array')
+      return ['*']
+    "!#{ignore}" for ignore in ignores
 
   groupMatches: (matches, cb) ->
     regexes = atom.config.get('todo-show.findTheseRegexes')

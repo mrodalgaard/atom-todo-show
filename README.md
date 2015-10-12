@@ -7,7 +7,7 @@ Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in yo
 ## Config
 
 * __findTheseRegexes__: An array of titles and regexes to look for (`['title1', 'regex1', 'title2', 'regex2', ...]`). Look at the "Regex Details" section below for more information.
-* __ignoreThesePaths__: An array of files / folders to exclude (syntax according to [.gitignore](http://git-scm.com/docs/gitignore)).
+* __ignoreThesePaths__: An array of files / folders to exclude (syntax according to [scandal](https://github.com/atom/scandal) used internally by Atom).
   - __globally__: `Ignored Names` from atom core settings.
   - __locally__: Ignores anything in your `.gitignore` file if the current project is a valid git repository and atom core setting `Exclude VCS Ignored Paths` is checked.
 * __openListInDirection__: Defines where the todo list is shown.

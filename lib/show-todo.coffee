@@ -1,6 +1,7 @@
 {CompositeDisposable} = require 'atom'
 
 ShowTodoView = require './show-todo-view'
+TodosModel = require './todos-model'
 
 module.exports =
   config:
@@ -43,30 +44,43 @@ module.exports =
       type: 'string'
       default: 'right'
       enum: ['up', 'right', 'down', 'left', 'ontop']
-    # Change list grouping / sorting
-    groupMatchesBy:
+    # Sort by todo property
+    sortBy:
       type: 'string'
-      default: 'regex'
-      enum: ['regex', 'file', 'none']
+      default: 'Message'
+      enum: ['Message', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File']
+    # Sort ascending or descending
+    sortAscending:
+      type: 'boolean'
+      default: true
+    # Show these todo properties in todo table
+    showInTable:
+      type: 'array'
+      default: [
+        'Message',
+        'Type',
+        'File'
+      ]
     # Persist pane width / height
     rememberViewSize:
       type: 'boolean'
       default: true
 
   activate: ->
+    model = new TodosModel
+    model.setAvailableTableItems(@config.sortBy.enum)
+
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
-      'todo-show:find-in-project': => @show(ShowTodoView.URI)
-      'todo-show:find-in-open-files': => @show(ShowTodoView.URIopen)
+      'todo-show:find-in-project': => @show(model.URI)
+      'todo-show:find-in-open-files': => @show(model.URIopen)
 
     # Register the todolist URI, which will then open our custom view
     @disposables.add atom.workspace.addOpener (uriToOpen) ->
-      switch uriToOpen
-        when ShowTodoView.URI then new ShowTodoView(true).getTodos()
-        when ShowTodoView.URIopen then new ShowTodoView(false).getTodos()
+      if model.setSearchScopeFromUri(uriToOpen)
+        new ShowTodoView(model)
 
   deactivate: ->
-    @paneDisposables?.dispose()
     @disposables?.dispose()
 
   destroyPaneItem: ->
@@ -89,5 +103,5 @@ module.exports =
     else if direction is 'up'
       prevPane.splitUp() if prevPane.parent.orientation isnt 'vertical'
 
-    atom.workspace.open(uri, split: direction).done (@showTodoView) =>
+    atom.workspace.open(uri, split: direction).then (@showTodoView) =>
       prevPane.activate()

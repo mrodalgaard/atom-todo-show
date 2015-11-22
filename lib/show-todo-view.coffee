@@ -1,4 +1,4 @@
-{CompositeDisposable, TextEditor} = require 'atom'
+{CompositeDisposable} = require 'atom'
 {ScrollView} = require 'atom-space-pen-views'
 path = require 'path'
 fs = require 'fs-plus'
@@ -53,9 +53,6 @@ class ShowTodoView extends ScrollView
     @disposables.add pane.observeFlexScale (flexScale) =>
       @savePaneFlex(flexScale)
 
-    @disposables.add atom.config.observe 'todo-show.liveRefresh', (newValue) =>
-      @liveRefresh = newValue
-
     @disposables.add @model.onDidChangeSearchScope @setScopeButtonState
     @disposables.add @model.onDidStartSearch @startLoading
     @disposables.add @model.onDidFinishSearch @stopLoading
@@ -68,7 +65,7 @@ class ShowTodoView extends ScrollView
       @searchCount.text "#{nPaths} paths searched..."
 
     @disposables.add atom.workspace.onDidChangeActivePaneItem (item) =>
-      if item instanceof TextEditor and @model.scope is 'active'
+      if item?.constructor.name is 'TextEditor' and @model.scope is 'active'
         @model.search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
@@ -76,6 +73,9 @@ class ShowTodoView extends ScrollView
 
     @disposables.add atom.workspace.onDidDestroyPaneItem ({item}) =>
       @model.search() if @model.scope is 'open'
+
+    @disposables.add atom.workspace.observeTextEditors (editor) =>
+      @disposables.add editor.onDidSave => @model.search()
 
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions

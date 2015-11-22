@@ -1,27 +1,30 @@
-
 path = require 'path'
 fs = require 'fs-plus'
 temp = require 'temp'
 
 describe 'ShowTodo opening panes and executing commands', ->
-  [workspaceElement, activationPromise, showTodoModule] = []
+  [workspaceElement, activationPromise, showTodoModule, showTodoPane] = []
 
-  # needed to activate packages that are using activationCommands
+  # Needed to activate packages that are using activationCommands
   # and wait for loading to stop
   executeCommand = (callback) ->
+    wasVisible = showTodoModule?.showTodoView.isVisible()
     atom.commands.dispatch(workspaceElement, 'todo-show:find-in-project')
     waitsForPromise -> activationPromise
     runs ->
-      showTodoModule = atom.packages.loadedPackages['todo-show'].mainModule
       waitsFor ->
-        !showTodoModule.showTodoView.loading
-      runs(callback)
+        return !showTodoModule.showTodoView.isVisible() if wasVisible
+        !showTodoModule.showTodoView.loading and showTodoModule.showTodoView.isVisible()
+      runs ->
+        showTodoPane = atom.workspace.paneForItem(showTodoModule.showTodoView)
+        callback()
 
   beforeEach ->
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
     workspaceElement = atom.views.getView(atom.workspace)
     jasmine.attachToDOM(workspaceElement)
-    activationPromise = atom.packages.activatePackage 'todo-show'
+    activationPromise = atom.packages.activatePackage('todo-show').then (opts) ->
+      showTodoModule = opts.mainModule
 
   describe 'when the show-todo:find-in-project event is triggered', ->
     it 'attaches and then detaches the pane view', ->
@@ -30,9 +33,8 @@ describe 'ShowTodo opening panes and executing commands', ->
 
       # open todo-show
       executeCommand ->
-        pane = atom.workspace.paneForItem(showTodoModule.showTodoView)
         expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
-        expect(pane.parent.orientation).toBe 'horizontal'
+        expect(showTodoPane.parent.orientation).toBe 'horizontal'
 
         # close todo-show again
         executeCommand ->
@@ -42,105 +44,66 @@ describe 'ShowTodo opening panes and executing commands', ->
       atom.config.set 'todo-show.openListInDirection', 'down'
 
       executeCommand ->
-        pane = atom.workspace.paneForItem(showTodoModule.showTodoView)
         expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
-        expect(pane.parent.orientation).toBe 'vertical'
+        expect(showTodoPane.parent.orientation).toBe 'vertical'
 
     it 'can open ontop of current view', ->
       atom.config.set 'todo-show.openListInDirection', 'ontop'
 
       executeCommand ->
-        pane = atom.workspace.paneForItem(showTodoModule.showTodoView)
         expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
-        expect(pane.parent.orientation).not.toExist()
+        expect(showTodoPane.parent.orientation).not.toExist()
 
     it 'has visible elements in view', ->
       executeCommand ->
-        element = showTodoModule.showTodoView.find('a').last()
+        element = showTodoModule.showTodoView.find('td').last()
         expect(element.text()).toEqual 'sample.js'
         expect(element.isVisible()).toBe true
 
     it 'persists pane width', ->
       executeCommand ->
-        pane = atom.workspace.paneForItem showTodoModule.showTodoView
-        originalFlex = pane.getFlexScale()
+        originalFlex = showTodoPane.getFlexScale()
         newFlex = originalFlex * 1.1
         expect(typeof originalFlex).toEqual "number"
+        expect(showTodoModule.showTodoView).toBeVisible()
+        showTodoPane.setFlexScale(newFlex)
 
-        pane.setFlexScale(newFlex)
         executeCommand ->
-          pane = atom.workspace.paneForItem showTodoModule.showTodoView
-          expect(pane).not.toExist()
+          expect(showTodoPane).not.toExist()
+          expect(showTodoModule.showTodoView).not.toBeVisible()
+
           executeCommand ->
-            pane = atom.workspace.paneForItem showTodoModule.showTodoView
-            expect(pane.getFlexScale()).toEqual newFlex
-            pane.setFlexScale(originalFlex)
+            expect(showTodoPane.getFlexScale()).toEqual newFlex
+            showTodoPane.setFlexScale(originalFlex)
 
     it 'does not persist pane width if asked not to', ->
       atom.config.set('todo-show.rememberViewSize', false)
 
       executeCommand ->
-        pane = atom.workspace.paneForItem showTodoModule.showTodoView
-        originalFlex = pane.getFlexScale()
+        originalFlex = showTodoPane.getFlexScale()
         newFlex = originalFlex * 1.1
         expect(typeof originalFlex).toEqual "number"
 
-        pane.setFlexScale(newFlex)
+        showTodoPane.setFlexScale(newFlex)
         executeCommand ->
           executeCommand ->
-            pane = atom.workspace.paneForItem showTodoModule.showTodoView
-            expect(pane.getFlexScale()).not.toEqual newFlex
-            expect(pane.getFlexScale()).toEqual originalFlex
+            expect(showTodoPane.getFlexScale()).not.toEqual newFlex
+            expect(showTodoPane.getFlexScale()).toEqual originalFlex
 
     it 'persists horizontal pane height', ->
       atom.config.set('todo-show.openListInDirection', 'down')
 
       executeCommand ->
-        pane = atom.workspace.paneForItem showTodoModule.showTodoView
-        originalFlex = pane.getFlexScale()
+        originalFlex = showTodoPane.getFlexScale()
         newFlex = originalFlex * 1.1
         expect(typeof originalFlex).toEqual "number"
 
-        pane.setFlexScale(newFlex)
+        showTodoPane.setFlexScale(newFlex)
         executeCommand ->
-          pane = atom.workspace.paneForItem showTodoModule.showTodoView
-          expect(pane).not.toExist()
+          expect(showTodoPane).not.toExist()
           executeCommand ->
-            pane = atom.workspace.paneForItem showTodoModule.showTodoView
-            expect(pane.getFlexScale()).toEqual newFlex
-            pane.setFlexScale(originalFlex)
-
-    it 'groups matches by regex titles', ->
-      executeCommand ->
-        headers = showTodoModule.showTodoView.find('h1')
-        expect(headers).toHaveLength 8
-        expect(headers.eq(0).text().split(' ')[0]).toBe 'FIXMEs'
-        expect(headers.eq(1).text().split(' ')[0]).toBe 'TODOs'
-        expect(headers.eq(7).text().split(' ')[0]).toBe 'REVIEWs'
-
-    it 'can group matches by filename', ->
-      atom.config.set 'todo-show.groupMatchesBy', 'file'
-      executeCommand ->
-        headers = showTodoModule.showTodoView.find('h1')
-        expect(headers).toHaveLength 2
-        expect(headers.eq(0).text().split(' ')[0]).toBe 'sample.c'
-        expect(headers.eq(1).text().split(' ')[0]).toBe 'sample.js'
-
-        t1 = showTodoModule.showTodoView.find('table').eq(0).find('td').first().text()
-        t2 = showTodoModule.showTodoView.find('table').eq(1).find('td').first().text()
-        expect(t1).toBe 'Comment in C'
-        expect(t2).toBe 'Add more annnotations :)'
-
-    it 'can group matches by text (no grouping)', ->
-      atom.config.set 'todo-show.groupMatchesBy', 'none'
-      executeCommand ->
-        expect(showTodoModule.showTodoView.find('h1')).toHaveLength 1
-        expect(showTodoModule.showTodoView.find('table')).toHaveLength 1
-
-        t1 = showTodoModule.showTodoView.find('td').eq(0).text()
-        t2 = showTodoModule.showTodoView.find('td').eq(-2).text()
-        expect(t1).toBe 'Add more annnotations :) (FIXMEs)'
-        expect(t2.substring(0,3)).toBe 'two'
+            expect(showTodoPane.getFlexScale()).toEqual newFlex
+            showTodoPane.setFlexScale(originalFlex)
 
   describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->

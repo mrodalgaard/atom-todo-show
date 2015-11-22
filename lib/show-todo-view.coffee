@@ -110,9 +110,11 @@ class ShowTodoView extends ScrollView
     atom.project.getDirectories()[0]?.getBaseName()
 
   startLoading: =>
+    @loading = true
     @todoLoading.show()
 
   stopLoading: =>
+    @loading = false
     @todoLoading.hide()
 
   showError: (message) ->

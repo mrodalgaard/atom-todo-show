@@ -1,52 +1,28 @@
-
-## FIXMEs
-
-- Add more annnotations :) `sample.js` `:24`
-
-## TODOs
-
-- Comment in C `sample.c` `:5`
-- This is the first todo `sample.js` `:3`
-- This is the second todo `sample.js` `:20`
-
-## CHANGEDs
-
-- one `sample.js` `:26`
-- two `sample.js` `:27`
-- three `sample.js` `:28`
-- four `sample.js` `:29`
-
-## XXXs
-
-- one `sample.js` `:32`
-- two `sample.js` `:33`
-- three `sample.js` `:34`
-- four `sample.js` `:35`
-
-## IDEAs
-
-- one `sample.js` `:38`
-- two `sample.js` `:39`
-- three `sample.js` `:40`
-- four `sample.js` `:41`
-
-## HACKs
-
-- one `sample.js` `:44`
-- two `sample.js` `:45`
-- three `sample.js` `:46`
-- four `sample.js` `:47`
-
-## NOTEs
-
-- one `sample.js` `:50`
-- two `sample.js` `:51`
-- three `sample.js` `:52`
-- four `sample.js` `:53`
-
-## REVIEWs
-
-- one `sample.js` `:56`
-- two `sample.js` `:57`
-- three `sample.js` `:58`
-- four `sample.js` `:59`
+-  one `CHANGEDs` `sample.js`
+-  two `CHANGEDs` `sample.js`
+-  three `CHANGEDs` `sample.js`
+-  four `CHANGEDs` `sample.js`
+-  Add more annnotations :) `FIXMEs` `sample.js`
+-  four `HACKs` `sample.js`
+-  one `HACKs` `sample.js`
+-  three `HACKs` `sample.js`
+-  two `HACKs` `sample.js`
+-  two `IDEAs` `sample.js`
+-  one `IDEAs` `sample.js`
+-  four `IDEAs` `sample.js`
+-  three `IDEAs` `sample.js`
+-  one `NOTEs` `sample.js`
+-  three `NOTEs` `sample.js`
+-  four `NOTEs` `sample.js`
+-  two `NOTEs` `sample.js`
+-  two `REVIEWs` `sample.js`
+-  four `REVIEWs` `sample.js`
+-  one `REVIEWs` `sample.js`
+-  three `REVIEWs` `sample.js`
+-  This is the first todo `TODOs` `sample.js`
+-  This is the second todo `TODOs` `sample.js`
+-  Comment in C `TODOs` `sample.c`
+-  two `XXXs` `sample.js`
+-  one `XXXs` `sample.js`
+-  three `XXXs` `sample.js`
+-  four `XXXs` `sample.js`

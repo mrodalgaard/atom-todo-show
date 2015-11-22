@@ -110,6 +110,7 @@ describe 'ShowTodo opening panes and executing commands', ->
       outputPath = temp.path(suffix: '.md')
       expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output.md')
       expectedOutput = fs.readFileSync(expectedFilePath).toString()
+      atom.config.set 'todo-show.sortBy', 'Regex'
 
       expect(fs.isFileSync(outputPath)).toBe false
 
@@ -130,7 +131,8 @@ describe 'ShowTodo opening panes and executing commands', ->
       expectedOutput = fs.readFileSync(expectedFilePath).toString()
 
       atom.config.set 'todo-show.findTheseRegexes', ['TODOs', '/\\b@?TODO:?\\s(.+$)/g']
-      atom.config.set 'todo-show.groupMatchesBy', 'file'
+      atom.config.set 'todo-show.showInTable', ['Message', 'Type', 'File', 'Line']
+      atom.config.set 'todo-show.sortBy', 'File'
 
       expect(fs.isFileSync(outputPath)).toBe false
 

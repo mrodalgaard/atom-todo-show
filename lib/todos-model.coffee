@@ -60,6 +60,7 @@ class TodosModel
       when 'Text' then 'lineText'
       when 'Type' then 'title'
       when 'Range' then 'rangeString'
+      when 'Line' then 'line'
       when 'Regex' then 'regex'
       when 'File' then 'relativePath'
 
@@ -135,6 +136,7 @@ class TodosModel
       match.rangeString = match.range.toString()
 
     match.relativePath = atom.project.relativize(match.path)
+    match.line = match.range[0][0] + 1
     return match
 
   # Scan project workspace for the lookup that is passed
@@ -248,6 +250,55 @@ class TodosModel
   #
   #   for own key, group of _.groupBy(sortedMatches, iteratee)
   #     cb(group, groupBy)
+
+  # getMarkdown: ->
+  #   markdown = []
+  #   @groupMatches(matches, (group, groupBy) ->
+  #     switch groupBy
+  #       when 'file'
+  #         out = "\n## #{group[0].relativePath || 'Unknown File'}\n\n"
+  #         for match in group
+  #           out += "- #{match.matchText || 'empty'}"
+  #           out += " `#{match.title}`" if match.title
+  #           out += "\n"
+  #
+  #       when 'none'
+  #         out = "\n## All Matches\n\n"
+  #         for match in group
+  #           out += "- #{match.matchText || 'empty'}"
+  #           out += " _(#{match.title})_" if match.title
+  #           out += " `#{match.relativePath}`" if match.relativePath
+  #           out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
+  #           out += "\n"
+  #
+  #       else
+  #         out = "\n## #{group[0].title || 'No Title'}\n\n"
+  #         for match in group
+  #           out += "- #{match.matchText || 'empty'}"
+  #           out += " `#{match.relativePath}`" if match.relativePath
+  #           out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
+  #           out += "\n"
+  #     markdown.push out
+  #   )
+  #   markdown.join('')
+
+  getMarkdown: ->
+    showInTableKeys = for item in atom.config.get('todo-show.showInTable')
+      @getKeyForItem(item)
+
+    (for todo in @getTodos()
+      out = '- '
+      for key in showInTableKeys
+        out += switch key
+          when 'matchText' then " #{todo[key]}"
+          when 'lineText' then " #{todo[key]}"
+          when 'title' then " `#{todo[key]}`"
+          when 'rangeString' then " _:#{todo[key]}_"
+          when 'line' then " _:#{todo[key]}_"
+          when 'regex' then " _#{todo[key]}_"
+          when 'relativePath' then " `#{todo[key]}`"
+      "#{out}\n"
+    ).join('')
 
   cancelSearch: ->
     @searchPromises ?= []

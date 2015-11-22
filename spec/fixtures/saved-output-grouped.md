@@ -1,9 +1,3 @@
-
-## sample.c
-
-- Comment in C `TODOs`
-
-## sample.js
-
-- This is the first todo `TODOs`
-- This is the second todo `TODOs`
+-  Comment in C `TODOs` `sample.c` _:5_
+-  This is the first todo `TODOs` `sample.js` _:3_
+-  This is the second todo `TODOs` `sample.js` _:20_

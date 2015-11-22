@@ -16,7 +16,7 @@ class ShowTodoView extends ScrollView
         @div class: 'btn-group', =>
           @button outlet: 'scopeButton', class: 'btn'
           @button outlet: 'optionsButton', class: 'btn icon-gear'
-          # @button outlet: 'saveAsButton', class: 'btn icon-cloud-download'
+          @button outlet: 'saveAsButton', class: 'btn icon-cloud-download'
           @button outlet: 'refreshButton', class: 'btn icon-sync'
 
       @div outlet: 'optionsView'
@@ -35,7 +35,7 @@ class ShowTodoView extends ScrollView
 
     @disposables.add atom.tooltips.add @scopeButton, title: "What to Search"
     @disposables.add atom.tooltips.add @optionsButton, title: "Show Todo Options"
-    # @disposables.add atom.tooltips.add @saveAsButton, title: "Save Todos to File"
+    @disposables.add atom.tooltips.add @saveAsButton, title: "Save Todos to File"
     @disposables.add atom.tooltips.add @refreshButton, title: "Refresh Todos"
 
   handleEvents: ->
@@ -79,7 +79,7 @@ class ShowTodoView extends ScrollView
 
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
-    # @saveAsButton.on 'click', @saveAs
+    @saveAsButton.on 'click', @saveAs
     @refreshButton.on 'click', => @model.search()
 
   destroy: ->
@@ -120,38 +120,6 @@ class ShowTodoView extends ScrollView
   showError: (message) ->
     atom.notifications.addError 'todo-show', detail: message, dismissable: true
 
-  getMarkdown: (matches) ->
-    markdown = []
-    @groupMatches(matches, (group, groupBy) ->
-      switch groupBy
-        when 'file'
-          out = "\n## #{group[0].relativePath || 'Unknown File'}\n\n"
-          for match in group
-            out += "- #{match.matchText || 'empty'}"
-            out += " `#{match.title}`" if match.title
-            out += "\n"
-
-        when 'none'
-          out = "\n## All Matches\n\n"
-          for match in group
-            out += "- #{match.matchText || 'empty'}"
-            out += " _(#{match.title})_" if match.title
-            out += " `#{match.relativePath}`" if match.relativePath
-            out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
-            out += "\n"
-
-        else
-          out = "\n## #{group[0].title || 'No Title'}\n\n"
-          for match in group
-            out += "- #{match.matchText || 'empty'}"
-            out += " `#{match.relativePath}`" if match.relativePath
-            out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
-            out += "\n"
-      markdown.push out
-    )
-    markdown.join('')
-
-  # TODO: "Save as" is broken
   saveAs: =>
     return if @model.isSearching()
 
@@ -160,7 +128,7 @@ class ShowTodoView extends ScrollView
       filePath = path.join(projectPath, filePath)
 
     if outputFilePath = atom.showSaveDialogSync(filePath.toLowerCase())
-      fs.writeFileSync(outputFilePath, @getMarkdown(@matches))
+      fs.writeFileSync(outputFilePath, @model.getMarkdown())
       atom.workspace.open(outputFilePath)
 
   toggleSearchScope: =>

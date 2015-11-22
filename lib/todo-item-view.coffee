@@ -29,7 +29,7 @@ class TodoView extends View
             when 'Range'
               @i todo.rangeString
             when 'Line'
-              @i todo.range[0][0] + 1
+              @i todo.line
             when 'Regex'
               @code todo.regex
             when 'File'

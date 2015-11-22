@@ -9,6 +9,12 @@ class CodeView extends View
   @content: (item) ->
     @code item
 
+class RegexView extends View
+  @content: (title, regex) ->
+    @div =>
+      @span "#{title}: "
+      @code regex
+
 module.exports =
 class ShowTodoView extends View
   @content: ->
@@ -75,8 +81,9 @@ class ShowTodoView extends View
       ghostClass: 'ghost'
     )
 
-    for regex in atom.config.get('todo-show.findTheseRegexes')
-      @regexString.append new CodeView(regex)
+    regexes = atom.config.get('todo-show.findTheseRegexes')
+    for regex, i in regexes by 2
+      @regexString.append new RegexView(regex, regexes[i+1])
 
     for path in atom.config.get('todo-show.ignoreThesePaths')
       @ignoresString.append new CodeView(path)

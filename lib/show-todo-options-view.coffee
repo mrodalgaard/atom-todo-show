@@ -49,7 +49,7 @@ class ShowTodoView extends View
   handleEvents: ->
     @configButton.on 'click', ->
       atom.workspace.open 'atom://config/packages/todo-show'
-    @closeButton.on 'click', => @parent().hide()
+    @closeButton.on 'click', => @parent().slideToggle()
 
   detach: ->
     @disposables.dispose()

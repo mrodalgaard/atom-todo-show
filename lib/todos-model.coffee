@@ -6,6 +6,8 @@ class TodosModel
   URIopen: 'atom://todo-show/open-todos'
   URIactive: 'atom://todo-show/active-todos'
 
+  maxLength: 120
+
   constructor: ->
     @emitter = new Emitter
     @todos = []
@@ -36,10 +38,18 @@ class TodosModel
     return unless key = @getKeyForItem(sortBy)
 
     @todos = @todos.sort((a,b) ->
+      return -1 unless aItem = a[key]
+      return 1 unless bItem = b[key]
+
+      # Fall back to matchText if items are the same
+      if aItem is bItem
+        aItem = a.matchText
+        bItem = b.matchText
+
       if sortAsc
-        a[key].localeCompare(b[key])
+        aItem.localeCompare(bItem)
       else
-        b[key].localeCompare(a[key])
+        bItem.localeCompare(aItem)
       )
     @emitter.emit 'did-sort-todos', @todos
 
@@ -91,7 +101,7 @@ class TodosModel
   # Get regexes to look for from settings
   buildRegexLookups: (regexes) ->
     if regexes.length % 2
-      @showError "Invalid number of regexes: #{regexes.length}"
+      @emitter.emit 'did-fail-search', "Invalid number of regexes: #{regexes.length}"
       return []
 
     for regex, i in regexes by 2
@@ -108,7 +118,7 @@ class TodosModel
     if pattern
       new RegExp(pattern, flags)
     else
-      @showError "Invalid regex: #{regexStr or 'empty'}"
+      @emitter.emit 'did-fail-search', "Invalid regex: #{regexStr or 'empty'}"
       false
 
   handleScanMatch: (match, regex) ->
@@ -136,7 +146,7 @@ class TodosModel
       match.rangeString = match.range.toString()
 
     match.relativePath = atom.project.relativize(match.path)
-    match.line = match.range[0][0] + 1
+    match.line = (match.range[0][0] + 1).toString()
     return match
 
   # Scan project workspace for the lookup that is passed
@@ -206,7 +216,8 @@ class TodosModel
     @searching = true
     @emitter.emit 'did-start-search'
 
-    regexes = @buildRegexLookups(atom.config.get('todo-show.findTheseRegexes'))
+    return unless findTheseRegexes = atom.config.get('todo-show.findTheseRegexes')
+    regexes = @buildRegexLookups(findTheseRegexes)
 
     # Scan for each regex and get promises
     for regexObj in regexes
@@ -227,76 +238,27 @@ class TodosModel
     ignores = atom.config.get('todo-show.ignoreThesePaths')
     return ['*'] unless ignores?
     if Object.prototype.toString.call(ignores) isnt '[object Array]'
-      @showError('ignoreThesePaths must be an array')
+      @emitter.emit 'did-fail-search', "ignoreThesePaths must be an array"
       return ['*']
     "!#{ignore}" for ignore in ignores
-
-  # groupMatches: (matches, cb) ->
-  #   regexes = atom.config.get('todo-show.findTheseRegexes')
-  #   groupBy = atom.config.get('todo-show.groupMatchesBy')
-  #
-  #   switch groupBy
-  #     when 'file'
-  #       iteratee = 'relativePath'
-  #       sortedMatches = _.sortBy(matches, iteratee)
-  #     when 'none'
-  #       sortedMatches = _.sortBy(matches, 'matchText')
-  #       return cb(sortedMatches, groupBy)
-  #     else
-  #       iteratee = 'title'
-  #       sortedMatches = _.sortBy(matches, (match) ->
-  #         regexes.indexOf(match[iteratee])
-  #       )
-  #
-  #   for own key, group of _.groupBy(sortedMatches, iteratee)
-  #     cb(group, groupBy)
-
-  # getMarkdown: ->
-  #   markdown = []
-  #   @groupMatches(matches, (group, groupBy) ->
-  #     switch groupBy
-  #       when 'file'
-  #         out = "\n## #{group[0].relativePath || 'Unknown File'}\n\n"
-  #         for match in group
-  #           out += "- #{match.matchText || 'empty'}"
-  #           out += " `#{match.title}`" if match.title
-  #           out += "\n"
-  #
-  #       when 'none'
-  #         out = "\n## All Matches\n\n"
-  #         for match in group
-  #           out += "- #{match.matchText || 'empty'}"
-  #           out += " _(#{match.title})_" if match.title
-  #           out += " `#{match.relativePath}`" if match.relativePath
-  #           out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
-  #           out += "\n"
-  #
-  #       else
-  #         out = "\n## #{group[0].title || 'No Title'}\n\n"
-  #         for match in group
-  #           out += "- #{match.matchText || 'empty'}"
-  #           out += " `#{match.relativePath}`" if match.relativePath
-  #           out += " `:#{match.range[0][0] + 1}`" if match.range and match.range[0]
-  #           out += "\n"
-  #     markdown.push out
-  #   )
-  #   markdown.join('')
 
   getMarkdown: ->
     showInTableKeys = for item in atom.config.get('todo-show.showInTable')
       @getKeyForItem(item)
 
     (for todo in @getTodos()
-      out = '- '
+      out = '-'
       for key in showInTableKeys
-        out += switch key
-          when 'matchText' then " #{todo[key]}"
-          when 'lineText' then " #{todo[key]}"
-          when 'title' then " `#{todo[key]}`"
-          when 'rangeString' then " _:#{todo[key]}_"
-          when 'line' then " _:#{todo[key]}_"
-          when 'regex' then " _#{todo[key]}_"
-          when 'relativePath' then " `#{todo[key]}`"
+        if item = todo[key]
+          out += switch key
+            when 'matchText' then " #{item}"
+            when 'lineText' then " #{item}"
+            when 'title' then " __#{item}__"
+            when 'rangeString' then " _:#{item}_"
+            when 'line' then " _:#{item}_"
+            when 'regex' then " _#{item}_"
+            when 'relativePath' then " `#{item}`"
+      out = "- No details" if out is '-'
       "#{out}\n"
     ).join('')
 

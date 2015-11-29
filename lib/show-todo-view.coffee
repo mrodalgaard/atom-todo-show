@@ -8,8 +8,6 @@ TodoOptions = require './show-todo-options-view'
 
 module.exports =
 class ShowTodoView extends ScrollView
-  maxLength: 120
-
   @content: (@model) ->
     @div class: 'show-todo-preview native-key-bindings', tabindex: -1, =>
       @div class: 'text-right', =>
@@ -117,6 +115,9 @@ class ShowTodoView extends ScrollView
     @loading = false
     @todoLoading.hide()
 
+  getTodos: ->
+    @model.getTodos()
+
   showError: (message) ->
     atom.notifications.addError 'todo-show', detail: message, dismissable: true
 
@@ -146,4 +147,4 @@ class ShowTodoView extends ScrollView
       @optionsView.hide()
       @todoOptions = new TodoOptions(@model)
       @optionsView.html @todoOptions
-    @optionsView.toggle()
+    @optionsView.slideToggle()

@@ -65,8 +65,10 @@ class ShowTodoView extends View
   renderTable: =>
     @clearTodos()
     @renderTableHeader()
-    for todo in @model.getTodos()
+
+    for todo in todos = @model.getTodos()
       @renderTodo(todo)
+    @table.append new TodoEmptyView(@showInTable) unless todos.length
 
   sort: (sortBy, sortAsc) ->
     @model.sortTodos(sortBy: sortBy, sortAsc: sortAsc)

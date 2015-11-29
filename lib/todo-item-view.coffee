@@ -20,10 +20,10 @@ class TodoView extends View
       for item in showInTable
         @td =>
           switch item
-            when 'Message'
-              @span todo.matchText
-            when 'Text'
+            when 'All'
               @span todo.lineText
+            when 'Text'
+              @span todo.matchText
             when 'Type'
               @i todo.title
             when 'Range'

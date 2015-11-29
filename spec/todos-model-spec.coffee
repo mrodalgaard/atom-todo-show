@@ -14,7 +14,7 @@ describe 'Todos Model', ->
     defaultLookup =
       title: defaultRegexes[2]
       regex: defaultRegexes[3]
-    defaultShowInTable = ['Message', 'Type', 'File']
+    defaultShowInTable = ['Text', 'Type', 'File']
 
     model = new TodosModel
     # model.setAvailableTableItems(@config.sortBy.enum)
@@ -443,7 +443,7 @@ describe 'Todos Model', ->
       """
 
     it 'creates markdown with sorting', ->
-      model.sortTodos(sortBy: 'Message', sortAsc: true)
+      model.sortTodos(sortBy: 'Text', sortAsc: true)
       expect(model.getMarkdown()).toEqual """
         - fixme #1 __FIXMEs__ `file1.txt`
         - fixme #2 __FIXMEs__ `file2.txt`
@@ -451,7 +451,7 @@ describe 'Todos Model', ->
       """
 
     it 'creates markdown with inverse sorting', ->
-      model.sortTodos(sortBy: 'Message', sortAsc: false)
+      model.sortTodos(sortBy: 'Text', sortAsc: false)
       expect(model.getMarkdown()).toEqual """
         - todo #1 __TODOs__ `file1.txt`
         - fixme #2 __FIXMEs__ `file2.txt`
@@ -477,7 +477,7 @@ describe 'Todos Model', ->
         - fixme #1 __FIXMEs__\n
       """
 
-      atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range', 'Message']
+      atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range', 'Text']
       markdown = '\n## Unknown File\n\n- fixme #1 `FIXMEs`\n'
       expect(model.getMarkdown()).toEqual """
         - __FIXMEs__ fixme #1\n

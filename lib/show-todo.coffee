@@ -41,14 +41,14 @@ module.exports =
     showInTable:
       type: 'array'
       default: [
-        'Message',
+        'Text',
         'Type',
         'File'
       ]
     sortBy:
       type: 'string'
-      default: 'Message'
-      enum: ['Message', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File']
+      default: 'Text'
+      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File']
     sortAscending:
       type: 'boolean'
       default: true

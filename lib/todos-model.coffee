@@ -62,8 +62,8 @@ class TodosModel
   #   title
   getKeyForItem: (item) ->
     switch item
-      when 'Message' then 'matchText'
-      when 'Text' then 'lineText'
+      when 'All' then 'lineText'
+      when 'Text' then 'matchText'
       when 'Type' then 'title'
       when 'Range' then 'rangeString'
       when 'Line' then 'line'

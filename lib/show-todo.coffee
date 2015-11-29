@@ -39,11 +39,14 @@ module.exports =
       ]
       items:
         type: 'string'
-    # Split direction to open list
-    openListInDirection:
-      type: 'string'
-      default: 'right'
-      enum: ['up', 'right', 'down', 'left', 'ontop']
+    # Show these todo properties in todo table
+    showInTable:
+      type: 'array'
+      default: [
+        'Message',
+        'Type',
+        'File'
+      ]
     # Sort by todo property
     sortBy:
       type: 'string'
@@ -53,14 +56,11 @@ module.exports =
     sortAscending:
       type: 'boolean'
       default: true
-    # Show these todo properties in todo table
-    showInTable:
-      type: 'array'
-      default: [
-        'Message',
-        'Type',
-        'File'
-      ]
+    # Split direction to open list
+    openListInDirection:
+      type: 'string'
+      default: 'right'
+      enum: ['up', 'right', 'down', 'left', 'ontop']
     # Persist pane width / height
     rememberViewSize:
       type: 'boolean'

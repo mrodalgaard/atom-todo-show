@@ -9,7 +9,7 @@
       "todo-show:find-in-open-files"
     ]
   },
-  "repository": "https://github.com/jamischarles/atom-todo-show",
+  "repository": "https://github.com/mrodalgaard/atom-todo-show",
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"

@@ -128,7 +128,7 @@ class TodosModel
     match.matchText = matchText || 'No details'
 
     # Make sure range is serialized to produce correct rendered format
-    # See https://github.com/jamischarles/atom-todo-show/issues/27
+    # See https://github.com/mrodalgaard/atom-todo-show/issues/27
     if match.range.serialize
       match.rangeString = match.range.serialize().toString()
     else

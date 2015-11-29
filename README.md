@@ -2,7 +2,7 @@
 
 Finds all the TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in your project. Or anything else you want to fetch through settings.
 
-![todo-show-package](https://raw.github.com/jamischarles/atom-todo-show/master/screenshots/preview.png)
+![todo-show-package](https://raw.githubusercontent.com/mrodalgaard/atom-todo-show/master/screenshots/preview.png)
 
 ## Config
 
@@ -27,10 +27,10 @@ Default regex form: `'/\\b@?TODO:?\\d*($|\\s.*$)/g'`
 * Or `\s.*$` to match the todo text with a non-optional space in front
 * As the config only accepts strings all `\` characters are also escaped.
 
-To extend the default list of regexes the existing array needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/jamischarles/atom-todo-show/blob/master/lib/show-todo.coffee#L12) for current defaults.
+To extend the default list of regexes the existing array needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/mrodalgaard/atom-todo-show/blob/master/lib/show-todo.coffee#L12) for current defaults.
 
 # To contribute
-1. `$ git clone https://github.com/jamischarles/atom-todo-show.git` to e.g. ~/github/
+1. `$ git clone https://github.com/mrodalgaard/atom-todo-show.git` to e.g. ~/github/
 2. `$ apm link` in your cloned repo to symlink your version for atom development mode
 3. Open `~/github/atom-todo-show` in atom dev mode (View -> Developer -> Open in Dev Mode) or `atom -d`
 4. Make your changes.

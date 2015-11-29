@@ -1,52 +1,28 @@
-
-## FIXMEs
-
-- Add more annnotations :) `sample.js` `:24`
-
-## TODOs
-
-- Comment in C `sample.c` `:5`
-- This is the first todo `sample.js` `:3`
-- This is the second todo `sample.js` `:20`
-
-## CHANGEDs
-
-- one `sample.js` `:26`
-- two `sample.js` `:27`
-- three `sample.js` `:28`
-- four `sample.js` `:29`
-
-## XXXs
-
-- one `sample.js` `:32`
-- two `sample.js` `:33`
-- three `sample.js` `:34`
-- four `sample.js` `:35`
-
-## IDEAs
-
-- one `sample.js` `:38`
-- two `sample.js` `:39`
-- three `sample.js` `:40`
-- four `sample.js` `:41`
-
-## HACKs
-
-- one `sample.js` `:44`
-- two `sample.js` `:45`
-- three `sample.js` `:46`
-- four `sample.js` `:47`
-
-## NOTEs
-
-- one `sample.js` `:50`
-- two `sample.js` `:51`
-- three `sample.js` `:52`
-- four `sample.js` `:53`
-
-## REVIEWs
-
-- one `sample.js` `:56`
-- two `sample.js` `:57`
-- three `sample.js` `:58`
-- four `sample.js` `:59`
+- four __CHANGEDs__ `sample.js`
+- one __CHANGEDs__ `sample.js`
+- three __CHANGEDs__ `sample.js`
+- two __CHANGEDs__ `sample.js`
+- Add more annnotations :) __FIXMEs__ `sample.js`
+- four __HACKs__ `sample.js`
+- one __HACKs__ `sample.js`
+- three __HACKs__ `sample.js`
+- two __HACKs__ `sample.js`
+- four __IDEAs__ `sample.js`
+- one __IDEAs__ `sample.js`
+- three __IDEAs__ `sample.js`
+- two __IDEAs__ `sample.js`
+- four __NOTEs__ `sample.js`
+- one __NOTEs__ `sample.js`
+- three __NOTEs__ `sample.js`
+- two __NOTEs__ `sample.js`
+- four __REVIEWs__ `sample.js`
+- one __REVIEWs__ `sample.js`
+- three __REVIEWs__ `sample.js`
+- two __REVIEWs__ `sample.js`
+- Comment in C __TODOs__ `sample.c`
+- This is the first todo __TODOs__ `sample.js`
+- This is the second todo __TODOs__ `sample.js`
+- four __XXXs__ `sample.js`
+- one __XXXs__ `sample.js`
+- three __XXXs__ `sample.js`
+- two __XXXs__ `sample.js`

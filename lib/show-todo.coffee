@@ -1,6 +1,7 @@
 {CompositeDisposable} = require 'atom'
 
 ShowTodoView = require './show-todo-view'
+TodosModel = require './todos-model'
 
 module.exports =
   config:
@@ -38,35 +39,58 @@ module.exports =
       ]
       items:
         type: 'string'
+    # Show these todo properties in todo table
+    showInTable:
+      type: 'array'
+      default: [
+        'Message',
+        'Type',
+        'File'
+      ]
+    # Sort by todo property
+    sortBy:
+      type: 'string'
+      default: 'Message'
+      enum: ['Message', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File']
+    # Sort ascending or descending
+    sortAscending:
+      type: 'boolean'
+      default: true
     # Split direction to open list
     openListInDirection:
       type: 'string'
       default: 'right'
       enum: ['up', 'right', 'down', 'left', 'ontop']
-    # Change list grouping / sorting
-    groupMatchesBy:
-      type: 'string'
-      default: 'regex'
-      enum: ['regex', 'file', 'none']
     # Persist pane width / height
     rememberViewSize:
       type: 'boolean'
       default: true
 
+  URI:
+    full: 'atom://todo-show/todos'
+    open: 'atom://todo-show/open-todos'
+    active: 'atom://todo-show/active-todos'
+
   activate: ->
+    model = new TodosModel
+    model.setAvailableTableItems(@config.sortBy.enum)
+
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
-      'todo-show:find-in-project': => @show(ShowTodoView.URI)
-      'todo-show:find-in-open-files': => @show(ShowTodoView.URIopen)
+      'todo-show:find-in-project': => @show(@URI.full)
+      'todo-show:find-in-open-files': => @show(@URI.open)
 
     # Register the todolist URI, which will then open our custom view
-    @disposables.add atom.workspace.addOpener (uriToOpen) ->
-      switch uriToOpen
-        when ShowTodoView.URI then new ShowTodoView(true).getTodos()
-        when ShowTodoView.URIopen then new ShowTodoView(false).getTodos()
+    @disposables.add atom.workspace.addOpener (uriToOpen) =>
+      scope = switch uriToOpen
+        when @URI.full then 'full'
+        when @URI.open then 'open'
+        when @URI.active then 'active'
+      if scope
+        model.setSearchScope(scope)
+        new ShowTodoView(model, uriToOpen)
 
   deactivate: ->
-    @paneDisposables?.dispose()
     @disposables?.dispose()
 
   destroyPaneItem: ->
@@ -89,5 +113,5 @@ module.exports =
     else if direction is 'up'
       prevPane.splitUp() if prevPane.parent.orientation isnt 'vertical'
 
-    atom.workspace.open(uri, split: direction).done (@showTodoView) =>
+    atom.workspace.open(uri, split: direction).then (@showTodoView) =>
       prevPane.activate()

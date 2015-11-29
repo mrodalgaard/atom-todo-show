@@ -1,86 +1,61 @@
 {View} = require 'atom-space-pen-views'
 
-class BaseView extends View
-  initialize: ->
+class TableHeaderView extends View
+  @content: (showInTable, {sortBy, sortAsc}) ->
+    @tr =>
+      for item in showInTable
+        @th item, =>
+          if item is sortBy and sortAsc
+            @div class: 'sort-asc icon-triangle-down active'
+          else
+            @div class: 'sort-asc icon-triangle-down'
+          if item is sortBy and not sortAsc
+            @div class: 'sort-desc icon-triangle-up active'
+          else
+            @div class: 'sort-desc icon-triangle-up'
+
+class TodoView extends View
+  @content: (showInTable, todo) ->
+    @tr =>
+      for item in showInTable
+        @td =>
+          switch item
+            when 'Message'
+              @span todo.matchText
+            when 'Text'
+              @span todo.lineText
+            when 'Type'
+              @i todo.title
+            when 'Range'
+              @i todo.rangeString
+            when 'Line'
+              @i todo.line
+            when 'Regex'
+              @code todo.regex
+            when 'File'
+              @a todo.relativePath
+
+  initialize: (showInTable, @todo) ->
     @handleEvents()
 
   destroy: ->
     @detach()
 
-  # Open document and move cursor to positon
-  moveCursorTo: (cursorCoords) ->
-    lineNumber = parseInt(cursorCoords[0])
-    charNumber = parseInt(cursorCoords[1])
-
-    if textEditor = atom.workspace.getActiveTextEditor()
-      position = [lineNumber, charNumber]
-      textEditor.setCursorBufferPosition(position, autoscroll: false)
-      textEditor.scrollToCursorPosition(center: true)
-
-  # Open a new window, and load the file that we need.
-  # we call this from the results view. This will open the result file in the left pane.
-  openPath: (filePath, cursorCoords) ->
-    return unless filePath
-    atom.workspace.open(filePath, split: 'left').done =>
-      @moveCursorTo(cursorCoords)
-
   handleEvents: ->
-    @on 'click', '.todo-url',  (e) =>
-      link = e.target
-      @openPath(link.dataset.uri, link.dataset.coords.split(','))
+    @on 'click', 'td', @openPath
 
-class TodoRegexView extends BaseView
-  @content: (matches) ->
-    @section =>
-      @h1 =>
-        @span "#{matches[0].title} "
-        @span class: 'regex', matches[0].regex
-      @table =>
-        for match in matches
-          @tr =>
-            @td match.matchText
-            @td =>
-              @a class: 'todo-url', 'data-uri': match.path,
-              'data-coords': match.rangeString, match.relativePath
-
-class TodoFileView extends BaseView
-  @content: (matches) ->
-    @section =>
-      @h1 =>
-        @span "#{matches[0].relativePath}"
-      @table =>
-        for match in matches
-          @tr =>
-            @td match.matchText
-            @td =>
-              @a class: 'todo-url', 'data-uri': match.path,
-              'data-coords': match.rangeString, match.title
-
-class TodoNoneView extends BaseView
-  @content: (matches) ->
-    @section =>
-      @h1 "All Matches"
-      @table =>
-        for match in matches
-          @tr =>
-            @td =>
-              @span "#{match.matchText} "
-              @i "(#{match.title})"
-            @td =>
-              @a class: 'todo-url', 'data-uri': match.path,
-              'data-coords': match.rangeString, match.relativePath
+  openPath: =>
+    return unless todo = @todo
+    atom.workspace.open(todo.path, split: 'left').then ->
+      if textEditor = atom.workspace.getActiveTextEditor()
+        position = [todo.range[0][0], todo.range[0][1]]
+        textEditor.setCursorBufferPosition(position, autoscroll: false)
+        textEditor.scrollToCursorPosition(center: true)
 
 class TodoEmptyView extends View
-  @content: ->
-    @section =>
-      @h1 "No results"
-      @table =>
-        @tr =>
-          @td =>
-            @h5 "Did not find any todos. Searched for:"
-            @ul =>
-              for regex in atom.config.get('todo-show.findTheseRegexes') by 2
-                @li regex
-            @h5 "Use your configuration to add more patterns."
+  @content: (showInTable) ->
+    @tr =>
+      @td colspan: showInTable.length, =>
+        @p "No results..."
 
-module.exports = {TodoRegexView, TodoFileView, TodoNoneView, TodoEmptyView}
+module.exports = {TableHeaderView, TodoView, TodoEmptyView}

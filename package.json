@@ -17,8 +17,7 @@
   "dependencies": {
     "atom-space-pen-views": "^2.0.3",
     "fs-plus": "2.x",
-    "q": "^1.0.1",
-    "temp": "^0.8.1",
-    "underscore-plus": "^1.6.6"
+    "sortablejs": "^1.4.2",
+    "temp": "^0.8.1"
   }
 }

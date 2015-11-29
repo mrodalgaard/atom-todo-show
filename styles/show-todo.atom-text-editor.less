@@ -1,43 +1,92 @@
 @import "ui-variables";
 
 .show-todo-preview {
-  background-color: @base-background-color;
+  @todo-color: @base-background-color;
+  @todo-color-light: lighten(@todo-color, 5%);
+
+  .todo-font {
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  background-color: @todo-color;
   color: @text-color;
   overflow: scroll;
   padding: 10px;
 
-  .regex {
-    color: @text-color-subtle;
-    font-size: 70%;
-  }
+  .todo-options {
+    border: 2px solid @todo-color-light;
+    margin: 10px 0;
+    padding: 0 10px 10px;
 
-  a {
-    color: @text-color-info;
-  }
-
-  h1 {
-    margin-bottom: 5px;
-    font-weight: bold;
-    overflow-wrap: break-word;
-  }
-
-  table {
-    width: 100%;
-    table-layout: fixed;
-
-    td {
-      padding: 10px 6px;
-      overflow-wrap: break-word;
-
-      &:nth-child(2n) {
-        width: 33%;
+    .option {
+      display: flex;
+      align-items: center;
+      & > h2 {
+        .todo-font;
+        flex: 1 1 120px;
+      }
+      & > div {
+        word-wrap: break-word;
+        flex: 100;
       }
     }
+
+    .items-on-table, .items-off-table {
+      .badge {
+        .todo-font;
+        width: 80px;
+        margin: 5px 10px 5px 0;
+        cursor: move;
+      }
+    }
+  }
+
+  .todo-table {
+    margin-top: 10px;
+    width: 100%;
 
     tr {
-      &:nth-child(2n + 1) {
-        background-color: lighten(@base-background-color, 5%);
+      &:nth-child(2n + 1), &:hover {
+        background-color: @todo-color-light;
       }
     }
+
+    td + td, th + th {
+      border-left: 1px groove @text-color;
+    }
+
+    th, td {
+      padding: 10px 6px;
+      word-break: break-word;
+      cursor: pointer;
+    }
+
+    th {
+      .todo-font;
+      min-width: 75px;
+
+      .sort-asc, .sort-desc {
+        float: right;
+        pointer-events: none;
+        &:not(.active) {
+          opacity: 0.2;
+        }
+      }
+      .sort-desc {
+        margin: -6px -16px 0 0;
+      }
+    }
+  }
+
+  code {
+    margin-right: 2px;
+    color: @text-color;
+  }
+}
+
+.theme-atom-material-ui .todo-table tr {
+  &:nth-child(2n + 1), &:hover {
+    background-color: @base-border-color;
   }
 }

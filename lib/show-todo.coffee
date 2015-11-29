@@ -66,19 +66,29 @@ module.exports =
       type: 'boolean'
       default: true
 
+  URI:
+    full: 'atom://todo-show/todos'
+    open: 'atom://todo-show/open-todos'
+    active: 'atom://todo-show/active-todos'
+
   activate: ->
     model = new TodosModel
     model.setAvailableTableItems(@config.sortBy.enum)
 
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
-      'todo-show:find-in-project': => @show(model.URI)
-      'todo-show:find-in-open-files': => @show(model.URIopen)
+      'todo-show:find-in-project': => @show(@URI.full)
+      'todo-show:find-in-open-files': => @show(@URI.open)
 
     # Register the todolist URI, which will then open our custom view
-    @disposables.add atom.workspace.addOpener (uriToOpen) ->
-      if model.setSearchScopeFromUri(uriToOpen)
-        new ShowTodoView(model)
+    @disposables.add atom.workspace.addOpener (uriToOpen) =>
+      scope = switch uriToOpen
+        when @URI.full then 'full'
+        when @URI.open then 'open'
+        when @URI.active then 'active'
+      if scope
+        model.setSearchScope(scope)
+        new ShowTodoView(model, uriToOpen)
 
   deactivate: ->
     @disposables?.dispose()

@@ -25,7 +25,7 @@ class ShowTodoView extends ScrollView
 
       @subview 'todoTable', new TodoTable(@model)
 
-  initialize: (@model, @searchWorkspace = true) ->
+  initialize: (@model, @uri) ->
     @disposables = new CompositeDisposable
     @handleEvents()
     @model.search()
@@ -93,13 +93,13 @@ class ShowTodoView extends ScrollView
     pane.setFlexScale parseFloat(flex) if flex
 
   getTitle: ->
-    if @searchWorkspace then "Todo-Show Results" else "Todo-Show Open Files"
+    "Todo-Show Results"
 
   getIconName: ->
     "checklist"
 
   getURI: ->
-    if @searchWorkspace then @constructor.URI else @constructor.URIopen
+    @uri
 
   getProjectPath: ->
     atom.project.getPaths()[0]

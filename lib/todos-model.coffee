@@ -2,10 +2,6 @@
 
 module.exports =
 class TodosModel
-  URI: 'atom://todo-show/todos'
-  URIopen: 'atom://todo-show/open-todos'
-  URIactive: 'atom://todo-show/active-todos'
-
   maxLength: 120
 
   constructor: ->
@@ -82,13 +78,6 @@ class TodosModel
   getSearchScope: -> @scope
   setSearchScope: (scope) ->
     @emitter.emit 'did-change-scope', @scope = scope
-
-  setSearchScopeFromUri: (uri) ->
-    scope = switch uri
-      when @URI then 'full'
-      when @URIopen then 'open'
-      when @URIactive then 'active'
-    if scope then @scope = scope else false
 
   toggleSearchScope: ->
     scope = switch @scope

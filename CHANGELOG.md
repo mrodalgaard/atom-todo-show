@@ -1,3 +1,12 @@
+## 1.0.0
+- New package owner (@mrodalgaard)
+- Total code refactor
+- Improved config
+- Options dialog
+- Update table upon save
+- TODOs in flexible table
+- Travis CI
+
 ## 0.16.0
 - Use native exclude for ignoreThesePaths
 - Notification on invalid config input
@@ -31,7 +40,7 @@
 - Scan progress when loading todos
 
 ## 0.10.0
-- Strip common block comment endings (e.g. '*/')
+- Strip common block comment endings
 - Truncate matches over 120 characters
 - Configurable where the pane opens with openListInDirection
 - Updated styling

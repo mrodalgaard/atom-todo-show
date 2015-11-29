@@ -110,7 +110,7 @@ describe 'ShowTodo opening panes and executing commands', ->
       outputPath = temp.path(suffix: '.md')
       expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output.md')
       expectedOutput = fs.readFileSync(expectedFilePath).toString()
-      atom.config.set 'todo-show.sortBy', 'Regex'
+      atom.config.set 'todo-show.sortBy', 'Type'
 
       expect(fs.isFileSync(outputPath)).toBe false
 
@@ -165,30 +165,27 @@ describe 'ShowTodo opening panes and executing commands', ->
       atom.commands.dispatch(workspaceElement, 'todo-show:find-in-open-files')
       waitsForPromise -> activationPromise
       runs ->
-        showTodoModule = atom.packages.loadedPackages['todo-show'].mainModule
         waitsFor ->
-          !showTodoModule.showTodoView.loading
+          !showTodoModule.showTodoView.loading and showTodoModule.showTodoView.isVisible()
 
     it 'does not show any results with no open files', ->
-      element = showTodoModule.showTodoView.find('h1').last()
+      element = showTodoModule.showTodoView.find('p').last()
 
-      expect(showTodoModule.showTodoView.matches.length).toBe 0
-      expect(element.text()).toContain 'No results'
+      expect(showTodoModule.showTodoView.getTodos()).toHaveLength 0
+      expect(element.text()).toContain 'No results...'
       expect(element.isVisible()).toBe true
 
     it 'only shows todos from open files', ->
       waitsForPromise ->
         atom.workspace.open 'sample.c'
 
+      waitsFor ->
+        !showTodoModule.showTodoView.loading
+
       runs ->
-        atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:refresh'
-
-        waitsFor ->
-          !showTodoModule.showTodoView.loading
-
-        runs ->
-          todoMatch = showTodoModule.showTodoView.matches[0]
-          expect(showTodoModule.showTodoView.matches).toHaveLength 1
-          expect(todoMatch.title).toBe 'TODOs'
-          expect(todoMatch.matchText).toBe 'Comment in C'
-          expect(todoMatch.relativePath).toBe 'sample.c'
+        todos = showTodoModule.showTodoView.getTodos()
+        console.log todos
+        expect(todos).toHaveLength 1
+        expect(todos[0].title).toBe 'TODOs'
+        expect(todos[0].matchText).toBe 'Comment in C'
+        expect(todos[0].relativePath).toBe 'sample.c'

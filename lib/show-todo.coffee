@@ -5,10 +5,10 @@ TodosModel = require './todos-model'
 
 module.exports =
   config:
-    # Title, regex, title, regex...
     findTheseRegexes:
       type: 'array'
-      # Based on https://github.com/atom/language-todo
+      # Items based on https://github.com/atom/language-todo
+      # Title, regex, title, regex...
       default: [
         'FIXMEs'
         '/\\bFIXME:?\\d*($|\\s.*$)/g'
@@ -29,7 +29,6 @@ module.exports =
       ]
       items:
         type: 'string'
-    # Ignore filter using node-ignore
     ignoreThesePaths:
       type: 'array'
       default: [
@@ -39,7 +38,6 @@ module.exports =
       ]
       items:
         type: 'string'
-    # Show these todo properties in todo table
     showInTable:
       type: 'array'
       default: [
@@ -47,21 +45,17 @@ module.exports =
         'Type',
         'File'
       ]
-    # Sort by todo property
     sortBy:
       type: 'string'
       default: 'Message'
       enum: ['Message', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File']
-    # Sort ascending or descending
     sortAscending:
       type: 'boolean'
       default: true
-    # Split direction to open list
     openListInDirection:
       type: 'string'
       default: 'right'
       enum: ['up', 'right', 'down', 'left', 'ontop']
-    # Persist pane width / height
     rememberViewSize:
       type: 'boolean'
       default: true

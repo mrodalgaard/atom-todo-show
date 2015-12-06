@@ -125,15 +125,11 @@ describe 'ShowTodo opening panes and executing commands', ->
         expect(fs.isFileSync(outputPath)).toBe true
         expect(atom.workspace.getActiveTextEditor().getText()).toBe expectedOutput
 
-    it 'saves the list in markdown grouped by filename', ->
+    it 'saves another list sorted differently in markdown', ->
       outputPath = temp.path(suffix: '.md')
-      expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output-grouped.md')
-      expectedOutput = fs.readFileSync(expectedFilePath).toString()
-
       atom.config.set 'todo-show.findTheseRegexes', ['TODOs', '/\\b@?TODO:?\\s(.+$)/g']
       atom.config.set 'todo-show.showInTable', ['Text', 'Type', 'File', 'Line']
       atom.config.set 'todo-show.sortBy', 'File'
-
       expect(fs.isFileSync(outputPath)).toBe false
 
       executeCommand ->
@@ -145,7 +141,11 @@ describe 'ShowTodo opening panes and executing commands', ->
 
       runs ->
         expect(fs.isFileSync(outputPath)).toBe true
-        expect(atom.workspace.getActiveTextEditor().getText()).toBe expectedOutput
+        expect(atom.workspace.getActiveTextEditor().getText()).toBe """
+          - Comment in C __TODOs__ [sample.c](sample.c) _:5_
+          - This is the first todo __TODOs__ [sample.js](sample.js) _:3_
+          - This is the second todo __TODOs__ [sample.js](sample.js) _:20_\n
+        """
 
   describe 'when core:refresh is triggered', ->
     it 'refreshes the list', ->

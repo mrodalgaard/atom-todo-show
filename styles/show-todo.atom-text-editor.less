@@ -51,8 +51,11 @@
     width: 100%;
 
     tr {
-      &:nth-child(2n + 1), &:hover {
+      &:nth-child(2n + 1) {
         background-color: @todo-color-light;
+      }
+      &:hover {
+        background-color: lighten(@todo-color-light, 5%);
       }
     }
 

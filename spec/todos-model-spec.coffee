@@ -458,33 +458,33 @@ describe 'Todos Model', ->
 
     it 'creates a markdown string from regexes', ->
       expect(model.getMarkdown()).toEqual """
-        - fixme #1 __FIXMEs__ `file1.txt`
-        - todo #1 __TODOs__ `file1.txt`
-        - fixme #2 __FIXMEs__ `file2.txt`\n
+        - fixme #1 __FIXMEs__ [file1.txt](file1.txt)
+        - todo #1 __TODOs__ [file1.txt](file1.txt)
+        - fixme #2 __FIXMEs__ [file2.txt](file2.txt)\n
       """
 
     it 'creates markdown with sorting', ->
       model.sortTodos(sortBy: 'Text', sortAsc: true)
       expect(model.getMarkdown()).toEqual """
-        - fixme #1 __FIXMEs__ `file1.txt`
-        - fixme #2 __FIXMEs__ `file2.txt`
-        - todo #1 __TODOs__ `file1.txt`\n
+        - fixme #1 __FIXMEs__ [file1.txt](file1.txt)
+        - fixme #2 __FIXMEs__ [file2.txt](file2.txt)
+        - todo #1 __TODOs__ [file1.txt](file1.txt)\n
       """
 
     it 'creates markdown with inverse sorting', ->
       model.sortTodos(sortBy: 'Text', sortAsc: false)
       expect(model.getMarkdown()).toEqual """
-        - todo #1 __TODOs__ `file1.txt`
-        - fixme #2 __FIXMEs__ `file2.txt`
-        - fixme #1 __FIXMEs__ `file1.txt`\n
+        - todo #1 __TODOs__ [file1.txt](file1.txt)
+        - fixme #2 __FIXMEs__ [file2.txt](file2.txt)
+        - fixme #1 __FIXMEs__ [file1.txt](file1.txt)\n
       """
 
     it 'creates markdown different items', ->
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
       expect(model.getMarkdown()).toEqual """
-        - __FIXMEs__ `file1.txt` _:3,6,3,10_
-        - __TODOs__ `file1.txt` _:4,5,4,9_
-        - __FIXMEs__ `file2.txt` _:5,7,5,11_\n
+        - __FIXMEs__ [file1.txt](file1.txt) _:3,6,3,10_
+        - __TODOs__ [file1.txt](file1.txt) _:4,5,4,9_
+        - __FIXMEs__ [file2.txt](file2.txt) _:5,7,5,11_\n
       """
 
     it 'accepts missing ranges and paths in regexes', ->
@@ -512,7 +512,7 @@ describe 'Todos Model', ->
         }
       ]
       expect(model.getMarkdown()).toEqual """
-        - fixme #1 `file1.txt`\n
+        - fixme #1 [file1.txt](file1.txt)\n
       """
 
       atom.config.set 'todo-show.showInTable', ['Title']

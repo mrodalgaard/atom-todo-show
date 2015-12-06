@@ -213,9 +213,10 @@ class TodosModel
     "!#{ignore}" for ignore in ignores
 
   getMarkdown: ->
+    showInTable = atom.config.get('todo-show.showInTable')
     (for todo in @getTodos()
       out = '-'
-      for key in atom.config.get('todo-show.showInTable')
+      for key in showInTable
         if item = todo[key.toLowerCase()]
           out += switch key
             when 'All' then " #{item}"
@@ -224,7 +225,7 @@ class TodosModel
             when 'Range' then " _:#{item}_"
             when 'Line' then " _:#{item}_"
             when 'Regex' then " _'#{item}'_"
-            when 'File' then " `#{item}`"
+            when 'File' then " [#{item}](#{item})"
       out = "- No details" if out is '-'
       "#{out}\n"
     ).join('')

@@ -479,12 +479,33 @@ describe 'Todos Model', ->
         - fixme #1 __FIXMEs__ [file1.txt](file1.txt)\n
       """
 
-    it 'creates markdown different items', ->
+    it 'creates markdown with different items', ->
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
       expect(model.getMarkdown()).toEqual """
         - __FIXMEs__ [file1.txt](file1.txt) _:3,6,3,10_
         - __TODOs__ [file1.txt](file1.txt) _:4,5,4,9_
         - __FIXMEs__ [file2.txt](file2.txt) _:5,7,5,11_\n
+      """
+
+    it 'creates markdown as table', ->
+      atom.config.set 'todo-show.saveOutputAs', 'Table'
+      expect(model.getMarkdown()).toEqual """
+        | Text | Type | File |
+        |--------------------|
+        | fixme #1 | __FIXMEs__ | [file1.txt](file1.txt) |
+        | todo #1 | __TODOs__ | [file1.txt](file1.txt) |
+        | fixme #2 | __FIXMEs__ | [file2.txt](file2.txt) |\n
+      """
+
+    it 'creates markdown as table with different items', ->
+      atom.config.set 'todo-show.saveOutputAs', 'Table'
+      atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
+      expect(model.getMarkdown()).toEqual """
+        | Type | File | Range |
+        |---------------------|
+        | __FIXMEs__ | [file1.txt](file1.txt) | _:3,6,3,10_ |
+        | __TODOs__ | [file1.txt](file1.txt) | _:4,5,4,9_ |
+        | __FIXMEs__ | [file2.txt](file2.txt) | _:5,7,5,11_ |\n
       """
 
     it 'accepts missing ranges and paths in regexes', ->
@@ -518,4 +539,26 @@ describe 'Todos Model', ->
       atom.config.set 'todo-show.showInTable', ['Title']
       expect(model.getMarkdown()).toEqual """
         - No details\n
+      """
+
+    it 'accepts missing items in table output', ->
+      model.todos = [
+        {
+          text: 'fixme #1'
+          type: 'FIXMEs'
+        }
+      ]
+
+      atom.config.set 'todo-show.saveOutputAs', 'Table'
+      expect(model.getMarkdown()).toEqual """
+        | Text | Type | File |
+        |--------------------|
+        | fixme #1 | __FIXMEs__ | |\n
+      """
+
+      atom.config.set 'todo-show.showInTable', ['Line']
+      expect(model.getMarkdown()).toEqual """
+        | Line |
+        |------|
+        | |\n
       """

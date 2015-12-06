@@ -59,6 +59,10 @@ module.exports =
     rememberViewSize:
       type: 'boolean'
       default: true
+    saveOutputAs:
+      type: 'string'
+      default: 'List'
+      enum: ['List', 'Table']
 
   URI:
     full: 'atom://todo-show/todos'

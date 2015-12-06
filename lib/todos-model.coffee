@@ -1,4 +1,5 @@
 {Emitter} = require 'atom'
+TodosMarkdown = require './todos-markdown'
 
 module.exports =
 class TodosModel
@@ -213,22 +214,8 @@ class TodosModel
     "!#{ignore}" for ignore in ignores
 
   getMarkdown: ->
-    showInTable = atom.config.get('todo-show.showInTable')
-    (for todo in @getTodos()
-      out = '-'
-      for key in showInTable
-        if item = todo[key.toLowerCase()]
-          out += switch key
-            when 'All' then " #{item}"
-            when 'Text' then " #{item}"
-            when 'Type' then " __#{item}__"
-            when 'Range' then " _:#{item}_"
-            when 'Line' then " _:#{item}_"
-            when 'Regex' then " _'#{item}'_"
-            when 'File' then " [#{item}](#{item})"
-      out = "- No details" if out is '-'
-      "#{out}\n"
-    ).join('')
+    todosMarkdown = new TodosMarkdown
+    todosMarkdown.markdown @getTodos()
 
   cancelSearch: ->
     @searchPromises ?= []

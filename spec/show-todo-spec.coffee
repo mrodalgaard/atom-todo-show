@@ -153,11 +153,11 @@ describe 'ShowTodo opening panes and executing commands', ->
         atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:refresh'
 
         expect(showTodoModule.showTodoView.loading).toBe true
+        expect(showTodoModule.showTodoView.find('.markdown-spinner')).toBeVisible()
 
-        waitsFor ->
-          !showTodoModule.showTodoView.loading
-
+        waitsFor -> !showTodoModule.showTodoView.loading
         runs ->
+          expect(showTodoModule.showTodoView.find('.markdown-spinner')).not.toBeVisible()
           expect(showTodoModule.showTodoView.loading).toBe false
 
   describe 'when the show-todo:find-in-open-files event is triggered', ->
@@ -179,13 +179,10 @@ describe 'ShowTodo opening panes and executing commands', ->
       waitsForPromise ->
         atom.workspace.open 'sample.c'
 
-      waitsFor ->
-        !showTodoModule.showTodoView.loading
-
+      waitsFor -> !showTodoModule.showTodoView.loading
       runs ->
         todos = showTodoModule.showTodoView.getTodos()
-        console.log todos
         expect(todos).toHaveLength 1
-        expect(todos[0].title).toBe 'TODOs'
-        expect(todos[0].matchText).toBe 'Comment in C'
-        expect(todos[0].relativePath).toBe 'sample.c'
+        expect(todos[0].type).toBe 'TODOs'
+        expect(todos[0].text).toBe 'Comment in C'
+        expect(todos[0].file).toBe 'sample.c'

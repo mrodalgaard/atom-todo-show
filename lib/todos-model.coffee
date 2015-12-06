@@ -2,10 +2,10 @@
 
 module.exports =
 class TodosModel
-  maxLength: 120
-
   constructor: ->
     @emitter = new Emitter
+    @maxLength = 120
+    @scope = 'full'
     @todos = []
 
   onDidAddTodo: (cb) -> @emitter.on 'did-add-todo', cb
@@ -31,16 +31,16 @@ class TodosModel
   getTodos: -> @todos
 
   sortTodos: ({sortBy, sortAsc}) ->
-    return unless key = @getKeyForItem(sortBy)
+    return unless sortBy
 
     @todos = @todos.sort((a,b) ->
-      return -1 unless aItem = a[key]
-      return 1 unless bItem = b[key]
+      return -1 unless aItem = a[sortBy.toLowerCase()]
+      return 1 unless bItem = b[sortBy.toLowerCase()]
 
-      # Fall back to matchText if items are the same
+      # Fall back to text if items are the same
       if aItem is bItem
-        aItem = a.matchText
-        bItem = b.matchText
+        aItem = a.text
+        bItem = b.text
 
       if sortAsc
         aItem.localeCompare(bItem)
@@ -48,27 +48,6 @@ class TodosModel
         bItem.localeCompare(aItem)
       )
     @emitter.emit 'did-sort-todos', @todos
-
-  # TODO: Use keys as identifiers everywhere in the package instead of title
-  # + better / consistent naming
-  # Todo object structure:
-  #   lineText
-  #   matchText
-  #   path
-  #   range
-  #   rangeString
-  #   regex
-  #   relativePath
-  #   title
-  getKeyForItem: (item) ->
-    switch item
-      when 'All' then 'lineText'
-      when 'Text' then 'matchText'
-      when 'Type' then 'title'
-      when 'Range' then 'rangeString'
-      when 'Line' then 'line'
-      when 'Regex' then 'regex'
-      when 'File' then 'relativePath'
 
   getAvailableTableItems: -> @availableItems
   setAvailableTableItems: (@availableItems) ->
@@ -98,25 +77,24 @@ class TodosModel
       'regex': regexes[i+1]
 
   # Pass in string and returns a proper RegExp object
-  makeRegexObj: (regexStr = '') ->
+  makeRegexObj: (regexStr = "") ->
     # Extract the regex pattern (anything between the slashes)
     pattern = regexStr.match(/\/(.+)\//)?[1]
     # Extract the flags (after last slash)
     flags = regexStr.match(/\/(\w+$)/)?[1]
 
-    if pattern
-      new RegExp(pattern, flags)
-    else
+    unless pattern
       @emitter.emit 'did-fail-search', "Invalid regex: #{regexStr or 'empty'}"
-      false
+      return false
+    new RegExp(pattern, flags)
 
-  handleScanMatch: (match, regex) ->
-    matchText = match.matchText
+  handleScanMatch: (match) ->
+    matchText = match.text || match.all
 
     # Strip out the regex token from the found annotation
     # not all objects will have an exec match
-    while (_match = regex?.exec(matchText))
-      matchText = _match.pop()
+    while (_matchText = match.regexp?.exec(matchText))
+      matchText = _matchText.pop()
 
     # Strip common block comment endings and whitespaces
     matchText = matchText.replace(/(\*\/|\?>|-->|#>|-}|\]\])\s*$/, '').trim()
@@ -125,17 +103,17 @@ class TodosModel
     if matchText.length >= @maxLength
       matchText = "#{matchText.substring(0, @maxLength - 3)}..."
 
-    match.matchText = matchText || 'No details'
-
     # Make sure range is serialized to produce correct rendered format
     # See https://github.com/mrodalgaard/atom-todo-show/issues/27
-    if match.range.serialize
-      match.rangeString = match.range.serialize().toString()
+    match.position = [[0,0]] unless match.position and match.position.length > 0
+    if match.position.serialize
+      match.range = match.position.serialize().toString()
     else
-      match.rangeString = match.range.toString()
+      match.range = match.position.toString()
 
-    match.relativePath = atom.project.relativize(match.path)
-    match.line = (match.range[0][0] + 1).toString()
+    match.text = matchText || "No details"
+    match.file = atom.project.relativize(match.path)
+    match.line = parseInt(match.range.split(',')[0]) + 1
     return match
 
   # Scan project workspace for the lookup that is passed
@@ -157,10 +135,15 @@ class TodosModel
       return unless result
 
       for match in result.matches
-        match.title = regexLookup.title
-        match.regex = regexLookup.regex
-        match.path = result.filePath
-        @addTodo @handleScanMatch(match, regex)
+        @addTodo @handleScanMatch(
+          all: match.lineText
+          text: match.matchText
+          path: result.filePath
+          position: match.range
+          type: regexLookup.title
+          regex: regexLookup.regex
+          regexp: regex
+        )
 
   # Scan open files for the lookup that is passed
   fetchOpenRegexItem: (regexLookup, activeEditorOnly) ->
@@ -175,27 +158,24 @@ class TodosModel
       editors = atom.workspace.getTextEditors()
 
     for editor in editors
-      editor.scan regex, (result, error) =>
+      editor.scan regex, (match, error) =>
         console.debug error.message if error
-        return unless result
+        return unless match
 
-        match =
-          title: regexLookup.title
-          regex: regexLookup.regex
+        range = [
+          [match.computedRange.start.row, match.computedRange.start.column]
+          [match.computedRange.end.row, match.computedRange.end.column]
+        ]
+
+        @addTodo @handleScanMatch(
+          all: match.lineText
+          text: match.matchText
           path: editor.getPath()
-          matchText: result.matchText
-          lineText: result.matchText
-          range: [
-            [
-              result.computedRange.start.row
-              result.computedRange.start.column
-            ]
-            [
-              result.computedRange.end.row
-              result.computedRange.end.column
-            ]
-          ]
-        @addTodo @handleScanMatch(match, regex)
+          position: range
+          type: regexLookup.title
+          regex: regexLookup.regex
+          regexp: regex
+        )
 
     # No async operations, so just return a resolved promise
     Promise.resolve()
@@ -206,6 +186,7 @@ class TodosModel
     @emitter.emit 'did-start-search'
 
     return unless findTheseRegexes = atom.config.get('todo-show.findTheseRegexes')
+      # return @emitter.emit 'did-fail-search', "No todo regexes found"
     regexes = @buildRegexLookups(findTheseRegexes)
 
     # Scan for each regex and get promises
@@ -232,21 +213,18 @@ class TodosModel
     "!#{ignore}" for ignore in ignores
 
   getMarkdown: ->
-    showInTableKeys = for item in atom.config.get('todo-show.showInTable')
-      @getKeyForItem(item)
-
     (for todo in @getTodos()
       out = '-'
-      for key in showInTableKeys
-        if item = todo[key]
+      for key in atom.config.get('todo-show.showInTable')
+        if item = todo[key.toLowerCase()]
           out += switch key
-            when 'matchText' then " #{item}"
-            when 'lineText' then " #{item}"
-            when 'title' then " __#{item}__"
-            when 'rangeString' then " _:#{item}_"
-            when 'line' then " _:#{item}_"
-            when 'regex' then " _#{item}_"
-            when 'relativePath' then " `#{item}`"
+            when 'All' then " #{item}"
+            when 'Text' then " #{item}"
+            when 'Type' then " __#{item}__"
+            when 'Range' then " _:#{item}_"
+            when 'Line' then " _:#{item}_"
+            when 'Regex' then " _'#{item}'_"
+            when 'File' then " `#{item}`"
       out = "- No details" if out is '-'
       "#{out}\n"
     ).join('')

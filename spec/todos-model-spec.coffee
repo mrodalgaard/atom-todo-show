@@ -17,7 +17,6 @@ describe 'Todos Model', ->
     defaultShowInTable = ['Text', 'Type', 'File']
 
     model = new TodosModel
-    # model.setAvailableTableItems(@config.sortBy.enum)
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
 
   describe 'buildRegexLookups(regexes)', ->
@@ -71,30 +70,52 @@ describe 'Todos Model', ->
       expect(regexObj).toBe(false)
 
   describe 'handleScanMatch(match, regex)', ->
-    {match, regex} = []
+    {match} = []
 
     beforeEach ->
-      regex = /\b@?TODO:?\d*($|\s.*$)/g
       match =
         path: "#{atom.project.getPaths()[0]}/sample.c"
-        matchText: ' TODO: Comment in C '
-        range: [
+        all: ' TODO: Comment in C '
+        regexp: /\b@?TODO:?\d*($|\s.*$)/g
+        position: [
           [0, 1]
           [0, 20]
         ]
 
     it 'should handle results from workspace scan (also tested in fetchRegexItem)', ->
+      delete match.regexp
       output = model.handleScanMatch(match)
-      expect(output.matchText).toEqual 'TODO: Comment in C'
+      expect(output.text).toEqual 'TODO: Comment in C'
 
     it 'should remove regex part', ->
-      output = model.handleScanMatch(match, regex)
-      expect(output.matchText).toEqual 'Comment in C'
+      output = model.handleScanMatch(match)
+      expect(output.text).toEqual 'Comment in C'
 
     it 'should serialize range and relativize path', ->
-      output = model.handleScanMatch(match, regex)
-      expect(output.relativePath).toEqual 'sample.c'
-      expect(output.rangeString).toEqual '0,1,0,20'
+      output = model.handleScanMatch(match)
+      expect(output.file).toEqual 'sample.c'
+      expect(output.range).toEqual '0,1,0,20'
+
+    it 'should handle invalid match position', ->
+      delete match.position
+      output = model.handleScanMatch(match)
+      expect(output.range).toEqual '0,0'
+      expect(output.position).toEqual [[0,0]]
+
+      match.position = []
+      output = model.handleScanMatch(match)
+      expect(output.range).toEqual '0,0'
+      expect(output.position).toEqual [[0,0]]
+
+      match.position = [[0,1]]
+      output = model.handleScanMatch(match)
+      expect(output.range).toEqual '0,1'
+      expect(output.position).toEqual [[0,1]]
+
+      match.position = [[0,1],[2,3]]
+      output = model.handleScanMatch(match)
+      expect(output.range).toEqual '0,1,2,3'
+      expect(output.position).toEqual [[0,1],[2,3]]
 
   describe 'fetchRegexItem(lookupObj)', ->
     it 'should scan the workspace for the regex that is passed and fill lookup results', ->
@@ -103,9 +124,9 @@ describe 'Todos Model', ->
 
       runs ->
         expect(model.todos).toHaveLength 3
-        expect(model.todos[0].matchText).toBe 'Comment in C'
-        expect(model.todos[1].matchText).toBe 'This is the first todo'
-        expect(model.todos[2].matchText).toBe 'This is the second todo'
+        expect(model.todos[0].text).toBe 'Comment in C'
+        expect(model.todos[1].text).toBe 'This is the first todo'
+        expect(model.todos[2].text).toBe 'This is the second todo'
 
     it 'should handle other regexes', ->
       lookup =
@@ -116,7 +137,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(lookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].matchText).toBe '<stdio.h>'
+        expect(model.todos[0].text).toBe '<stdio.h>'
 
     it 'should handle special character regexes', ->
       lookup =
@@ -127,8 +148,8 @@ describe 'Todos Model', ->
         model.fetchRegexItem(lookup)
       runs ->
         expect(model.todos).toHaveLength 2
-        expect(model.todos[0].matchText).toBe 'This is the first todo'
-        expect(model.todos[1].matchText).toBe 'This is the second todo'
+        expect(model.todos[0].text).toBe 'This is the first todo'
+        expect(model.todos[1].text).toBe 'This is the second todo'
 
     it 'should handle regex without capture group', ->
       lookup =
@@ -139,7 +160,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(lookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].matchText).toBe 'Sample quicksort code'
+        expect(model.todos[0].text).toBe 'Sample quicksort code'
 
     it 'should handle post-annotations with special regex', ->
       lookup =
@@ -150,7 +171,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(lookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].matchText).toBe 'return sort(Array.apply(this, arguments));'
+        expect(model.todos[0].text).toBe 'return sort(Array.apply(this, arguments));'
 
     it 'should handle post-annotations with non-capturing group', ->
       lookup =
@@ -161,7 +182,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(lookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].matchText).toBe 'return sort(Array.apply(this, arguments));'
+        expect(model.todos[0].text).toBe 'return sort(Array.apply(this, arguments));'
 
     it 'should truncate todos longer than the defined max length of 120', ->
       lookup =
@@ -171,17 +192,17 @@ describe 'Todos Model', ->
       waitsForPromise ->
         model.fetchRegexItem(lookup)
       runs ->
-        matchText = 'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
-        matchText += ' id ante molestias, ipsum lorem magnis et. A eleifend i...'
+        text = 'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
+        text += ' id ante molestias, ipsum lorem magnis et. A eleifend i...'
 
-        matchText2 = '_SpgLE84Ms1K4DSumtJDoNn8ZECZLL+VR0DoGydy54vUoSpgLE84Ms1K4DSum'
-        matchText2 += 'tJDoNn8ZECZLLVR0DoGydy54vUonRClXwLbFhX2gMwZgjx250ay+V0lF...'
+        text2 = '_SpgLE84Ms1K4DSumtJDoNn8ZECZLL+VR0DoGydy54vUoSpgLE84Ms1K4DSum'
+        text2 += 'tJDoNn8ZECZLLVR0DoGydy54vUonRClXwLbFhX2gMwZgjx250ay+V0lF...'
 
-        expect(model.todos[0].matchText).toHaveLength 120
-        expect(model.todos[0].matchText).toBe matchText
+        expect(model.todos[0].text).toHaveLength 120
+        expect(model.todos[0].text).toBe text
 
-        expect(model.todos[1].matchText).toHaveLength 120
-        expect(model.todos[1].matchText).toBe matchText2
+        expect(model.todos[1].text).toHaveLength 120
+        expect(model.todos[1].text).toBe text2
 
     it 'should strip common block comment endings', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures/sample2')]
@@ -190,12 +211,12 @@ describe 'Todos Model', ->
         model.fetchRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 6
-        expect(model.todos[0].matchText).toBe 'C block comment'
-        expect(model.todos[1].matchText).toBe 'HTML comment'
-        expect(model.todos[2].matchText).toBe 'PowerShell comment'
-        expect(model.todos[3].matchText).toBe 'Haskell comment'
-        expect(model.todos[4].matchText).toBe 'Lua comment'
-        expect(model.todos[5].matchText).toBe 'PHP comment'
+        expect(model.todos[0].text).toBe 'C block comment'
+        expect(model.todos[1].text).toBe 'HTML comment'
+        expect(model.todos[2].text).toBe 'PowerShell comment'
+        expect(model.todos[3].text).toBe 'Haskell comment'
+        expect(model.todos[4].text).toBe 'Lua comment'
+        expect(model.todos[5].text).toBe 'PHP comment'
 
   describe 'ignore path rules', ->
     it 'works with no paths added', ->
@@ -224,7 +245,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].matchText).toBe 'Comment in C'
+        expect(model.todos[0].text).toBe 'Comment in C'
 
     it 'respects ignored directories and filetypes', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures')]
@@ -234,7 +255,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 6
-        expect(model.todos[0].matchText).toBe 'C block comment'
+        expect(model.todos[0].text).toBe 'C block comment'
 
     it 'respects ignored wildcard directories', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures')]
@@ -244,7 +265,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].matchText).toBe 'Comment in C'
+        expect(model.todos[0].text).toBe 'Comment in C'
 
     it 'respects more advanced ignores', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures')]
@@ -254,7 +275,7 @@ describe 'Todos Model', ->
         model.fetchRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 6
-        expect(model.todos[0].matchText).toBe 'C block comment'
+        expect(model.todos[0].text).toBe 'C block comment'
 
   describe 'fetchOpenRegexItem(lookupObj)', ->
     editor = null
@@ -272,7 +293,7 @@ describe 'Todos Model', ->
       runs ->
         expect(model.todos).toHaveLength 1
         expect(model.todos.length).toBe 1
-        expect(model.todos[0].matchText).toBe 'Comment in C'
+        expect(model.todos[0].text).toBe 'Comment in C'
 
     it 'works with files outside of workspace', ->
       waitsForPromise ->
@@ -284,9 +305,9 @@ describe 'Todos Model', ->
 
         runs ->
           expect(model.todos).toHaveLength 7
-          expect(model.todos[0].matchText).toBe 'Comment in C'
-          expect(model.todos[1].matchText).toBe 'C block comment'
-          expect(model.todos[6].matchText).toBe 'PHP comment'
+          expect(model.todos[0].text).toBe 'Comment in C'
+          expect(model.todos[1].text).toBe 'C block comment'
+          expect(model.todos[6].text).toBe 'PHP comment'
 
     it 'handles unsaved documents', ->
       editor.setText 'TODO: New todo'
@@ -295,8 +316,8 @@ describe 'Todos Model', ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 1
-        expect(model.todos[0].title).toBe 'TODOs'
-        expect(model.todos[0].matchText).toBe 'New todo'
+        expect(model.todos[0].type).toBe 'TODOs'
+        expect(model.todos[0].text).toBe 'New todo'
 
     it 'respects imdone syntax (https://github.com/imdone/imdone-atom)', ->
       editor.setText '''
@@ -308,9 +329,9 @@ describe 'Todos Model', ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 2
-        expect(model.todos[0].title).toBe 'TODOs'
-        expect(model.todos[0].matchText).toBe 'todo1'
-        expect(model.todos[1].matchText).toBe 'todo2'
+        expect(model.todos[0].type).toBe 'TODOs'
+        expect(model.todos[0].text).toBe 'todo1'
+        expect(model.todos[1].text).toBe 'todo2'
 
     it 'handles number in todo (as long as its not without space)', ->
       editor.setText """
@@ -322,8 +343,8 @@ describe 'Todos Model', ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 2
-        expect(model.todos[0].matchText).toBe '1 2 3'
-        expect(model.todos[1].matchText).toBe '2 3'
+        expect(model.todos[0].text).toBe '1 2 3'
+        expect(model.todos[1].text).toBe '2 3'
 
     it 'handles empty todos', ->
       editor.setText """
@@ -335,8 +356,8 @@ describe 'Todos Model', ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 2
-        expect(model.todos[0].matchText).toBe 'No details'
-        expect(model.todos[1].matchText).toBe 'No details'
+        expect(model.todos[0].text).toBe 'No details'
+        expect(model.todos[1].text).toBe 'No details'
 
     it 'handles empty block todos', ->
       editor.setText """
@@ -348,8 +369,8 @@ describe 'Todos Model', ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 2
-        expect(model.todos[0].matchText).toBe 'No details'
-        expect(model.todos[1].matchText).toBe 'No details'
+        expect(model.todos[0].text).toBe 'No details'
+        expect(model.todos[1].text).toBe 'No details'
 
     it 'handles todos with @ in front', ->
       editor.setText """
@@ -362,9 +383,9 @@ describe 'Todos Model', ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
         expect(model.todos).toHaveLength 3
-        expect(model.todos[0].matchText).toBe 'text'
-        expect(model.todos[1].matchText).toBe 'text'
-        expect(model.todos[2].matchText).toBe 'text'
+        expect(model.todos[0].text).toBe 'text'
+        expect(model.todos[1].text).toBe 'text'
+        expect(model.todos[2].text).toBe 'text'
 
     it 'handles tabs in todos', ->
       editor.setText 'Line //TODO:\ttext'
@@ -372,7 +393,7 @@ describe 'Todos Model', ->
       waitsForPromise ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
-        expect(model.todos[0].matchText).toBe 'text'
+        expect(model.todos[0].text).toBe 'text'
 
     it 'handles todo without semicolon', ->
       editor.setText 'A line // TODO text'
@@ -380,7 +401,7 @@ describe 'Todos Model', ->
       waitsForPromise ->
         model.fetchOpenRegexItem(defaultLookup)
       runs ->
-        expect(model.todos[0].matchText).toBe 'text'
+        expect(model.todos[0].text).toBe 'text'
 
     it 'ignores todos without leading space', ->
       editor.setText 'A line // TODO:text'
@@ -413,25 +434,25 @@ describe 'Todos Model', ->
 
       model.todos = [
         {
-          matchText: 'fixme #1'
-          relativePath: 'file1.txt'
-          title: 'FIXMEs'
-          range: [[3,6], [3,10]]
-          rangeString: '3,6,3,10'
+          text: 'fixme #1'
+          file: 'file1.txt'
+          type: 'FIXMEs'
+          range: '3,6,3,10'
+          position: [[3,6], [3,10]]
         },
         {
-          matchText: 'todo #1'
-          relativePath: 'file1.txt'
-          title: 'TODOs'
-          range: [[4,5], [4,9]]
-          rangeString: '4,5,4,9'
+          text: 'todo #1'
+          file: 'file1.txt'
+          type: 'TODOs'
+          range: '4,5,4,9'
+          position: [[4,5], [4,9]]
         },
         {
-          matchText: 'fixme #2'
-          relativePath: 'file2.txt'
-          title: 'FIXMEs'
-          range: [[5,7], [5,11]]
-          rangeString: '5,7,5,11'
+          text: 'fixme #2'
+          file: 'file2.txt'
+          type: 'FIXMEs'
+          range: '5,7,5,11'
+          position: [[5,7], [5,11]]
         }
       ]
 
@@ -469,8 +490,8 @@ describe 'Todos Model', ->
     it 'accepts missing ranges and paths in regexes', ->
       model.todos = [
         {
-          matchText: 'fixme #1'
-          title: 'FIXMEs'
+          text: 'fixme #1'
+          type: 'FIXMEs'
         }
       ]
       expect(model.getMarkdown()).toEqual """
@@ -486,8 +507,8 @@ describe 'Todos Model', ->
     it 'accepts missing title in regexes', ->
       model.todos = [
         {
-          matchText: 'fixme #1'
-          relativePath: 'file1.txt'
+          text: 'fixme #1'
+          file: 'file1.txt'
         }
       ]
       expect(model.getMarkdown()).toEqual """

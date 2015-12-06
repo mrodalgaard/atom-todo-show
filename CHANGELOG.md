@@ -1,3 +1,6 @@
+## 1.1.0
+- Internal improvements
+
 ## 1.0.0
 - New package owner (@mrodalgaard)
 - Total code refactor

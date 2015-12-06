@@ -48,7 +48,7 @@ module.exports =
     sortBy:
       type: 'string'
       default: 'Text'
-      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File']
+      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File', 'Tags']
     sortAscending:
       type: 'boolean'
       default: true

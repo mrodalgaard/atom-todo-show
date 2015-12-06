@@ -13,6 +13,7 @@ class TodosMarkdown
         when 'Line' then " _:#{item}_"
         when 'Regex' then " _'#{item}'_"
         when 'File' then " [#{item}](#{item})"
+        when 'Tags' then " _#{item}_"
 
   getTable: (todos) ->
     md =  "| #{(for key in @showInTable then key).join(' | ')} |\n"

@@ -117,6 +117,48 @@ describe 'Todos Model', ->
       expect(output.range).toEqual '0,1,2,3'
       expect(output.position).toEqual [[0,1],[2,3]]
 
+    it 'should extract todo tags', ->
+      match.text = "test #TODO: 123 #tag1"
+      output = model.handleScanMatch(match)
+      expect(output.tags).toBe 'tag1'
+      expect(output.text).toBe '123'
+
+      match.text = "#TODO: 123 #tag1."
+      expect(model.handleScanMatch(match).tags).toBe 'tag1'
+
+    it 'should extract multiple todo tags', ->
+      match.text = "TODO: 123 #tag1 #tag2 #tag3"
+      output = model.handleScanMatch(match)
+      expect(output.tags).toBe 'tag1, tag2, tag3'
+      expect(output.text).toBe '123'
+
+      match.text = "test #TODO: 123 #tag1, #tag2"
+      expect(model.handleScanMatch(match).tags).toBe 'tag1, tag2'
+
+      match.text = "TODO: #123 #tag1"
+      output = model.handleScanMatch(match)
+      expect(output.tags).toBe '123, tag1'
+      expect(output.text).toBe 'No details'
+
+    it 'should handle invalid tags', ->
+      match.text = "#TODO: 123 #tag1 X"
+      expect(model.handleScanMatch(match).tags).toBe ''
+
+      match.text = "#TODO: 123 #tag1#"
+      expect(model.handleScanMatch(match).tags).toBe ''
+
+      match.text = "#TODO: #tag1 todo"
+      expect(model.handleScanMatch(match).tags).toBe ''
+
+      match.text = "#TODO: #tag.123"
+      expect(model.handleScanMatch(match).tags).toBe ''
+
+      match.text = "#TODO: #tag1 #tag2@"
+      expect(model.handleScanMatch(match).tags).toBe ''
+
+      match.text = "#TODO: #tag1, #tag2$, #tag3"
+      expect(model.handleScanMatch(match).tags).toBe 'tag3'
+
   describe 'fetchRegexItem(lookupObj)', ->
     it 'should scan the workspace for the regex that is passed and fill lookup results', ->
       waitsForPromise ->

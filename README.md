@@ -17,6 +17,7 @@ Open using command palette `Todo Show: Find In Project` or `Todo Show: Find In O
 * __sortAscending__: Sort table in ascending or descending order.
 * __openListInDirection__: Defines where the todo list is shown.
 * __rememberViewSize__: Remember the todo list width or split in the middle.
+* __saveOutputAs__: Choose which format to use for saved markdown.
 
 ## Regex Details
 

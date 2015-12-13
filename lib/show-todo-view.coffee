@@ -91,7 +91,9 @@ class ShowTodoView extends ScrollView
     @disposables.add atom.workspace.observeTextEditors (editor) =>
       @disposables.add editor.onDidSave => @model.search()
 
-    @filterEditorView.getModel().onDidStopChanging => @filter()
+    @filterEditorView.getModel().onDidStopChanging =>
+      @filter() if @firstTimeFilter
+      @firstTimeFilter = true
 
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions

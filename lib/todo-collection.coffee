@@ -1,11 +1,12 @@
 {Emitter} = require 'atom'
-TodosMarkdown = require './todos-markdown'
+
+TodoModel = require './todo-model'
+TodosMarkdown = require './todo-markdown'
 
 module.exports =
-class TodosModel
+class TodoCollection
   constructor: ->
     @emitter = new Emitter
-    @maxLength = 120
     @scope = 'full'
     @todos = []
 
@@ -107,41 +108,6 @@ class TodosModel
       return false
     new RegExp(pattern, flags)
 
-  handleScanMatch: (match) ->
-    matchText = match.text || match.all
-
-    # Strip out the regex token from the found annotation
-    # not all objects will have an exec match
-    while (_matchText = match.regexp?.exec(matchText))
-      matchText = _matchText.pop()
-
-    # Extract todo tags
-    match.tags = (while (tag = /\s#(\w+)[,.]?$/.exec(matchText))
-      break if tag.length isnt 2
-      matchText = matchText.slice(0, tag.shift().length * -1)
-      tag.shift()
-    ).sort().join(', ')
-
-    # Strip common block comment endings and whitespaces
-    matchText = matchText.replace(/(\*\/|\?>|-->|#>|-}|\]\])\s*$/, '').trim()
-
-    # Truncate long match strings
-    if matchText.length >= @maxLength
-      matchText = "#{matchText.substr(0, @maxLength - 3)}..."
-
-    # Make sure range is serialized to produce correct rendered format
-    # See https://github.com/mrodalgaard/atom-todo-show/issues/27
-    match.position = [[0,0]] unless match.position and match.position.length > 0
-    if match.position.serialize
-      match.range = match.position.serialize().toString()
-    else
-      match.range = match.position.toString()
-
-    match.text = matchText || "No details"
-    match.file = atom.project.relativize(match.path)
-    match.line = parseInt(match.range.split(',')[0]) + 1
-    return match
-
   # Scan project workspace for the lookup that is passed
   # returns a promise that the scan generates
   fetchRegexItem: (regexLookup) ->
@@ -161,7 +127,7 @@ class TodosModel
       return unless result
 
       for match in result.matches
-        @addTodo @handleScanMatch(
+        @addTodo new TodoModel(
           all: match.lineText
           text: match.matchText
           path: result.filePath
@@ -193,7 +159,7 @@ class TodosModel
           [match.computedRange.end.row, match.computedRange.end.column]
         ]
 
-        @addTodo @handleScanMatch(
+        @addTodo new TodoModel(
           all: match.lineText
           text: match.matchText
           path: editor.getPath()

@@ -1,7 +1,7 @@
 {CompositeDisposable} = require 'atom'
 
-ShowTodoView = require './show-todo-view'
-TodosModel = require './todos-model'
+ShowTodoView = require './todo-view'
+TodoCollection = require './todo-collection'
 
 module.exports =
   config:
@@ -70,8 +70,8 @@ module.exports =
     active: 'atom://todo-show/active-todos'
 
   activate: ->
-    model = new TodosModel
-    model.setAvailableTableItems(@config.sortBy.enum)
+    collection = new TodoCollection
+    collection.setAvailableTableItems(@config.sortBy.enum)
 
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
@@ -85,8 +85,8 @@ module.exports =
         when @URI.open then 'open'
         when @URI.active then 'active'
       if scope
-        model.setSearchScope(scope)
-        new ShowTodoView(model, uriToOpen)
+        collection.setSearchScope(scope)
+        new ShowTodoView(collection, uriToOpen)
 
   deactivate: ->
     @disposables?.dispose()

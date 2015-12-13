@@ -3,12 +3,12 @@
 path = require 'path'
 fs = require 'fs-plus'
 
-TodoTable = require './show-todo-table-view'
-TodoOptions = require './show-todo-options-view'
+TodoTable = require './todo-table-view'
+TodoOptions = require './todo-options-view'
 
 module.exports =
 class ShowTodoView extends ScrollView
-  @content: (model, filterBuffer) ->
+  @content: (collection, filterBuffer) ->
     filterEditor = atom.workspace.buildTextEditor(
       mini: true
       tabLength: 2
@@ -36,16 +36,16 @@ class ShowTodoView extends ScrollView
         @div class: 'markdown-spinner'
         @h5 outlet: 'searchCount', class: 'text-center', "Loading Todos..."
 
-      @subview 'todoTable', new TodoTable(model)
+      @subview 'todoTable', new TodoTable(collection)
 
-  constructor: (@model, @uri) ->
-    super @model, @filterBuffer = new TextBuffer
+  constructor: (@collection, @uri) ->
+    super @collection, @filterBuffer = new TextBuffer
 
   initialize: ->
     @disposables = new CompositeDisposable
     @handleEvents()
-    @model.search()
-    @setScopeButtonState(@model.getSearchScope())
+    @collection.search()
+    @setScopeButtonState(@collection.getSearchScope())
 
     @disposables.add atom.tooltips.add @scopeButton, title: "What to Search"
     @disposables.add atom.tooltips.add @optionsButton, title: "Show Todo Options"
@@ -59,7 +59,7 @@ class ShowTodoView extends ScrollView
         @saveAs()
       'core:refresh': (event) =>
         event.stopPropagation()
-        @model.search()
+        @collection.search()
 
     # Persist pane size by saving to local storage
     pane = atom.workspace.getActivePane()
@@ -67,29 +67,29 @@ class ShowTodoView extends ScrollView
     @disposables.add pane.observeFlexScale (flexScale) =>
       @savePaneFlex(flexScale)
 
-    @disposables.add @model.onDidChangeSearchScope @setScopeButtonState
-    @disposables.add @model.onDidStartSearch @startLoading
-    @disposables.add @model.onDidFinishSearch @stopLoading
-    @disposables.add @model.onDidFailSearch (err) =>
+    @disposables.add @collection.onDidChangeSearchScope @setScopeButtonState
+    @disposables.add @collection.onDidStartSearch @startLoading
+    @disposables.add @collection.onDidFinishSearch @stopLoading
+    @disposables.add @collection.onDidFailSearch (err) =>
       @searchCount.text "Search Failed"
       console.error err if err
       @showError err if err
 
-    @disposables.add @model.onDidSearchPaths (nPaths) =>
+    @disposables.add @collection.onDidSearchPaths (nPaths) =>
       @searchCount.text "#{nPaths} paths searched..."
 
     @disposables.add atom.workspace.onDidChangeActivePaneItem (item) =>
-      if item?.constructor.name is 'TextEditor' and @model.scope is 'active'
-        @model.search()
+      if item?.constructor.name is 'TextEditor' and @collection.scope is 'active'
+        @collection.search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
-      @model.search() if @model.scope is 'open'
+      @collection.search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.onDidDestroyPaneItem ({item}) =>
-      @model.search() if @model.scope is 'open'
+      @collection.search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.observeTextEditors (editor) =>
-      @disposables.add editor.onDidSave => @model.search()
+      @disposables.add editor.onDidSave => @collection.search()
 
     @filterEditorView.getModel().onDidStopChanging =>
       @filter() if @firstTimeFilter
@@ -98,10 +98,10 @@ class ShowTodoView extends ScrollView
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
     @saveAsButton.on 'click', @saveAs
-    @refreshButton.on 'click', => @model.search()
+    @refreshButton.on 'click', => @collection.search()
 
   destroy: ->
-    @model.cancelSearch()
+    @collection.cancelSearch()
     @disposables.dispose()
     @detach()
 
@@ -136,24 +136,24 @@ class ShowTodoView extends ScrollView
     @todoLoading.hide()
 
   getTodos: ->
-    @model.getTodos()
+    @collection.getTodos()
 
   showError: (message) ->
     atom.notifications.addError 'todo-show', detail: message, dismissable: true
 
   saveAs: =>
-    return if @model.isSearching()
+    return if @collection.isSearching()
 
     filePath = "#{@getProjectName() or 'todos'}.md"
     if projectPath = @getProjectPath()
       filePath = path.join(projectPath, filePath)
 
     if outputFilePath = atom.showSaveDialogSync(filePath.toLowerCase())
-      fs.writeFileSync(outputFilePath, @model.getMarkdown())
+      fs.writeFileSync(outputFilePath, @collection.getMarkdown())
       atom.workspace.open(outputFilePath)
 
   toggleSearchScope: =>
-    scope = @model.toggleSearchScope()
+    scope = @collection.toggleSearchScope()
     @setScopeButtonState(scope)
 
   setScopeButtonState: (state) =>
@@ -165,9 +165,9 @@ class ShowTodoView extends ScrollView
   toggleOptions: =>
     unless @todoOptions
       @optionsView.hide()
-      @todoOptions = new TodoOptions(@model)
+      @todoOptions = new TodoOptions(@collection)
       @optionsView.html @todoOptions
     @optionsView.slideToggle()
 
   filter: ->
-    @model.filterTodos @filterBuffer.getText()
+    @collection.filterTodos @filterBuffer.getText()

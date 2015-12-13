@@ -9,11 +9,11 @@ class ShowTodoView extends View
     @div class: 'todo-table', tabindex: -1, =>
       @table outlet: 'table'
 
-  initialize: (@model) ->
+  initialize: (@collection) ->
     @disposables = new CompositeDisposable
     @disposables.add atom.config.onDidChange 'todo-show.showInTable', ({newValue, oldValue}) =>
       @showInTable = newValue
-      @renderTable @model.getTodos()
+      @renderTable @collection.getTodos()
 
     @disposables.add atom.config.onDidChange 'todo-show.sortBy', ({newValue, oldValue}) =>
       @sort(@sortBy = newValue, @sortAsc)
@@ -24,13 +24,13 @@ class ShowTodoView extends View
     @handleEvents()
 
   handleEvents: ->
-    # @disposables.add @model.onDidAddTodo @renderTodo
-    @disposables.add @model.onDidFinishSearch @initTable
-    @disposables.add @model.onDidRemoveTodo @removeTodo
-    @disposables.add @model.onDidClear @clearTodos
-    @disposables.add @model.onDidSortTodos (todos) => @renderTable todos
-    @disposables.add @model.onDidFilterTodos (todos) => @renderTable todos
-    @disposables.add @model.onDidChangeSearchScope => @model.search()
+    # @disposables.add @collection.onDidAddTodo @renderTodo
+    @disposables.add @collection.onDidFinishSearch @initTable
+    @disposables.add @collection.onDidRemoveTodo @removeTodo
+    @disposables.add @collection.onDidClear @clearTodos
+    @disposables.add @collection.onDidSortTodos (todos) => @renderTable todos
+    @disposables.add @collection.onDidFilterTodos (todos) => @renderTable todos
+    @disposables.add @collection.onDidChangeSearchScope => @collection.search()
 
     @on 'click', 'th', @tableHeaderClicked
 
@@ -72,4 +72,4 @@ class ShowTodoView extends View
     @table.append new TodoEmptyView(@showInTable) unless todos.length
 
   sort: (sortBy, sortAsc) ->
-    @model.sortTodos(sortBy: sortBy, sortAsc: sortAsc)
+    @collection.sortTodos(sortBy: sortBy, sortAsc: sortAsc)

@@ -41,7 +41,7 @@ class ShowTodoView extends View
           @button outlet: 'configButton', class: 'btn', "Go to Config"
           @button outlet: 'closeButton', class: 'btn', "Close Options"
 
-  initialize: (@model) ->
+  initialize: (@collection) ->
     @disposables = new CompositeDisposable
     @handleEvents()
     @updateUI()
@@ -60,7 +60,7 @@ class ShowTodoView extends View
 
   updateUI: ->
     tableItems = atom.config.get('todo-show.showInTable')
-    for item in @model.getAvailableTableItems()
+    for item in @collection.getAvailableTableItems()
       if tableItems.indexOf(item) is -1
         @itemsOffTable.append new ItemView(item)
       else

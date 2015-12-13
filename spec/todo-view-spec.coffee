@@ -1,10 +1,10 @@
 path = require 'path'
 
-ShowTodoView = require '../lib/show-todo-view'
-TodosModel = require '../lib/todos-model'
+ShowTodoView = require '../lib/todo-view'
+TodosCollection = require '../lib/todo-collection'
 
 describe "Show Todo View", ->
-  [showTodoView, model] = []
+  [showTodoView, collection] = []
 
   beforeEach ->
     regexes = [
@@ -14,9 +14,9 @@ describe "Show Todo View", ->
     atom.config.set 'todo-show.findTheseRegexes', regexes
 
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
-    model = new TodosModel
+    collection = new TodosCollection
     uri = 'atom://todo-show/todos'
-    showTodoView = new ShowTodoView(model, uri)
+    showTodoView = new ShowTodoView(collection, uri)
     waitsFor -> !showTodoView.loading
 
   describe "Basic view properties", ->
@@ -47,18 +47,18 @@ describe "Show Todo View", ->
 
     it "updates on search scope change", ->
       expect(showTodoView.loading).toBe false
-      expect(model.getSearchScope()).toBe 'full'
-      expect(model.toggleSearchScope()).toBe 'open'
+      expect(collection.getSearchScope()).toBe 'full'
+      expect(collection.toggleSearchScope()).toBe 'open'
       expect(showTodoView.loading).toBe true
 
       waitsFor -> !showTodoView.loading
       runs ->
-        expect(model.toggleSearchScope()).toBe 'active'
+        expect(collection.toggleSearchScope()).toBe 'active'
         expect(showTodoView.loading).toBe true
 
         waitsFor -> !showTodoView.loading
         runs ->
-          expect(model.toggleSearchScope()).toBe 'full'
+          expect(collection.toggleSearchScope()).toBe 'full'
           expect(showTodoView.loading).toBe true
 
     it "handles search scope; full, open, active", ->
@@ -68,7 +68,7 @@ describe "Show Todo View", ->
         pane = atom.workspace.getActivePane()
         expect(showTodoView.getTodos()).toHaveLength 3
 
-        model.setSearchScope 'open'
+        collection.setSearchScope 'open'
         waitsFor -> !showTodoView.loading
         runs ->
           expect(showTodoView.getTodos()).toHaveLength 1
@@ -76,7 +76,7 @@ describe "Show Todo View", ->
           waitsForPromise ->
             atom.workspace.open 'temp.txt'
           runs ->
-            model.setSearchScope 'active'
+            collection.setSearchScope 'active'
             waitsFor -> !showTodoView.loading
             runs ->
               expect(showTodoView.getTodos()).toHaveLength 0

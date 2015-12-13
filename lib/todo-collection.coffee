@@ -7,6 +7,7 @@ module.exports =
 class TodoCollection
   constructor: ->
     @emitter = new Emitter
+    @defaultKey = 'Text'
     @scope = 'full'
     @todos = []
 
@@ -33,22 +34,18 @@ class TodoCollection
 
   getTodos: -> @todos
 
-  sortTodos: ({sortBy, sortAsc}) ->
-    return unless sortBy
+  sortTodos: ({sortBy, sortAsc} = {}) ->
+    sortBy ?= @defaultKey
 
     @todos = @todos.sort((a,b) ->
-      return -1 unless aItem = a[sortBy.toLowerCase()]
-      return 1 unless bItem = b[sortBy.toLowerCase()]
+      aVal = a.get(sortBy)
+      bVal = b.get(sortBy)
 
-      # Fall back to text if items are the same
-      if aItem is bItem
-        aItem = a.text
-        bItem = b.text
+      # Fall back to text if values are the same
+      [aVal, bVal] = [a.get(@defaultKey), b.get(@defaultKey)] if aVal is bVal
 
-      if sortAsc
-        aItem.localeCompare(bItem)
-      else
-        bItem.localeCompare(aItem)
+      comp = aVal.localeCompare(bVal)
+      if sortAsc then comp else -comp
       )
 
     # Apply filter if it exists
@@ -57,13 +54,8 @@ class TodoCollection
 
   filterTodos: (@filter) ->
     if filter
-      result = []
-      for todo in @todos
-        for key in atom.config.get('todo-show.showInTable')
-          item = todo[key.toLowerCase()]
-          if item and item.indexOf(filter) isnt -1
-            result.push todo
-            break
+      result = @todos.filter (todo) ->
+        todo.contains(filter)
     else
       result = @todos
 
@@ -97,7 +89,7 @@ class TodoCollection
       'regex': regexes[i+1]
 
   # Pass in string and returns a proper RegExp object
-  makeRegexObj: (regexStr = "") ->
+  makeRegexObj: (regexStr = '') ->
     # Extract the regex pattern (anything between the slashes)
     pattern = regexStr.match(/\/(.+)\//)?[1]
     # Extract the flags (after last slash)
@@ -120,7 +112,7 @@ class TodoCollection
     if !@firstRegex
       @firstRegex = true
       options.onPathsSearched = (nPaths) =>
-        @emitter.emit 'did-search-paths', nPaths if @searching
+        @emitter.emit 'did-search-paths', nPaths if @isSearching()
 
     atom.workspace.scan regex, options, (result, error) =>
       console.debug error.message if error
@@ -178,7 +170,6 @@ class TodoCollection
     @emitter.emit 'did-start-search'
 
     return unless findTheseRegexes = atom.config.get('todo-show.findTheseRegexes')
-      # return @emitter.emit 'did-fail-search', "No todo regexes found"
     regexes = @buildRegexLookups(findTheseRegexes)
 
     # Scan for each regex and get promises

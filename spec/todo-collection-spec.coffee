@@ -7,29 +7,33 @@ describe 'Todo Collection', ->
   [collection, defaultRegexes, defaultLookup, defaultShowInTable] = []
 
   addTestTodos = ->
-    collection.todos = [
-      new TodoModel({
+    collection.addTodo(
+      new TodoModel(
         all: 'fixme 1'
         file: 'file1.txt'
         type: 'FIXMEs'
         range: '3,6,3,10'
         position: [[3,6], [3,10]]
-      })
-      new TodoModel({
+      )
+    )
+    collection.addTodo(
+      new TodoModel(
         all: 'todo 1'
         file: 'file1.txt'
         type: 'TODOs'
         range: '4,5,4,9'
         position: [[4,5], [4,9]]
-      })
-      new TodoModel({
+      )
+    )
+    collection.addTodo(
+      new TodoModel(
         all: 'fixme 2'
         file: 'file2.txt'
         type: 'FIXMEs'
         range: '5,7,5,11'
         position: [[5,7], [5,11]]
-      })
-    ]
+      )
+    )
 
   beforeEach ->
     defaultRegexes = [
@@ -407,7 +411,42 @@ describe 'Todo Collection', ->
         expect(collection.todos).toHaveLength 0
 
   describe 'Sort todos', ->
+    {sortSpy} = []
 
+    beforeEach ->
+      addTestTodos()
+      sortSpy = jasmine.createSpy()
+      collection.onDidSortTodos sortSpy
+
+    it 'can sort simple todos', ->
+      collection.sortTodos(sortBy: 'Text', sortAsc: false)
+      expect(collection.todos[0].text).toBe 'todo 1'
+      expect(collection.todos[2].text).toBe 'fixme 1'
+
+      collection.sortTodos(sortBy: 'Text', sortAsc: true)
+      expect(collection.todos[0].text).toBe 'fixme 1'
+      expect(collection.todos[2].text).toBe 'todo 1'
+
+      collection.sortTodos(sortBy: 'Text')
+      expect(collection.todos[0].text).toBe 'todo 1'
+      expect(collection.todos[2].text).toBe 'fixme 1'
+
+      collection.sortTodos(sortAsc: true)
+      expect(collection.todos[0].text).toBe 'fixme 1'
+      expect(collection.todos[2].text).toBe 'todo 1'
+
+      collection.sortTodos()
+      expect(collection.todos[0].text).toBe 'todo 1'
+      expect(collection.todos[2].text).toBe 'fixme 1'
+
+    it 'sort by other values', ->
+      collection.sortTodos(sortBy: 'Range', sortAsc: true)
+      expect(collection.todos[0].range).toBe '3,6,3,10'
+      expect(collection.todos[2].range).toBe '5,7,5,11'
+
+      collection.sortTodos(sortBy: 'File', sortAsc: false)
+      expect(collection.todos[0].file).toBe 'file2.txt'
+      expect(collection.todos[2].file).toBe 'file1.txt'
 
   describe 'Filter todos', ->
     {filterSpy} = []
@@ -438,13 +477,13 @@ describe 'Todo Collection', ->
       expect(filterSpy.callCount).toBe 1
       expect(filterSpy.calls[0].args[0]).toHaveLength 3
 
-  describe 'getMarkdown()', ->
+  describe 'Markdown', ->
     beforeEach ->
       atom.config.set 'todo-show.findTheseRegexes', defaultRegexes
       atom.config.set 'todo-show.showInTable', defaultShowInTable
-      addTestTodos()
 
     it 'creates a markdown string from regexes', ->
+      addTestTodos()
       expect(collection.getMarkdown()).toEqual """
         - fixme 1 __FIXMEs__ [file1.txt](file1.txt)
         - todo 1 __TODOs__ [file1.txt](file1.txt)
@@ -452,6 +491,7 @@ describe 'Todo Collection', ->
       """
 
     it 'creates markdown with sorting', ->
+      addTestTodos()
       collection.sortTodos(sortBy: 'Text', sortAsc: true)
       expect(collection.getMarkdown()).toEqual """
         - fixme 1 __FIXMEs__ [file1.txt](file1.txt)
@@ -460,6 +500,7 @@ describe 'Todo Collection', ->
       """
 
     it 'creates markdown with inverse sorting', ->
+      addTestTodos()
       collection.sortTodos(sortBy: 'Text', sortAsc: false)
       expect(collection.getMarkdown()).toEqual """
         - todo 1 __TODOs__ [file1.txt](file1.txt)
@@ -468,6 +509,7 @@ describe 'Todo Collection', ->
       """
 
     it 'creates markdown with different items', ->
+      addTestTodos()
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
       expect(collection.getMarkdown()).toEqual """
         - __FIXMEs__ [file1.txt](file1.txt) _:3,6,3,10_
@@ -476,6 +518,7 @@ describe 'Todo Collection', ->
       """
 
     it 'creates markdown as table', ->
+      addTestTodos()
       atom.config.set 'todo-show.saveOutputAs', 'Table'
       expect(collection.getMarkdown()).toEqual """
         | Text | Type | File |
@@ -486,6 +529,7 @@ describe 'Todo Collection', ->
       """
 
     it 'creates markdown as table with different items', ->
+      addTestTodos()
       atom.config.set 'todo-show.saveOutputAs', 'Table'
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
       expect(collection.getMarkdown()).toEqual """
@@ -497,12 +541,12 @@ describe 'Todo Collection', ->
       """
 
     it 'accepts missing ranges and paths in regexes', ->
-      collection.todos = [
-        {
+      collection.addTodo(
+        new TodoModel(
           text: 'fixme 1'
           type: 'FIXMEs'
-        }
-      ]
+        , plain: true)
+      )
       expect(collection.getMarkdown()).toEqual """
         - fixme 1 __FIXMEs__\n
       """
@@ -514,12 +558,12 @@ describe 'Todo Collection', ->
       """
 
     it 'accepts missing title in regexes', ->
-      collection.todos = [
-        {
+      collection.addTodo(
+        new TodoModel(
           text: 'fixme 1'
           file: 'file1.txt'
-        }
-      ]
+        , plain: true)
+      )
       expect(collection.getMarkdown()).toEqual """
         - fixme 1 [file1.txt](file1.txt)\n
       """
@@ -530,13 +574,12 @@ describe 'Todo Collection', ->
       """
 
     it 'accepts missing items in table output', ->
-      collection.todos = [
-        {
+      collection.addTodo(
+        new TodoModel(
           text: 'fixme 1'
           type: 'FIXMEs'
-        }
-      ]
-
+        , plain: true)
+      )
       atom.config.set 'todo-show.saveOutputAs', 'Table'
       expect(collection.getMarkdown()).toEqual """
         | Text | Type | File |

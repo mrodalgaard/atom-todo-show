@@ -17,6 +17,7 @@ class TodosModel
   onDidFinishSearch: (cb) -> @emitter.on 'did-finish-search', cb
   onDidFailSearch: (cb) -> @emitter.on 'did-fail-search', cb
   onDidSortTodos: (cb) -> @emitter.on 'did-sort-todos', cb
+  onDidFilterTodos: (cb) -> @emitter.on 'did-filter-todos', cb
   onDidChangeSearchScope: (cb) -> @emitter.on 'did-change-scope', cb
 
   clear: ->
@@ -48,7 +49,24 @@ class TodosModel
       else
         bItem.localeCompare(aItem)
       )
+
+    # Apply filter if it exists
+    return @filterTodos(@filter) if @filter
     @emitter.emit 'did-sort-todos', @todos
+
+  filterTodos: (@filter) ->
+    if filter
+      result = []
+      for todo in @todos
+        for key in atom.config.get('todo-show.showInTable')
+          item = todo[key.toLowerCase()]
+          if item and item.indexOf(filter) isnt -1
+            result.push todo
+            break
+    else
+      result = @todos
+
+    @emitter.emit 'did-filter-todos', result
 
   getAvailableTableItems: -> @availableItems
   setAvailableTableItems: (@availableItems) ->

@@ -1,5 +1,5 @@
-{CompositeDisposable} = require 'atom'
-{ScrollView} = require 'atom-space-pen-views'
+{CompositeDisposable, TextBuffer} = require 'atom'
+{ScrollView, TextEditorView} = require 'atom-space-pen-views'
 path = require 'path'
 fs = require 'fs-plus'
 
@@ -8,24 +8,40 @@ TodoOptions = require './show-todo-options-view'
 
 module.exports =
 class ShowTodoView extends ScrollView
-  @content: (@model) ->
-    @div class: 'show-todo-preview native-key-bindings', tabindex: -1, =>
-      @div class: 'text-right', =>
-        @div class: 'btn-group', =>
-          @button outlet: 'scopeButton', class: 'btn'
-          @button outlet: 'optionsButton', class: 'btn icon-gear'
-          @button outlet: 'saveAsButton', class: 'btn icon-cloud-download'
-          @button outlet: 'refreshButton', class: 'btn icon-sync'
+  @content: (model, filterBuffer) ->
+    filterEditor = atom.workspace.buildTextEditor(
+      mini: true
+      tabLength: 2
+      softTabs: true
+      softWrapped: false
+      buffer: filterBuffer
+      placeholderText: 'Search Todos'
+    )
+
+    @div class: 'show-todo-preview', tabindex: -1, =>
+      @div class: 'input-block', =>
+        @div class: 'input-block-item input-block-item--flex', =>
+          @subview 'filterEditorView', new TextEditorView(editor: filterEditor)
+
+        @div class: 'input-block-item', =>
+          @div class: 'btn-group', =>
+            @button outlet: 'scopeButton', class: 'btn'
+            @button outlet: 'optionsButton', class: 'btn icon-gear'
+            @button outlet: 'saveAsButton', class: 'btn icon-cloud-download'
+            @button outlet: 'refreshButton', class: 'btn icon-sync'
 
       @div outlet: 'optionsView'
 
-      @div outlet: 'todoLoading', =>
+      @div outlet: 'todoLoading', class: 'todo-loading', =>
         @div class: 'markdown-spinner'
         @h5 outlet: 'searchCount', class: 'text-center', "Loading Todos..."
 
-      @subview 'todoTable', new TodoTable(@model)
+      @subview 'todoTable', new TodoTable(model)
 
-  initialize: (@model, @uri) ->
+  constructor: (@model, @uri) ->
+    super @model, @filterBuffer = new TextBuffer
+
+  initialize: ->
     @disposables = new CompositeDisposable
     @handleEvents()
     @model.search()
@@ -74,6 +90,8 @@ class ShowTodoView extends ScrollView
 
     @disposables.add atom.workspace.observeTextEditors (editor) =>
       @disposables.add editor.onDidSave => @model.search()
+
+    @filterEditorView.getModel().onDidStopChanging => @filter()
 
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
@@ -148,3 +166,6 @@ class ShowTodoView extends ScrollView
       @todoOptions = new TodoOptions(@model)
       @optionsView.html @todoOptions
     @optionsView.slideToggle()
+
+  filter: ->
+    @model.filterTodos @filterBuffer.getText()

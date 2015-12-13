@@ -9,15 +9,54 @@
     font-weight: bold;
   }
 
+  .todo-loading {
+    padding: @component-padding;
+  }
+
   background-color: @todo-color;
   color: @text-color;
   overflow: scroll;
-  padding: 10px;
+
+  .input-block {
+    @item-width: 200px;
+
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+
+    .input-block-item {
+      display: flex;
+      flex: 1 1 @item-width;
+      padding: @component-padding / 2 @component-padding;
+
+      .btn-group {
+        display: flex;
+        flex: 1 1 220px;
+
+        .btn {
+          flex: 1 1 @item-width;
+          padding: 0;
+          text-align: center;
+        }
+        .btn:first-child {
+          flex: 1 1 @item-width * 2.5;
+        }
+      }
+    }
+
+    .input-block-item--flex {
+      flex: 100 1 @item-width;
+      position: relative;
+      atom-text-editor {
+        width: 100%;
+      }
+    }
+  }
 
   .todo-options {
     border: 2px solid @todo-color-light;
-    margin: 10px 0;
-    padding: 0 10px 10px;
+    margin: @component-padding / 2 @component-padding;
+    padding: 0 @component-padding;
 
     .option {
       display: flex;
@@ -47,8 +86,11 @@
   }
 
   .todo-table {
-    margin-top: 10px;
-    width: 100%;
+    margin: @component-padding / 2 @component-padding;
+
+    table {
+      width: 100%;
+    }
 
     tr {
       &:nth-child(2n + 1) {

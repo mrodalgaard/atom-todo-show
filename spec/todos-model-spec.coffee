@@ -2,7 +2,7 @@ path = require 'path'
 TodosModel = require '../lib/todos-model'
 
 describe 'Todos Model', ->
-  [model, defaultRegexes, defaultLookup, defaultShowInTable] = []
+  [model, defaultRegexes, defaultLookup, defaultShowInTable, testTodos] = []
 
   beforeEach ->
     defaultRegexes = [
@@ -15,6 +15,30 @@ describe 'Todos Model', ->
       title: defaultRegexes[2]
       regex: defaultRegexes[3]
     defaultShowInTable = ['Text', 'Type', 'File']
+
+    testTodos = [
+      {
+        text: 'fixme #1'
+        file: 'file1.txt'
+        type: 'FIXMEs'
+        range: '3,6,3,10'
+        position: [[3,6], [3,10]]
+      },
+      {
+        text: 'todo #1'
+        file: 'file1.txt'
+        type: 'TODOs'
+        range: '4,5,4,9'
+        position: [[4,5], [4,9]]
+      },
+      {
+        text: 'fixme #2'
+        file: 'file2.txt'
+        type: 'FIXMEs'
+        range: '5,7,5,11'
+        position: [[5,7], [5,11]]
+      }
+    ]
 
     model = new TodosModel
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
@@ -469,34 +493,40 @@ describe 'Todos Model', ->
       runs ->
         expect(model.todos).toHaveLength 0
 
+  describe 'filterTodos()', ->
+    {filterSpy} = []
+
+    beforeEach ->
+      atom.config.set 'todo-show.showInTable', defaultShowInTable
+      model.todos = testTodos
+      filterSpy = jasmine.createSpy()
+      model.onDidFilterTodos filterSpy
+
+    it 'can filter simple todos', ->
+      model.filterTodos('#2')
+      expect(filterSpy.callCount).toBe 1
+      expect(filterSpy.calls[0].args[0]).toHaveLength 1
+
+    it 'can filter todos with multiple results', ->
+      model.filterTodos('FIXME')
+      expect(filterSpy.callCount).toBe 1
+      expect(filterSpy.calls[0].args[0]).toHaveLength 2
+
+    it 'handles no results', ->
+      model.filterTodos('XYZ')
+      expect(filterSpy.callCount).toBe 1
+      expect(filterSpy.calls[0].args[0]).toHaveLength 0
+
+    it 'handles empty filter', ->
+      model.filterTodos('')
+      expect(filterSpy.callCount).toBe 1
+      expect(filterSpy.calls[0].args[0]).toHaveLength 3
+
   describe 'getMarkdown()', ->
     beforeEach ->
       atom.config.set 'todo-show.findTheseRegexes', defaultRegexes
       atom.config.set 'todo-show.showInTable', defaultShowInTable
-
-      model.todos = [
-        {
-          text: 'fixme #1'
-          file: 'file1.txt'
-          type: 'FIXMEs'
-          range: '3,6,3,10'
-          position: [[3,6], [3,10]]
-        },
-        {
-          text: 'todo #1'
-          file: 'file1.txt'
-          type: 'TODOs'
-          range: '4,5,4,9'
-          position: [[4,5], [4,9]]
-        },
-        {
-          text: 'fixme #2'
-          file: 'file2.txt'
-          type: 'FIXMEs'
-          range: '5,7,5,11'
-          position: [[5,7], [5,11]]
-        }
-      ]
+      model.todos = testTodos
 
     it 'creates a markdown string from regexes', ->
       expect(model.getMarkdown()).toEqual """

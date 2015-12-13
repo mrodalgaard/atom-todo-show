@@ -7,13 +7,13 @@ module.exports =
 class ShowTodoView extends View
   @content: ->
     @div class: 'todo-table', tabindex: -1, =>
-      @table outlet: 'table', class: 'todo-table'
+      @table outlet: 'table'
 
   initialize: (@model) ->
     @disposables = new CompositeDisposable
     @disposables.add atom.config.onDidChange 'todo-show.showInTable', ({newValue, oldValue}) =>
       @showInTable = newValue
-      @renderTable()
+      @renderTable @model.getTodos()
 
     @disposables.add atom.config.onDidChange 'todo-show.sortBy', ({newValue, oldValue}) =>
       @sort(@sortBy = newValue, @sortAsc)
@@ -28,7 +28,8 @@ class ShowTodoView extends View
     @disposables.add @model.onDidFinishSearch @initTable
     @disposables.add @model.onDidRemoveTodo @removeTodo
     @disposables.add @model.onDidClear @clearTodos
-    @disposables.add @model.onDidSortTodos @renderTable
+    @disposables.add @model.onDidSortTodos (todos) => @renderTable todos
+    @disposables.add @model.onDidFilterTodos (todos) => @renderTable todos
     @disposables.add @model.onDidChangeSearchScope => @model.search()
 
     @on 'click', 'th', @tableHeaderClicked
@@ -62,11 +63,11 @@ class ShowTodoView extends View
   clearTodos: =>
     @table.empty()
 
-  renderTable: =>
+  renderTable: (todos) =>
     @clearTodos()
     @renderTableHeader()
 
-    for todo in todos = @model.getTodos()
+    for todo in todos = todos
       @renderTodo(todo)
     @table.append new TodoEmptyView(@showInTable) unless todos.length
 

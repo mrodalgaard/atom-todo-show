@@ -15,7 +15,7 @@ class TableHeaderView extends View
             @div class: 'sort-desc icon-triangle-up'
 
 class TodoView extends View
-  @content: (showInTable, todo) ->
+  @content: (showInTable = [], todo) ->
     @tr =>
       for item in showInTable
         @td =>

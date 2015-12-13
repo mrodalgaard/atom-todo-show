@@ -1,3 +1,9 @@
+## 1.2.0
+- Filter todos input field
+- Extract todo tags
+- Save todos as markdown table
+- Links in saved markdown
+
 ## 1.1.0
 - Internal improvements
 

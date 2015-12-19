@@ -70,6 +70,11 @@ describe "Todo Model", ->
       expect(model.tags).toBe 'tag1'
       expect(model.text).toBe '123'
 
+      match.text = "<!-- TODO: Fix this link. #bug. -->"
+      model = new TodoModel(match)
+      expect(model.tags).toBe 'bug'
+      expect(model.text).toBe 'Fix this link.'
+
     it "should extract multiple todo tags", ->
       match.text = "TODO: 123 #tag1 #tag2 #tag3"
       model = new TodoModel(match)

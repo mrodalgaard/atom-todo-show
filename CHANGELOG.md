@@ -1,3 +1,7 @@
+## 1.3.0
+- Minor internal improvements
+- Model restructure
+
 ## 1.2.0
 - Filter todos input field
 - Extract todo tags

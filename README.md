@@ -34,8 +34,7 @@ Default regex form: `'/\\b@?TODO:?\\d*($|\\s.*$)/g'`
 
 To extend the default list of regexes the existing array needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/mrodalgaard/atom-todo-show/blob/master/lib/show-todo.coffee#L12) for current defaults.
 
-## More
+## Credits
+Created by [Jamis Charles](https://github.com/jamischarles)
 
-> Contributions, bug reports and feature requests are very welcome.
-
-> &nbsp; &nbsp; _- Martin_
+Maintained by [Martin Rodalgaard](https://github.com/mrodalgaard)

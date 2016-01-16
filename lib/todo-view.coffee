@@ -113,7 +113,10 @@ class ShowTodoView extends ScrollView
     pane.setFlexScale parseFloat(flex) if flex
 
   getTitle: ->
-    "Todo-Show Results"
+    return "Todo Show: ..." if @loading
+    switch count = @collection.getTodosCount()
+      when 1 then "Todo Show: #{count} result"
+      else "Todo Show: #{count} results"
 
   getIconName: ->
     "checklist"
@@ -130,10 +133,18 @@ class ShowTodoView extends ScrollView
   startLoading: =>
     @loading = true
     @todoLoading.show()
+    @updateTabTitle()
 
   stopLoading: =>
     @loading = false
     @todoLoading.hide()
+    @updateTabTitle()
+
+  updateTabTitle: ->
+    view = atom.views.getView(@)
+    return unless view and view.parentElement?.parentElement
+    for tab in view.parentElement.parentElement.querySelectorAll('.tab')
+      tab.updateTitle?()
 
   getTodos: ->
     @collection.getTodos()

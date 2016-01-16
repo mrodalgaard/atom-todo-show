@@ -33,6 +33,7 @@ class TodoCollection
     @emitter.emit 'did-add-todo', todo
 
   getTodos: -> @todos
+  getTodosCount: -> @todos.length
 
   sortTodos: ({sortBy, sortAsc} = {}) ->
     sortBy ?= @defaultKey

@@ -105,6 +105,24 @@ describe 'ShowTodo opening panes and executing commands', ->
             expect(showTodoPane.getFlexScale()).toEqual newFlex
             showTodoPane.setFlexScale(originalFlex)
 
+    it 'can update tab bar title', ->
+      getTitle = ->
+        showTodoModule.showTodoView.parents().find('.tab .title').text()
+
+      waitsForPromise ->
+        atom.packages.activatePackage 'tabs'
+      runs ->
+        executeCommand ->
+          count = showTodoModule.showTodoView.collection.getTodosCount()
+          expect(getTitle()).toBe "Todo Show: #{count} results"
+          showTodoModule.showTodoView.collection.search()
+          expect(getTitle()).toBe "Todo Show: ..."
+
+          waitsFor ->
+            !showTodoModule.showTodoView.loading
+          runs ->
+            expect(getTitle()).toBe "Todo Show: #{count} results"
+
   describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->
       outputPath = temp.path(suffix: '.md')

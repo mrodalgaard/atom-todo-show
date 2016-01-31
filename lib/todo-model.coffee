@@ -32,6 +32,9 @@ class TodoModel
     for key in keys or @getAllKeys()
       @getMarkdown(key)
 
+  keyIsNumber: (key) ->
+    key in ['Range', 'Line']
+
   contains: (string = '') ->
     for key in @getAllKeys()
       break unless item = @get(key)

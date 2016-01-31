@@ -45,9 +45,12 @@ class TodoCollection
       # Fall back to text if values are the same
       [aVal, bVal] = [a.get(@defaultKey), b.get(@defaultKey)] if aVal is bVal
 
-      comp = aVal.localeCompare(bVal)
+      if a.keyIsNumber(sortBy)
+        comp = parseInt(aVal) - parseInt(bVal)
+      else
+        comp = aVal.localeCompare(bVal)
       if sortAsc then comp else -comp
-      )
+    )
 
     # Apply filter if it exists
     return @filterTodos(@filter) if @filter

@@ -448,6 +448,29 @@ describe 'Todo Collection', ->
       expect(collection.todos[0].file).toBe 'file2.txt'
       expect(collection.todos[2].file).toBe 'file1.txt'
 
+    it 'sort line as number', ->
+      collection.addTodo(
+        new TodoModel(
+          all: 'fixme 3'
+          file: 'file3.txt'
+          type: 'FIXMEs'
+          range: '12,14,12,16'
+          position: [[12,14], [12,16]]
+        )
+      )
+
+      collection.sortTodos(sortBy: 'Line', sortAsc: true)
+      expect(collection.todos[0].line).toBe '4'
+      expect(collection.todos[1].line).toBe '5'
+      expect(collection.todos[2].line).toBe '6'
+      expect(collection.todos[3].line).toBe '13'
+
+      collection.sortTodos(sortBy: 'Range', sortAsc: true)
+      expect(collection.todos[0].range).toBe '3,6,3,10'
+      expect(collection.todos[1].range).toBe '4,5,4,9'
+      expect(collection.todos[2].range).toBe '5,7,5,11'
+      expect(collection.todos[3].range).toBe '12,14,12,16'
+
   describe 'Filter todos', ->
     {filterSpy} = []
 

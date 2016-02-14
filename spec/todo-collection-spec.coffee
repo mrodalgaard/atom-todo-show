@@ -4,131 +4,103 @@ TodoCollection = require '../lib/todo-collection'
 TodoModel = require '../lib/todo-model'
 
 describe 'Todo Collection', ->
-  [collection, defaultRegexes, defaultLookup, defaultShowInTable] = []
+  [collection, defaultRegexStr, defaultRegex, defaultTodoList, defaultShowInTable] = []
 
   addTestTodos = ->
     collection.addTodo(
       new TodoModel(
-        all: 'fixme 1'
-        file: 'file1.txt'
-        type: 'FIXMEs'
-        range: '3,6,3,10'
+        all: '#FIXME: fixme 1'
+        path: 'file1.txt'
         position: [[3,6], [3,10]]
+        regex: defaultRegexStr
+        regexp: defaultRegex
       )
     )
     collection.addTodo(
       new TodoModel(
-        all: 'todo 1'
-        file: 'file1.txt'
-        type: 'TODOs'
-        range: '4,5,4,9'
+        all: '#TODO: todo 1'
+        path: 'file1.txt'
         position: [[4,5], [4,9]]
+        regex: defaultRegexStr
+        regexp: defaultRegex
       )
     )
     collection.addTodo(
       new TodoModel(
-        all: 'fixme 2'
-        file: 'file2.txt'
-        type: 'FIXMEs'
-        range: '5,7,5,11'
+        all: '#FIXME: fixme 2'
+        path: 'file2.txt'
         position: [[5,7], [5,11]]
+        regex: defaultRegexStr
+        regexp: defaultRegex
       )
     )
 
   beforeEach ->
-    defaultRegexes = [
-      'FIXMEs'
-      '/\\bFIXME:?\\d*($|\\s.*$)/g'
-      'TODOs'
-      '/\\bTODO:?\\d*($|\\s.*$)/g'
-    ]
-    defaultLookup =
-      title: defaultRegexes[2]
-      regex: defaultRegexes[3]
+    defaultTodoList = ['FIXME', 'TODO']
+    defaultRegexStr = '/\\b(${TODOS}):?\\d*($|\\s.*$)/g'
+    defaultRegex = /\b(FIXME|TODO):?\d*($|\s.*$)/g
     defaultShowInTable = ['Text', 'Type', 'File']
 
     collection = new TodoCollection
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
 
-  describe 'buildRegexLookups(regexes)', ->
-    it 'returns an array of lookup objects when passed an array of regexes', ->
-      lookups1 = collection.buildRegexLookups(defaultRegexes)
-      lookups2 = [
-        {
-          title: defaultRegexes[0]
-          regex: defaultRegexes[1]
-        }
-        {
-          title: defaultRegexes[2]
-          regex: defaultRegexes[3]
-        }
-      ]
-      expect(lookups1).toEqual(lookups2)
-
-    it 'handles invalid input', ->
-      collection.onDidFailSearch notificationSpy = jasmine.createSpy()
-
-      regexes = ['TODO']
-      lookups = collection.buildRegexLookups(regexes)
-      expect(lookups).toHaveLength 0
-
-      notification = notificationSpy.mostRecentCall.args[0]
-      expect(notificationSpy).toHaveBeenCalled()
-      expect(notification.indexOf('Invalid')).not.toBe -1
-
-  describe 'makeRegexObj(regexStr)', ->
-    it 'returns a RegExp obj when passed a regex literal (string)', ->
-      regexStr = defaultLookup.regex
-      regexObj = collection.makeRegexObj(regexStr)
-
-      # Assertions duck test. Am I a regex obj?
-      expect(typeof regexObj.test).toBe('function')
-      expect(typeof regexObj.exec).toBe('function')
+  describe 'createRegex(regexStr, todoList)', ->
+    it 'returns a regular expression', ->
+      regex = collection.createRegex(defaultRegexStr, defaultTodoList)
+      expect(typeof regex.test).toBe('function')
+      expect(typeof regex.exec).toBe('function')
+      expect(regex).toEqual defaultRegex
 
     it 'returns false and notifies on invalid input', ->
       collection.onDidFailSearch notificationSpy = jasmine.createSpy()
 
       regexStr = 'arstastTODO:.+$)/g'
-      regexObj = collection.makeRegexObj(regexStr)
-      expect(regexObj).toBe(false)
+      regex = collection.createRegex(regexStr, defaultTodoList)
+      expect(regex).toBe(false)
 
       notification = notificationSpy.mostRecentCall.args[0]
       expect(notificationSpy).toHaveBeenCalled()
-      expect(notification.indexOf('Invalid')).not.toBe -1
+      expect(notification.indexOf('Invalid regex')).not.toBe -1
+
+      regex = collection.createRegex(defaultRegexStr, 'a string')
+      expect(regex).toBe(false)
+
+      regex = collection.createRegex(defaultRegexStr, [])
+      expect(regex).toBe(false)
+
+      notification = notificationSpy.mostRecentCall.args[0]
+      expect(notificationSpy).toHaveBeenCalled()
+      expect(notification.indexOf('Invalid todo search regex')).not.toBe -1
 
     it 'handles empty input', ->
-      regexObj = collection.makeRegexObj()
-      expect(regexObj).toBe(false)
+      regex = collection.createRegex()
+      expect(regex).toBe(false)
+
+      regex = collection.createRegex('', defaultTodoList)
+      expect(regex).toBe(false)
 
   describe 'fetchRegexItem(lookupObj)', ->
     it 'should scan the workspace for the regex that is passed and fill lookup results', ->
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex, defaultRegexStr)
 
       runs ->
-        expect(collection.todos).toHaveLength 3
+        expect(collection.todos).toHaveLength 4
         expect(collection.todos[0].text).toBe 'Comment in C'
         expect(collection.todos[1].text).toBe 'This is the first todo'
         expect(collection.todos[2].text).toBe 'This is the second todo'
+        expect(collection.todos[3].text).toBe 'Add more annnotations :)'
 
     it 'should handle other regexes', ->
-      lookup =
-        title: 'Includes'
-        regex: '/#include(.+)/g'
-
       waitsForPromise ->
-        collection.fetchRegexItem(lookup)
+        collection.fetchRegexItem(/#include(.+)/g)
       runs ->
         expect(collection.todos).toHaveLength 1
         expect(collection.todos[0].text).toBe '<stdio.h>'
 
     it 'should handle special character regexes', ->
-      lookup =
-        title: 'Todos'
-        regex: '/ This is the (?:first|second) todo/g'
-
       waitsForPromise ->
-        collection.fetchRegexItem(lookup)
+        collection.fetchRegexItem(/This is the (?:first|second) todo/g)
       runs ->
         expect(collection.todos).toHaveLength 2
         expect(collection.todos[0].text).toBe 'This is the first todo'
@@ -137,43 +109,31 @@ describe 'Todo Collection', ->
     it 'should handle regex without capture group', ->
       lookup =
         title: 'This is Code'
-        regex: '/[\\w\\s]+code[\\w\\s]*/g'
+        regex: ''
 
       waitsForPromise ->
-        collection.fetchRegexItem(lookup)
+        collection.fetchRegexItem(/[\w\s]+code[\w\s]*/g)
       runs ->
         expect(collection.todos).toHaveLength 1
         expect(collection.todos[0].text).toBe 'Sample quicksort code'
 
     it 'should handle post-annotations with special regex', ->
-      lookup =
-        title: 'Pre-DEBUG'
-        regex: '/(.+).{3}DEBUG\\s*$/g'
-
       waitsForPromise ->
-        collection.fetchRegexItem(lookup)
+        collection.fetchRegexItem(/(.+).{3}DEBUG\s*$/g)
       runs ->
         expect(collection.todos).toHaveLength 1
         expect(collection.todos[0].text).toBe 'return sort(Array.apply(this, arguments));'
 
     it 'should handle post-annotations with non-capturing group', ->
-      lookup =
-        title: 'Pre-DEBUG'
-        regex: '/(.+?(?=.{3}DEBUG\\s*$))/'
-
       waitsForPromise ->
-        collection.fetchRegexItem(lookup)
+        collection.fetchRegexItem(/(.+?(?=.{3}DEBUG\s*$))/)
       runs ->
         expect(collection.todos).toHaveLength 1
         expect(collection.todos[0].text).toBe 'return sort(Array.apply(this, arguments));'
 
     it 'should truncate todos longer than the defined max length of 120', ->
-      lookup =
-        title: 'Long Annotation'
-        regex: '/LOONG:?(.+$)/g'
-
       waitsForPromise ->
-        collection.fetchRegexItem(lookup)
+        collection.fetchRegexItem(/LOONG:?(.+$)/g)
       runs ->
         text = 'Lorem ipsum dolor sit amet, dapibus rhoncus. Scelerisque quam,'
         text += ' id ante molestias, ipsum lorem magnis et. A eleifend i...'
@@ -191,7 +151,7 @@ describe 'Todo Collection', ->
       atom.project.setPaths [path.join(__dirname, 'fixtures/sample2')]
 
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex, defaultRegexStr)
       runs ->
         expect(collection.todos).toHaveLength 6
         expect(collection.todos[0].text).toBe 'C block comment'
@@ -205,18 +165,18 @@ describe 'Todo Collection', ->
     it 'works with no paths added', ->
       atom.config.set('todo-show.ignoreThesePaths', [])
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex)
       runs ->
-        expect(collection.todos).toHaveLength 3
+        expect(collection.todos).toHaveLength 4
 
     it 'must be an array', ->
       collection.onDidFailSearch notificationSpy = jasmine.createSpy()
 
       atom.config.set('todo-show.ignoreThesePaths', '123')
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex)
       runs ->
-        expect(collection.todos).toHaveLength 3
+        expect(collection.todos).toHaveLength 4
 
         notification = notificationSpy.mostRecentCall.args[0]
         expect(notificationSpy).toHaveBeenCalled()
@@ -225,7 +185,7 @@ describe 'Todo Collection', ->
     it 'respects ignored files', ->
       atom.config.set('todo-show.ignoreThesePaths', ['sample.js'])
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 1
         expect(collection.todos[0].text).toBe 'Comment in C'
@@ -235,7 +195,7 @@ describe 'Todo Collection', ->
       atom.config.set('todo-show.ignoreThesePaths', ['sample1', '*.md'])
 
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 6
         expect(collection.todos[0].text).toBe 'C block comment'
@@ -245,7 +205,7 @@ describe 'Todo Collection', ->
       atom.config.set('todo-show.ignoreThesePaths', ['**/sample.js', '**/sample.txt', '*.md'])
 
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 1
         expect(collection.todos[0].text).toBe 'Comment in C'
@@ -255,7 +215,7 @@ describe 'Todo Collection', ->
       atom.config.set('todo-show.ignoreThesePaths', ['output(-grouped)?\\.*', '*1/**'])
 
       waitsForPromise ->
-        collection.fetchRegexItem(defaultLookup)
+        collection.fetchRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 6
         expect(collection.todos[0].text).toBe 'C block comment'
@@ -271,7 +231,7 @@ describe 'Todo Collection', ->
 
     it 'scans open files for the regex that is passed and fill lookup results', ->
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
 
       runs ->
         expect(collection.todos).toHaveLength 1
@@ -284,7 +244,7 @@ describe 'Todo Collection', ->
 
       runs ->
         waitsForPromise ->
-          collection.fetchOpenRegexItem(defaultLookup)
+          collection.fetchOpenRegexItem(defaultRegex)
 
         runs ->
           expect(collection.todos).toHaveLength 7
@@ -296,10 +256,10 @@ describe 'Todo Collection', ->
       editor.setText 'TODO: New todo'
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex, defaultRegexStr)
       runs ->
         expect(collection.todos).toHaveLength 1
-        expect(collection.todos[0].type).toBe 'TODOs'
+        expect(collection.todos[0].type).toBe 'TODO'
         expect(collection.todos[0].text).toBe 'New todo'
 
     it 'respects imdone syntax (https://github.com/imdone/imdone-atom)', ->
@@ -309,10 +269,10 @@ describe 'Todo Collection', ->
       '''
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 2
-        expect(collection.todos[0].type).toBe 'TODOs'
+        expect(collection.todos[0].type).toBe 'TODO'
         expect(collection.todos[0].text).toBe 'todo1'
         expect(collection.todos[1].text).toBe 'todo2'
 
@@ -323,7 +283,7 @@ describe 'Todo Collection', ->
       """
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 2
         expect(collection.todos[0].text).toBe '1 2 3'
@@ -336,7 +296,7 @@ describe 'Todo Collection', ->
       """
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 2
         expect(collection.todos[0].text).toBe 'No details'
@@ -349,7 +309,7 @@ describe 'Todo Collection', ->
       """
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 2
         expect(collection.todos[0].text).toBe 'No details'
@@ -363,7 +323,7 @@ describe 'Todo Collection', ->
       """
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 3
         expect(collection.todos[0].text).toBe 'text'
@@ -374,7 +334,7 @@ describe 'Todo Collection', ->
       editor.setText 'Line //TODO:\ttext'
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos[0].text).toBe 'text'
 
@@ -382,7 +342,7 @@ describe 'Todo Collection', ->
       editor.setText 'A line // TODO text'
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos[0].text).toBe 'text'
 
@@ -390,7 +350,7 @@ describe 'Todo Collection', ->
       editor.setText 'A line // TODO:text'
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 0
 
@@ -398,7 +358,7 @@ describe 'Todo Collection', ->
       editor.setText 'define("_JS_TODO_ALERT_", "js:alert(&quot;TODO&quot;);");'
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 0
 
@@ -406,7 +366,7 @@ describe 'Todo Collection', ->
       editor.setText '// TODOe�d��RPPP0�'
 
       waitsForPromise ->
-        collection.fetchOpenRegexItem(defaultLookup)
+        collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 0
 
@@ -451,11 +411,11 @@ describe 'Todo Collection', ->
     it 'sort line as number', ->
       collection.addTodo(
         new TodoModel(
-          all: 'fixme 3'
-          file: 'file3.txt'
-          type: 'FIXMEs'
-          range: '12,14,12,16'
+          all: '#FIXME: fixme 3'
+          path: 'file3.txt'
           position: [[12,14], [12,16]]
+          regex: defaultRegexStr
+          regexp: defaultRegex
         )
       )
 
@@ -481,12 +441,12 @@ describe 'Todo Collection', ->
       collection.onDidFilterTodos filterSpy
 
     it 'can filter simple todos', ->
-      collection.filterTodos('todo')
+      collection.filterTodos('TODO')
       expect(filterSpy.callCount).toBe 1
       expect(filterSpy.calls[0].args[0]).toHaveLength 1
 
     it 'can filter todos with multiple results', ->
-      collection.filterTodos('FIXME')
+      collection.filterTodos('file1')
       expect(filterSpy.callCount).toBe 1
       expect(filterSpy.calls[0].args[0]).toHaveLength 2
 
@@ -502,42 +462,42 @@ describe 'Todo Collection', ->
 
   describe 'Markdown', ->
     beforeEach ->
-      atom.config.set 'todo-show.findTheseRegexes', defaultRegexes
+      atom.config.set 'todo-show.findTheseTodos', defaultTodoList
       atom.config.set 'todo-show.showInTable', defaultShowInTable
 
     it 'creates a markdown string from regexes', ->
       addTestTodos()
       expect(collection.getMarkdown()).toEqual """
-        - fixme 1 __FIXMEs__ [file1.txt](file1.txt)
-        - todo 1 __TODOs__ [file1.txt](file1.txt)
-        - fixme 2 __FIXMEs__ [file2.txt](file2.txt)\n
+        - fixme 1 __FIXME__ [file1.txt](file1.txt)
+        - todo 1 __TODO__ [file1.txt](file1.txt)
+        - fixme 2 __FIXME__ [file2.txt](file2.txt)\n
       """
 
     it 'creates markdown with sorting', ->
       addTestTodos()
       collection.sortTodos(sortBy: 'Text', sortAsc: true)
       expect(collection.getMarkdown()).toEqual """
-        - fixme 1 __FIXMEs__ [file1.txt](file1.txt)
-        - fixme 2 __FIXMEs__ [file2.txt](file2.txt)
-        - todo 1 __TODOs__ [file1.txt](file1.txt)\n
+        - fixme 1 __FIXME__ [file1.txt](file1.txt)
+        - fixme 2 __FIXME__ [file2.txt](file2.txt)
+        - todo 1 __TODO__ [file1.txt](file1.txt)\n
       """
 
     it 'creates markdown with inverse sorting', ->
       addTestTodos()
       collection.sortTodos(sortBy: 'Text', sortAsc: false)
       expect(collection.getMarkdown()).toEqual """
-        - todo 1 __TODOs__ [file1.txt](file1.txt)
-        - fixme 2 __FIXMEs__ [file2.txt](file2.txt)
-        - fixme 1 __FIXMEs__ [file1.txt](file1.txt)\n
+        - todo 1 __TODO__ [file1.txt](file1.txt)
+        - fixme 2 __FIXME__ [file2.txt](file2.txt)
+        - fixme 1 __FIXME__ [file1.txt](file1.txt)\n
       """
 
     it 'creates markdown with different items', ->
       addTestTodos()
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
       expect(collection.getMarkdown()).toEqual """
-        - __FIXMEs__ [file1.txt](file1.txt) _:3,6,3,10_
-        - __TODOs__ [file1.txt](file1.txt) _:4,5,4,9_
-        - __FIXMEs__ [file2.txt](file2.txt) _:5,7,5,11_\n
+        - __FIXME__ [file1.txt](file1.txt) _:3,6,3,10_
+        - __TODO__ [file1.txt](file1.txt) _:4,5,4,9_
+        - __FIXME__ [file2.txt](file2.txt) _:5,7,5,11_\n
       """
 
     it 'creates markdown as table', ->
@@ -546,9 +506,9 @@ describe 'Todo Collection', ->
       expect(collection.getMarkdown()).toEqual """
         | Text | Type | File |
         |--------------------|
-        | fixme 1 | __FIXMEs__ | [file1.txt](file1.txt) |
-        | todo 1 | __TODOs__ | [file1.txt](file1.txt) |
-        | fixme 2 | __FIXMEs__ | [file2.txt](file2.txt) |\n
+        | fixme 1 | __FIXME__ | [file1.txt](file1.txt) |
+        | todo 1 | __TODO__ | [file1.txt](file1.txt) |
+        | fixme 2 | __FIXME__ | [file2.txt](file2.txt) |\n
       """
 
     it 'creates markdown as table with different items', ->
@@ -558,26 +518,26 @@ describe 'Todo Collection', ->
       expect(collection.getMarkdown()).toEqual """
         | Type | File | Range |
         |---------------------|
-        | __FIXMEs__ | [file1.txt](file1.txt) | _:3,6,3,10_ |
-        | __TODOs__ | [file1.txt](file1.txt) | _:4,5,4,9_ |
-        | __FIXMEs__ | [file2.txt](file2.txt) | _:5,7,5,11_ |\n
+        | __FIXME__ | [file1.txt](file1.txt) | _:3,6,3,10_ |
+        | __TODO__ | [file1.txt](file1.txt) | _:4,5,4,9_ |
+        | __FIXME__ | [file2.txt](file2.txt) | _:5,7,5,11_ |\n
       """
 
     it 'accepts missing ranges and paths in regexes', ->
       collection.addTodo(
         new TodoModel(
           text: 'fixme 1'
-          type: 'FIXMEs'
+          type: 'FIXME'
         , plain: true)
       )
       expect(collection.getMarkdown()).toEqual """
-        - fixme 1 __FIXMEs__\n
+        - fixme 1 __FIXME__\n
       """
 
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range', 'Text']
       markdown = '\n## Unknown File\n\n- fixme 1 `FIXMEs`\n'
       expect(collection.getMarkdown()).toEqual """
-        - __FIXMEs__ fixme 1\n
+        - __FIXME__ fixme 1\n
       """
 
     it 'accepts missing title in regexes', ->
@@ -600,14 +560,14 @@ describe 'Todo Collection', ->
       collection.addTodo(
         new TodoModel(
           text: 'fixme 1'
-          type: 'FIXMEs'
+          type: 'FIXME'
         , plain: true)
       )
       atom.config.set 'todo-show.saveOutputAs', 'Table'
       expect(collection.getMarkdown()).toEqual """
         | Text | Type | File |
         |--------------------|
-        | fixme 1 | __FIXMEs__ | |\n
+        | fixme 1 | __FIXME__ | |\n
       """
 
       atom.config.set 'todo-show.showInTable', ['Line']

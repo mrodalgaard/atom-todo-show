@@ -6,10 +6,10 @@ describe "Todo Model", ->
 
   beforeEach ->
     match =
-      path: "#{atom.project.getPaths()[0]}/sample.c"
       all: " TODO: Comment in C #tag1 "
-      type: "TODOs"
-      regexp: /\b@?TODO:?\d*($|\s.*$)/g
+      path: "#{atom.project.getPaths()[0]}/sample.c"
+      regex: "/\\b(${TODOS}):?\\d*($|\\s.*$)/g"
+      regexp: /\b(TODO|FIXME|XXX):?\d*($|\s.*$)/g
       position: [
         [0, 1]
         [0, 20]
@@ -112,13 +112,15 @@ describe "Todo Model", ->
     it "returns value for key", ->
       model = new TodoModel(match)
       expect(model.get('All')).toBe match.all
-      expect(model.get('File')).toBe 'sample.c'
-      expect(model.get('Line')).toBe '1'
-      expect(model.get('Path')).toBe match.path
-      expect(model.get('Range')).toBe '0,1,0,20'
-      expect(model.get('RegExp')).toBe match.regexp
-      expect(model.get('Tags')).toBe 'tag1'
       expect(model.get('Text')).toBe 'Comment in C'
+      expect(model.get('Type')).toBe 'TODO'
+      expect(model.get('Range')).toBe '0,1,0,20'
+      expect(model.get('Line')).toBe '1'
+      expect(model.get('Regex')).toBe '/\\b(TODO):?\\d*($|\\s.*$)/g'
+      expect(model.get('File')).toBe 'sample.c'
+      expect(model.get('Tags')).toBe 'tag1'
+      expect(model.get('Path')).toBe match.path
+      expect(model.get('RegExp')).toBe match.regexp
 
     it "defaults to text", ->
       model = new TodoModel(match)

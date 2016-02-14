@@ -7,11 +7,8 @@ describe "Show Todo View", ->
   [showTodoView, collection] = []
 
   beforeEach ->
-    regexes = [
-      'TODOs'
-      '/\\bTODO:?\\d*($|\\s.*$)/g'
-    ]
-    atom.config.set 'todo-show.findTheseRegexes', regexes
+    atom.config.set 'todo-show.findTheseTodos', ['TODO']
+    atom.config.set 'todo-show.searchUsingRegex', '/\\b(${TODOS}):?\\d*($|\\s.*$)/g'
 
     atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
     collection = new TodosCollection

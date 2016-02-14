@@ -47,6 +47,9 @@ class TodoModel
     # Strip out the regex token from the found annotation
     # not all objects will have an exec match
     while (_matchText = match.regexp?.exec(matchText))
+      # Find match type
+      match.type = _matchText[1] unless match.type
+      # Extract todo text
       matchText = _matchText.pop()
 
     # Strip common block comment endings and whitespaces
@@ -73,5 +76,6 @@ class TodoModel
     match.text = matchText || "No details"
     match.line = (parseInt(match.range.split(',')[0]) + 1).toString()
     match.file ?= atom.project.relativize(match.path)
+    match.regex = match.regex.replace('${TODOS}', match.type)
 
     _.extend(this, match)

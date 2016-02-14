@@ -145,7 +145,7 @@ describe 'ShowTodo opening panes and executing commands', ->
 
     it 'saves another list sorted differently in markdown', ->
       outputPath = temp.path(suffix: '.md')
-      atom.config.set 'todo-show.findTheseRegexes', ['TODOs', '/\\b@?TODO:?\\s(.+$)/g']
+      atom.config.set 'todo-show.findTheseTodos', ['TODO']
       atom.config.set 'todo-show.showInTable', ['Text', 'Type', 'File', 'Line']
       atom.config.set 'todo-show.sortBy', 'File'
       expect(fs.isFileSync(outputPath)).toBe false
@@ -160,9 +160,9 @@ describe 'ShowTodo opening panes and executing commands', ->
       runs ->
         expect(fs.isFileSync(outputPath)).toBe true
         expect(atom.workspace.getActiveTextEditor().getText()).toBe """
-          - Comment in C __TODOs__ [sample.c](sample.c) _:5_
-          - This is the first todo __TODOs__ [sample.js](sample.js) _:3_
-          - This is the second todo __TODOs__ [sample.js](sample.js) _:20_\n
+          - Comment in C __TODO__ [sample.c](sample.c) _:5_
+          - This is the first todo __TODO__ [sample.js](sample.js) _:3_
+          - This is the second todo __TODO__ [sample.js](sample.js) _:20_\n
         """
 
   describe 'when core:refresh is triggered', ->
@@ -201,6 +201,6 @@ describe 'ShowTodo opening panes and executing commands', ->
       runs ->
         todos = showTodoModule.showTodoView.getTodos()
         expect(todos).toHaveLength 1
-        expect(todos[0].type).toBe 'TODOs'
+        expect(todos[0].type).toBe 'TODO'
         expect(todos[0].text).toBe 'Comment in C'
         expect(todos[0].file).toBe 'sample.c'

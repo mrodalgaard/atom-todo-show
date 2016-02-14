@@ -5,30 +5,49 @@ TodoCollection = require './todo-collection'
 
 module.exports =
   config:
-    findTheseRegexes:
+    # findTheseRegexes:
+    #   type: 'array'
+    #   # Items based on https://github.com/atom/language-todo
+    #   # Title, regex, title, regex...
+    #   default: [
+    #     'FIXMEs'
+    #     '/\\bFIXME:?\\d*($|\\s.*$)/g'
+    #     'TODOs'
+    #     '/\\bTODO:?\\d*($|\\s.*$)/g'
+    #     'CHANGEDs'
+    #     '/\\bCHANGED:?\\d*($|\\s.*$)/g'
+    #     'XXXs'
+    #     '/\\bXXX:?\\d*($|\\s.*$)/g'
+    #     'IDEAs'
+    #     '/\\bIDEA:?\\d*($|\\s.*$)/g'
+    #     'HACKs'
+    #     '/\\bHACK:?\\d*($|\\s.*$)/g'
+    #     'NOTEs'
+    #     '/\\bNOTE:?\\d*($|\\s.*$)/g'
+    #     'REVIEWs'
+    #     '/\\bREVIEW:?\\d*($|\\s.*$)/g'
+    #   ]
+    #   items:
+    #     type: 'string'
+
+    findTheseTodos:
       type: 'array'
-      # Items based on https://github.com/atom/language-todo
-      # Title, regex, title, regex...
       default: [
-        'FIXMEs'
-        '/\\bFIXME:?\\d*($|\\s.*$)/g'
-        'TODOs'
-        '/\\bTODO:?\\d*($|\\s.*$)/g'
-        'CHANGEDs'
-        '/\\bCHANGED:?\\d*($|\\s.*$)/g'
-        'XXXs'
-        '/\\bXXX:?\\d*($|\\s.*$)/g'
-        'IDEAs'
-        '/\\bIDEA:?\\d*($|\\s.*$)/g'
-        'HACKs'
-        '/\\bHACK:?\\d*($|\\s.*$)/g'
-        'NOTEs'
-        '/\\bNOTE:?\\d*($|\\s.*$)/g'
-        'REVIEWs'
-        '/\\bREVIEW:?\\d*($|\\s.*$)/g'
+        'FIXME'
+        'TODO'
+        'CHANGED'
+        'XXX'
+        'IDEA'
+        'HACK'
+        'NOTE'
+        'REVIEW'
       ]
       items:
         type: 'string'
+    searchUsingRegex:
+      type: 'string'
+      default: '/\\b(${TODOS}):?\\d*($|\\s.*$)/g'
+
     ignoreThesePaths:
       type: 'array'
       default: [

@@ -161,7 +161,7 @@ class TodoCollection
     @emitter.emit 'did-start-search'
 
     return unless regexp = @createRegex(
-      regex = atom.config.get('todo-show.searchUsingRegex')
+      regex = atom.config.get('todo-show.findUsingRegex')
       atom.config.get('todo-show.findTheseTodos')
     )
 

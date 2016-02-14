@@ -9,12 +9,6 @@ class CodeView extends View
   @content: (item) ->
     @code item
 
-class RegexView extends View
-  @content: (title, regex) ->
-    @div =>
-      @span "#{title}: "
-      @code regex
-
 module.exports =
 class ShowTodoView extends View
   @content: ->
@@ -28,12 +22,16 @@ class ShowTodoView extends View
         @div outlet: 'itemsOffTable', class: 'block items-off-table'
 
       @div class: 'option', =>
-        @h2 'Regexes'
-        @div class: 'regex', outlet: 'regexString'
+        @h2 'Find Todos'
+        @div outlet: 'findTodoDiv'
+
+      @div class: 'option', =>
+        @h2 'Find Regex'
+        @div outlet: 'findRegexDiv'
 
       @div class: 'option', =>
         @h2 'Ignore Paths'
-        @div class: 'ignores', outlet: 'ignoresString'
+        @div outlet: 'ignorePathDiv'
 
       @div class: 'option', =>
         @h2 ''
@@ -81,9 +79,11 @@ class ShowTodoView extends View
       ghostClass: 'ghost'
     )
 
-    regexes = atom.config.get('todo-show.findTheseRegexes')
-    for regex, i in regexes by 2
-      @regexString.append new RegexView(regex, regexes[i+1])
+    for todo in todos = atom.config.get('todo-show.findTheseTodos')
+      @findTodoDiv.append new CodeView(todo)
+
+    regex = atom.config.get('todo-show.findUsingRegex')
+    @findRegexDiv.append new CodeView(regex.replace('${TODOS}', todos.join('|')))
 
     for path in atom.config.get('todo-show.ignoreThesePaths')
-      @ignoresString.append new CodeView(path)
+      @ignorePathDiv.append new CodeView(path)

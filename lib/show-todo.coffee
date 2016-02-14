@@ -44,7 +44,8 @@ module.exports =
       ]
       items:
         type: 'string'
-    searchUsingRegex:
+    findUsingRegex:
+      description: 'Single regex used to find all todos. ${TODOS} is replaced with the findTheseTodos array.'
       type: 'string'
       default: '/\\b(${TODOS}):?\\d*($|\\s.*$)/g'
 

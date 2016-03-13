@@ -317,18 +317,18 @@ describe 'Todo Collection', ->
 
     it 'handles todos with @ in front', ->
       editor.setText """
-        Line 1 //@TODO: text
-        Line 2 //@TODO: text
-        Line 3 @TODO: text
+        Line 1 // @TODO: text 1
+        Line 2 //@TODO: text 2
+        Line 3 @TODO: text 3
       """
 
       waitsForPromise ->
         collection.fetchOpenRegexItem(defaultRegex)
       runs ->
         expect(collection.todos).toHaveLength 3
-        expect(collection.todos[0].text).toBe 'text'
-        expect(collection.todos[1].text).toBe 'text'
-        expect(collection.todos[2].text).toBe 'text'
+        expect(collection.todos[0].text).toBe 'text 1'
+        expect(collection.todos[1].text).toBe 'text 2'
+        expect(collection.todos[2].text).toBe 'text 3'
 
     it 'handles tabs in todos', ->
       editor.setText 'Line //TODO:\ttext'

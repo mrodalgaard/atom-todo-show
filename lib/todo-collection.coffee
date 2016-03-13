@@ -165,14 +165,12 @@ class TodoCollection
       atom.config.get('todo-show.findTheseTodos')
     )
 
-    # TODO: Rewrite to only use one regex search and not .all
-    promise = switch @scope
+    @searchPromise = switch @scope
       when 'open' then @fetchOpenRegexItem(regexp, regex, false)
       when 'active' then @fetchOpenRegexItem(regexp, regex, true)
       else @fetchRegexItem(regexp, regex)
-    @searchPromises.push(promise)
 
-    Promise.all(@searchPromises).then () =>
+    @searchPromise.then () =>
       @searching = false
       @emitter.emit 'did-finish-search'
     .catch (err) =>
@@ -192,6 +190,4 @@ class TodoCollection
     todosMarkdown.markdown @getTodos()
 
   cancelSearch: ->
-    @searchPromises ?= []
-    for promise in @searchPromises
-      promise.cancel?() if promise
+    @searchPromise?.cancel?()

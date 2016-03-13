@@ -370,6 +370,12 @@ describe 'Todo Collection', ->
       runs ->
         expect(collection.todos).toHaveLength 0
 
+    it 'does not add duplicates', ->
+      addTestTodos()
+      expect(collection.todos).toHaveLength 3
+      addTestTodos()
+      expect(collection.todos).toHaveLength 3
+
   describe 'Sort todos', ->
     {sortSpy} = []
 

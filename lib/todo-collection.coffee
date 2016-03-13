@@ -28,7 +28,7 @@ class TodoCollection
     @emitter.emit 'did-clear-todos'
 
   addTodo: (todo) ->
-    # TODO: Check for duplicates and more
+    return if @alreadyExists(todo)
     @todos.push(todo)
     @emitter.emit 'did-add-todo', todo
 
@@ -81,6 +81,12 @@ class TodoCollection
       else 'full'
     @setSearchScope(scope)
     scope
+
+  alreadyExists: (newTodo) ->
+    properties = ['range', 'path']
+    @todos.some (todo) ->
+      properties.every (prop) ->
+        true if todo[prop] is newTodo[prop]
 
   # Pass in string and returns a proper RegExp object
   makeRegexObj: (regexStr = '') ->

@@ -1,3 +1,9 @@
+## 1.4.0
+- Major performance improvement by only using one regex
+- Handle duplicate todos
+- Better doc and settings view
+- Show todo count in bar title
+
 ## 1.3.0
 - Minor internal improvements
 - Model restructure

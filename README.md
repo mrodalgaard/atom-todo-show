@@ -6,6 +6,16 @@ Open using command palette `Todo Show: Find In Project` or `Todo Show: Find In O
 
 ![todo-show-package](https://raw.githubusercontent.com/mrodalgaard/atom-todo-show/master/screenshots/preview.png)
 
+## Installation
+
+Run in Terminal:
+
+```
+$ apm install todo-show
+```
+
+Or using the Install packages pane from **Atom Settings**.
+
 ## Config
 
 * __findTheseTodos__: An array of todo types used by the search regex (`['FIXME', 'TODO', ...]`).

@@ -4,6 +4,8 @@ Finds all TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW comments in your p
 
 Open using command palette `Todo Show: Find In Project` or `Todo Show: Find In Open Files`. Keyboard shortcuts <kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>T</kbd> on Mac OSX or <kbd>ALT</kbd> + <kbd>SHIFT</kbd> + <kbd>T</kbd> on Windows and Linux.
 
+Install with `apm install todo-show` or use *Install Packages* from *Atom Settings*.
+
 ![todo-show-package](https://raw.githubusercontent.com/mrodalgaard/atom-todo-show/master/screenshots/preview.png)
 
 ## Config

@@ -440,6 +440,34 @@ describe 'Todo Collection', ->
       expect(filterSpy.callCount).toBe 1
       expect(filterSpy.calls[0].args[0]).toHaveLength 3
 
+    it 'case insensitive filter', ->
+      collection.addTodo(
+        new TodoModel(
+          all: '#FIXME: THIS IS WITH CAPS'
+          path: 'file2.txt'
+          position: [[6,7], [6,11]]
+          regex: todoRegex.regex
+          regexp: todoRegex.regexp
+        )
+      )
+
+      collection.filterTodos('FIXME 1')
+      result = filterSpy.calls[0].args[0]
+      expect(filterSpy.callCount).toBe 1
+      expect(result).toHaveLength 1
+      expect(result[0].text).toBe 'fixme 1'
+
+      collection.filterTodos('caps')
+      result = filterSpy.calls[1].args[0]
+      expect(filterSpy.callCount).toBe 2
+      expect(result).toHaveLength 1
+      expect(result[0].text).toBe 'THIS IS WITH CAPS'
+
+      collection.filterTodos('NONEXISTING')
+      result = filterSpy.calls[2].args[0]
+      expect(filterSpy.callCount).toBe 3
+      expect(result).toHaveLength 0
+
   describe 'Markdown', ->
     beforeEach ->
       atom.config.set 'todo-show.findTheseTodos', ['FIXME', 'TODO']

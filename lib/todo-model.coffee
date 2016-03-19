@@ -39,7 +39,7 @@ class TodoModel
   contains: (string = '') ->
     for key in @getAllKeys()
       break unless item = @get(key)
-      return true if item.indexOf(string) isnt -1
+      return true if item.toLowerCase().indexOf(string.toLowerCase()) isnt -1
     false
 
   handleScanMatch: (match) ->

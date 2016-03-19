@@ -1,15 +1,23 @@
 path = require 'path'
+
 TodoModel = require '../lib/todo-model'
+ShowTodo = require '../lib/show-todo'
+TodoRegex = require '../lib/todo-regex'
 
 describe "Todo Model", ->
-  {match} = []
+  {match, todoRegex} = []
 
   beforeEach ->
+    todoRegex = new TodoRegex(
+      ShowTodo.config.findUsingRegex.default
+      ['FIXME', 'TODO']
+    )
+
     match =
       all: " TODO: Comment in C #tag1 "
       path: "#{atom.project.getPaths()[0]}/sample.c"
-      regex: "/\\b(${TODOS}):?\\d*($|\\s.*$)/g"
-      regexp: /\b(TODO|FIXME|XXX):?\d*($|\s.*$)/g
+      regex: todoRegex.regex
+      regexp: todoRegex.regexp
       position: [
         [0, 1]
         [0, 20]
@@ -51,6 +59,7 @@ describe "Todo Model", ->
       expect(model.range).toEqual '0,1,2,3'
       expect(model.position).toEqual [[0,1],[2,3]]
 
+  describe "Extracting todo tags", ->
     it "should extract todo tags", ->
       match.text = "test #TODO: 123 #tag1"
       model = new TodoModel(match)
@@ -108,6 +117,53 @@ describe "Todo Model", ->
       match.text = "#TODO: #tag1, #tag2$, #tag3"
       expect(new TodoModel(match).tags).toBe 'tag3'
 
+  describe "Handling google style guide todo syntax", ->
+    it "adds an id to the model", ->
+      match.text = "// TODO(kl@gmail.com): Use a *."
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.id).toBe 'kl@gmail.com'
+      expect(model.text).toBe 'Use a *.'
+
+      match.text = "// TODO(Zeke) change this to use relations."
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.id).toBe 'Zeke'
+      expect(model.text).toBe 'change this to use relations.'
+
+      match.text = "// TODO(bug 12345): remove the \"Last visitors\" feature"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.id).toBe 'bug 12345'
+      expect(model.text).toBe 'remove the "Last visitors" feature'
+
+      match.text = "// TODO(bug): another task (seriously)"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.id).toBe 'bug'
+      expect(model.text).toBe 'another task (seriously)'
+
+      match.text = "// TODO(id: Use a *.)"
+      model = new TodoModel(match)
+      expect(model.id).toBe 'id: Use a *.'
+      expect(model.text).toBe 'No details'
+
+    it "handles invalid todo id format", ->
+      match.text = "// TODO(id: Use a *."
+      model = new TodoModel(match)
+      expect(model.id).toBe ''
+      expect(model.text).toBe '(id: Use a *.'
+
+      match.text = "// TODO _(id): Use a *."
+      model = new TodoModel(match)
+      expect(model.id).toBe ''
+      expect(model.text).toBe '_(id): Use a *.'
+
+      match.text = "// TODO (id): Use a *."
+      model = new TodoModel(match)
+      expect(model.id).toBe ''
+      expect(model.text).toBe '(id): Use a *.'
+
   describe "Model properties", ->
     it "returns value for key", ->
       model = new TodoModel(match)
@@ -116,9 +172,10 @@ describe "Todo Model", ->
       expect(model.get('Type')).toBe 'TODO'
       expect(model.get('Range')).toBe '0,1,0,20'
       expect(model.get('Line')).toBe '1'
-      expect(model.get('Regex')).toBe '/\\b(TODO):?\\d*($|\\s.*$)/g'
+      expect(model.get('Regex')).toBe '/\\b(TODO):?\\d*($|\\s.*$|\\(.*$)/g'
       expect(model.get('File')).toBe 'sample.c'
       expect(model.get('Tags')).toBe 'tag1'
+      expect(model.get('Id')).toBe ''
       expect(model.get('Path')).toBe match.path
       expect(model.get('RegExp')).toBe match.regexp
 

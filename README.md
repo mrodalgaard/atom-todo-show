@@ -24,14 +24,15 @@ Open using command palette `Todo Show: Find In Project` or `Todo Show: Find In O
 
 The regexes in `findTheseRegexes` are used for searching the workspace for todo matches. They are configurable to match the users specific needs.
 
-Default regex form: `'/\\b(${TODOS}):?\\d*($|\\s.*$)/g'`
+Default regex form: `'/\\b(${TODOS}):?\\d*($|\\s.*$|\\(.*$)/g'`
 * `\b` start at word boundary
 * `${TODOS}` todo type match (is replaced with `findTheseTodos`)
 * `:?` optional semicolon after type
 * `\d*` optional digits for supporting [imdone](http://imdone.io/) sorting
 * `$` to end todos without additional text (newline)
 * Or `\s.*$` to match the todo text with a non-optional space in front
-* Because Atom config only accepts strings all `\` characters are also escaped.
+* Or an immediate parentheses, `\(.*$`, to support [Google style guide IDs](https://google.github.io/styleguide/cppguide.html#TODO_Comments)
+* Because Atom config only accepts strings all `\` characters are also escaped
 
 To extend the default todo types and search regex, the existing config needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/mrodalgaard/atom-todo-show/blob/master/lib/show-todo.coffee) for current defaults.
 

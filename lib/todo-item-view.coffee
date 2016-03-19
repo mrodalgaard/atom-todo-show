@@ -28,6 +28,7 @@ class TodoView extends View
             when 'Regex' then @code todo.regex
             when 'File'  then @a todo.file
             when 'Tags'  then @i todo.tags
+            when 'Id'    then @i todo.id
 
   initialize: (showInTable, @todo) ->
     @handleEvents()

@@ -2,6 +2,7 @@
 
 TodoModel = require './todo-model'
 TodosMarkdown = require './todo-markdown'
+TodoRegex = require './todo-regex'
 
 module.exports =
 class TodoCollection
@@ -52,7 +53,6 @@ class TodoCollection
       if sortAsc then comp else -comp
     )
 
-    # Apply filter if it exists
     return @filterTodos(@filter) if @filter
     @emitter.emit 'did-sort-todos', @todos
 
@@ -88,35 +88,15 @@ class TodoCollection
       properties.every (prop) ->
         true if todo[prop] is newTodo[prop]
 
-  # Pass in string and returns a proper RegExp object
-  makeRegexObj: (regexStr = '') ->
-    # Extract the regex pattern (anything between the slashes)
-    pattern = regexStr.match(/\/(.+)\//)?[1]
-    # Extract the flags (after last slash)
-    flags = regexStr.match(/\/(\w+$)/)?[1]
-
-    unless pattern
-      @emitter.emit 'did-fail-search', "Invalid regex: #{regexStr or 'empty'}"
-      return false
-    new RegExp(pattern, flags)
-
-  createRegex: (regexStr, todoList) ->
-    unless Object.prototype.toString.call(todoList) is '[object Array]' and
-    todoList.length > 0 and
-    regexStr
-      @emitter.emit 'did-fail-search', "Invalid todo search regex"
-      return false
-    @makeRegexObj(regexStr.replace('${TODOS}', todoList.join('|')))
-
-  # Scan project workspace for the lookup that is passed
+  # Scan project workspace for the TodoRegex object
   # returns a promise that the scan generates
-  fetchRegexItem: (regexp, regex = '') ->
+  fetchRegexItem: (todoRegex) ->
     options =
       paths: @getIgnorePaths()
       onPathsSearched: (nPaths) =>
         @emitter.emit 'did-search-paths', nPaths if @isSearching()
 
-    atom.workspace.scan regexp, options, (result, error) =>
+    atom.workspace.scan todoRegex.regexp, options, (result, error) =>
       console.debug error.message if error
       return unless result
 
@@ -126,12 +106,12 @@ class TodoCollection
           text: match.matchText
           path: result.filePath
           position: match.range
-          regex: regex
-          regexp: regexp
+          regex: todoRegex.regex
+          regexp: todoRegex.regexp
         )
 
-  # Scan open files for the lookup that is passed
-  fetchOpenRegexItem: (regexp, regex = '', activeEditorOnly) ->
+  # Scan open files for the TodoRegex object
+  fetchOpenRegexItem: (todoRegex, activeEditorOnly) ->
     editors = []
     if activeEditorOnly
       if editor = atom.workspace.getPanes()[0]?.getActiveEditor()
@@ -140,7 +120,7 @@ class TodoCollection
       editors = atom.workspace.getTextEditors()
 
     for editor in editors
-      editor.scan regexp, (match, error) =>
+      editor.scan todoRegex.regexp, (match, error) =>
         console.debug error.message if error
         return unless match
 
@@ -154,8 +134,8 @@ class TodoCollection
           text: match.matchText
           path: editor.getPath()
           position: range
-          regex: regex
-          regexp: regexp
+          regex: todoRegex.regex
+          regexp: todoRegex.regexp
         )
 
     # No async operations, so just return a resolved promise
@@ -166,15 +146,19 @@ class TodoCollection
     @searching = true
     @emitter.emit 'did-start-search'
 
-    return unless regexp = @createRegex(
-      regex = atom.config.get('todo-show.findUsingRegex')
+    todoRegex = new TodoRegex(
+      atom.config.get('todo-show.findUsingRegex')
       atom.config.get('todo-show.findTheseTodos')
     )
 
+    if todoRegex.error
+      @emitter.emit 'did-fail-search', "Invalid todo search regex"
+      return
+
     @searchPromise = switch @scope
-      when 'open' then @fetchOpenRegexItem(regexp, regex, false)
-      when 'active' then @fetchOpenRegexItem(regexp, regex, true)
-      else @fetchRegexItem(regexp, regex)
+      when 'open' then @fetchOpenRegexItem(todoRegex, false)
+      when 'active' then @fetchOpenRegexItem(todoRegex, true)
+      else @fetchRegexItem(todoRegex)
 
     @searchPromise.then () =>
       @searching = false

@@ -13,7 +13,7 @@ class TodoModel
     atom.config.get('todo-show.showInTable') or ['Text']
 
   get: (key = '') ->
-    return value if value = @[key.toLowerCase()]
+    return value if (value = @[key.toLowerCase()]) or value is ''
     @text or 'No details'
 
   getMarkdown: (key = '') ->
@@ -27,6 +27,7 @@ class TodoModel
       when 'Regex' then " _'#{value}'_"
       when 'File' then " [#{value}](#{value})"
       when 'Tags' then " _#{value}_"
+      when 'Id' then " _#{value}_"
 
   getMarkdownArray: (keys) ->
     for key in keys or @getAllKeys()
@@ -51,6 +52,12 @@ class TodoModel
       match.type = _matchText[1] unless match.type
       # Extract todo text
       matchText = _matchText.pop()
+
+    # Extract google style guide todo id
+    if matchText.indexOf('(') is 0
+      if matches = matchText.match(/\((.*?)\):?(.*)/)
+        matchText = matches.pop()
+        match.id = matches.pop()
 
     # Strip common block comment endings and whitespaces
     matchText = matchText.replace(/(\*\/|\?>|-->|#>|-}|\]\])\s*$/, '').trim()
@@ -77,5 +84,6 @@ class TodoModel
     match.line = (parseInt(match.range.split(',')[0]) + 1).toString()
     match.file ?= atom.project.relativize(match.path)
     match.regex = match.regex.replace('${TODOS}', match.type)
+    match.id = match.id || ''
 
     _.extend(this, match)

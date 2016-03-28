@@ -59,6 +59,16 @@ describe "Todo Model", ->
       expect(model.range).toEqual '0,1,2,3'
       expect(model.position).toEqual [[0,1],[2,3]]
 
+    it "should handle dot after todo", ->
+      match.all = "// TODO. comment"
+      model = new TodoModel(match)
+      expect(model.text).toBe 'comment'
+
+    it "should handle semicolon after todo", ->
+      match.all = "// TODO; comment"
+      model = new TodoModel(match)
+      expect(model.text).toBe 'comment'
+
   describe "Extracting todo tags", ->
     it "should extract todo tags", ->
       match.text = "test #TODO: 123 #tag1"
@@ -172,7 +182,7 @@ describe "Todo Model", ->
       expect(model.get('Type')).toBe 'TODO'
       expect(model.get('Range')).toBe '0,1,0,20'
       expect(model.get('Line')).toBe '1'
-      expect(model.get('Regex')).toBe '/\\b(TODO):?\\d*($|\\s.*$|\\(.*$)/g'
+      expect(model.get('Regex')).toBe '/\\b(TODO)[:;.,]?\\d*($|\\s.*$|\\(.*$)/g'
       expect(model.get('File')).toBe 'sample.c'
       expect(model.get('Tags')).toBe 'tag1'
       expect(model.get('Id')).toBe ''

@@ -276,6 +276,19 @@ describe 'Todo Collection', ->
         expect(collection.todos[0].text).toBe 'No details'
         expect(collection.todos[1].text).toBe 'No details'
 
+    it 'handles empty todo with separator', ->
+      editor.setText """
+        Line 1 // TODO.
+        Line 2 //TODO:
+      """
+
+      waitsForPromise ->
+        collection.fetchOpenRegexItem(todoRegex)
+      runs ->
+        expect(collection.todos).toHaveLength 2
+        expect(collection.todos[0].text).toBe 'No details'
+        expect(collection.todos[1].text).toBe 'No details'
+
     it 'handles empty block todos', ->
       editor.setText """
         /* TODO */

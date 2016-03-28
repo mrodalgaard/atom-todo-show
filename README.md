@@ -26,10 +26,10 @@ Install with `apm install todo-show` or use *Install Packages* from *Atom Settin
 
 The regexes in `findTheseRegexes` are used for searching the workspace for todo matches. They are configurable to match the users specific needs.
 
-Default regex form: `'/\\b(${TODOS}):?\\d*($|\\s.*$|\\(.*$)/g'`
+Default regex form: `'/\\b(${TODOS})[:;.,]?\\d*($|\\s.*$|\\(.*$)/g'`
 * `\b` start at word boundary
 * `${TODOS}` todo type match (is replaced with `findTheseTodos`)
-* `:?` optional semicolon after type
+* `[:;.,]?` optional separator after type
 * `\d*` optional digits for supporting [imdone](http://imdone.io/) sorting
 * `$` to end todos without additional text (newline)
 * Or `\s.*$` to match the todo text with a non-optional space in front

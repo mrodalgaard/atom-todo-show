@@ -22,7 +22,7 @@ module.exports =
     findUsingRegex:
       description: 'Single regex used to find all todos. ${TODOS} is replaced with the findTheseTodos array.'
       type: 'string'
-      default: '/\\b(${TODOS}):?\\d*($|\\s.*$|\\(.*$)/g'
+      default: '/\\b(${TODOS})[:;.,]?\\d*($|\\s.*$|\\(.*$)/g'
     ignoreThesePaths:
       type: 'array'
       default: [

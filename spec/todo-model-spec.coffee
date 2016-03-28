@@ -69,6 +69,80 @@ describe "Todo Model", ->
       model = new TodoModel(match)
       expect(model.text).toBe 'comment'
 
+    it 'respects imdone syntax', ->
+      match.all = "// TODO:10 todo1"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'todo1'
+
+    it 'respects imdone syntax zero', ->
+      match.all = "// TODO:0 todo2"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'todo2'
+
+    it 'handles number in todo', ->
+      match.all = "Line 1 //TODO: 1 2 3"
+      model = new TodoModel(match)
+      expect(model.text).toBe '1 2 3'
+
+    it 'handles number in todo (as long as its not without space)', ->
+      match.all = "Line 2 //TODO:1 2 3"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe '2 3'
+
+    it 'handles empty todos', ->
+      match.all = "Line 1 //TODO"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'No details'
+
+    it 'handles empty todos with separator', ->
+      match.all = "Line 2 // TODO."
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'No details'
+
+    it 'handles empty todos with colon separator', ->
+      match.all = "Line 3 // TODO:"
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'No details'
+
+    it 'handles empty block todos', ->
+      match.all = " /* TODO */ "
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'No details'
+
+    it 'handles todos with @ in front', ->
+      match.all = "Line 1 // @TODO: text 1"
+      model = new TodoModel(match)
+      expect(model.text).toBe 'text 1'
+
+    it 'handles todos with @ in front', ->
+      match.all = "Line 2 @TODO: text 2"
+      model = new TodoModel(match)
+      expect(model.text).toBe 'text 2'
+
+    it 'handles tabs in todos', ->
+      match.all = "Line //TODO:\ttext"
+      model = new TodoModel(match)
+      expect(model.text).toBe 'text'
+
+    it 'handles todo without semicolon', ->
+      match.all = "A line // TODO text"
+      model = new TodoModel(match)
+      expect(model.text).toBe 'text'
+
+    it 'stops with invalid todos', ->
+      text = "A line // TODO:text"
+      match.all = text
+      model = new TodoModel(match)
+      expect(model.type).toBe undefined
+      expect(model.text).toBe text
+
   describe "Extracting todo tags", ->
     it "should extract todo tags", ->
       match.text = "test #TODO: 123 #tag1"

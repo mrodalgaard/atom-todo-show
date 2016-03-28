@@ -236,104 +236,7 @@ describe 'Todo Collection', ->
         expect(collection.todos[0].type).toBe 'TODO'
         expect(collection.todos[0].text).toBe 'New todo'
 
-    it 'respects imdone syntax (https://github.com/imdone/imdone-atom)', ->
-      editor.setText '''
-        TODO:10 todo1
-        TODO:0 todo2
-      '''
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos).toHaveLength 2
-        expect(collection.todos[0].type).toBe 'TODO'
-        expect(collection.todos[0].text).toBe 'todo1'
-        expect(collection.todos[1].text).toBe 'todo2'
-
-    it 'handles number in todo (as long as its not without space)', ->
-      editor.setText """
-        Line 1 //TODO: 1 2 3
-        Line 1 // TODO:1 2 3
-      """
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos).toHaveLength 2
-        expect(collection.todos[0].text).toBe '1 2 3'
-        expect(collection.todos[1].text).toBe '2 3'
-
-    it 'handles empty todos', ->
-      editor.setText """
-        Line 1 // TODO
-        Line 2 //TODO
-      """
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos).toHaveLength 2
-        expect(collection.todos[0].text).toBe 'No details'
-        expect(collection.todos[1].text).toBe 'No details'
-
-    it 'handles empty todo with separator', ->
-      editor.setText """
-        Line 1 // TODO.
-        Line 2 //TODO:
-      """
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos).toHaveLength 2
-        expect(collection.todos[0].text).toBe 'No details'
-        expect(collection.todos[1].text).toBe 'No details'
-
-    it 'handles empty block todos', ->
-      editor.setText """
-        /* TODO */
-        Line 2 /* TODO */
-      """
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos).toHaveLength 2
-        expect(collection.todos[0].text).toBe 'No details'
-        expect(collection.todos[1].text).toBe 'No details'
-
-    it 'handles todos with @ in front', ->
-      editor.setText """
-        Line 1 // @TODO: text 1
-        Line 2 //@TODO: text 2
-        Line 3 @TODO: text 3
-      """
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos).toHaveLength 3
-        expect(collection.todos[0].text).toBe 'text 1'
-        expect(collection.todos[1].text).toBe 'text 2'
-        expect(collection.todos[2].text).toBe 'text 3'
-
-    it 'handles tabs in todos', ->
-      editor.setText 'Line //TODO:\ttext'
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos[0].text).toBe 'text'
-
-    it 'handles todo without semicolon', ->
-      editor.setText 'A line // TODO text'
-
-      waitsForPromise ->
-        collection.fetchOpenRegexItem(todoRegex)
-      runs ->
-        expect(collection.todos[0].text).toBe 'text'
-
-    it 'ignores todos without leading space', ->
+    it 'ignores todo without leading space', ->
       editor.setText 'A line // TODO:text'
 
       waitsForPromise ->
@@ -341,7 +244,7 @@ describe 'Todo Collection', ->
       runs ->
         expect(collection.todos).toHaveLength 0
 
-    it 'ignores todo if unwanted chars are present', ->
+    it 'ignores todo with unwanted characters', ->
       editor.setText 'define("_JS_TODO_ALERT_", "js:alert(&quot;TODO&quot;);");'
 
       waitsForPromise ->

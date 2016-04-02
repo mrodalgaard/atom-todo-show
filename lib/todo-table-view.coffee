@@ -36,7 +36,7 @@ class ShowTodoView extends View
     @disposables.add atom.config.onDidChange 'todo-show.sortAscending', ({newValue, oldValue}) =>
       @sort(@sortBy, @sortAsc = newValue)
 
-  detached: ->
+  destroy: ->
     @disposables.dispose()
     @empty()
 

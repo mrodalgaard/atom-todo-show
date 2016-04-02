@@ -95,24 +95,56 @@ describe "Todo Model", ->
 
     it 'handles empty todos', ->
       match.all = "Line 1 //TODO"
+      match.position = [[0,9],[0,13]]
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
-      expect(model.text).toBe 'No details'
+      expect(model.text).toBe 'Line 1'
+
+    it 'handles empty todos with other comment characters', ->
+      match.all = "Line 2 # TODO"
+      match.position = [[0,9],[0,13]]
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'Line 2'
 
     it 'handles empty todos with separator', ->
-      match.all = "Line 2 // TODO."
+      match.all = "Line 3 // TODO."
+      match.position = [[0,9],[0,14]]
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
-      expect(model.text).toBe 'No details'
+      expect(model.text).toBe 'Line 3'
 
     it 'handles empty todos with colon separator', ->
-      match.all = "Line 3 // TODO:"
+      match.all = "Line 4 // TODO:"
+      match.position = [[0,10],[0,14]]
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'Line 4'
+
+    it 'handles empty block todos', ->
+      match.all = "Line 5 /* TODO */ "
+      match.position = [[0,9],[0,19]]
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'Line 5'
+
+    it 'handles completely empty todos', ->
+      match.all = "// TODO"
+      match.position = [[0,2],[0,7]]
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
       expect(model.text).toBe 'No details'
 
-    it 'handles empty block todos', ->
+    it 'handles completely empty todos with separator', ->
+      match.all = "// TODO."
+      match.position = [[0,2],[0,8]]
+      model = new TodoModel(match)
+      expect(model.type).toBe 'TODO'
+      expect(model.text).toBe 'No details'
+
+    it 'handles completely empty block todos', ->
       match.all = " /* TODO */ "
+      match.position = [[0,3],[0,12]]
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
       expect(model.text).toBe 'No details'
@@ -204,47 +236,54 @@ describe "Todo Model", ->
 
   describe "Handling google style guide todo syntax", ->
     it "adds an id to the model", ->
-      match.text = "// TODO(kl@gmail.com): Use a *."
+      match.all = "// TODO(kl@gmail.com): Use a *."
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
       expect(model.id).toBe 'kl@gmail.com'
       expect(model.text).toBe 'Use a *.'
 
-      match.text = "// TODO(Zeke) change this to use relations."
+    it "handles plain name", ->
+      match.all = "// TODO(Zeke) change this to use relations."
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
       expect(model.id).toBe 'Zeke'
       expect(model.text).toBe 'change this to use relations.'
 
-      match.text = "// TODO(bug 12345): remove the \"Last visitors\" feature"
+    it "handles spaces", ->
+      match.all = "// TODO(bug 12345): remove the \"Last visitors\" feature"
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
       expect(model.id).toBe 'bug 12345'
       expect(model.text).toBe 'remove the "Last visitors" feature'
 
-      match.text = "// TODO(bug): another task (seriously)"
+    it "handles parentheses in text", ->
+      match.all = "// TODO(bug): another task (seriously)"
       model = new TodoModel(match)
       expect(model.type).toBe 'TODO'
       expect(model.id).toBe 'bug'
       expect(model.text).toBe 'another task (seriously)'
 
-      match.text = "// TODO(id: Use a *.)"
+    it "handles long ids with empty todos", ->
+      match.all = "// TODO(id: Use a *.)"
+      match.position = [[0,2],[0,21]]
       model = new TodoModel(match)
       expect(model.id).toBe 'id: Use a *.'
       expect(model.text).toBe 'No details'
 
     it "handles invalid todo id format", ->
-      match.text = "// TODO(id: Use a *."
+      match.all = "// TODO(id: Use a *."
       model = new TodoModel(match)
       expect(model.id).toBe ''
       expect(model.text).toBe '(id: Use a *.'
 
-      match.text = "// TODO _(id): Use a *."
+    it "handles invalid id with underscore", ->
+      match.all = "// TODO _(id): Use a *."
       model = new TodoModel(match)
       expect(model.id).toBe ''
       expect(model.text).toBe '_(id): Use a *.'
 
-      match.text = "// TODO (id): Use a *."
+    it "handles invalid id with space", ->
+      match.all = "// TODO (id): Use a *."
       model = new TodoModel(match)
       expect(model.id).toBe ''
       expect(model.text).toBe '(id): Use a *.'

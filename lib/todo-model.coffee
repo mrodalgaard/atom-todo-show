@@ -62,8 +62,7 @@ class TodoModel
         matchText = matches.pop()
         match.id = matches.pop()
 
-    # Strip common block comment endings and whitespaces
-    matchText = matchText.replace(/(\*\/|\?>|-->|#>|-}|\]\])\s*$/, '').trim()
+    matchText = @stripCommentEnd(matchText)
 
     # Extract todo tags
     match.tags = (while (tag = /\s*#(\w+)[,.]?$/.exec(matchText))
@@ -71,6 +70,11 @@ class TodoModel
       matchText = matchText.slice(0, -tag.shift().length)
       tag.shift()
     ).sort().join(', ')
+
+    # Use text before todo if no content after
+    if not matchText and match.all and pos = match.position?[0][1]
+      matchText = match.all.substr(0, pos)
+      matchText = @stripCommentStart(matchText)
 
     # Truncate long match strings
     if matchText.length >= maxLength
@@ -91,3 +95,11 @@ class TodoModel
     match.id = match.id || ''
 
     _.extend(this, match)
+
+  stripCommentStart: (text = '') ->
+    startRegex = /(\/\*|<\?|<!--|<#|{-|\[\[|\/\/|#)\s*$/
+    text.replace(startRegex, '').trim()
+
+  stripCommentEnd: (text = '') ->
+    endRegex = /(\*\/|\?>|-->|#>|-}|\]\])\s*$/
+    text.replace(endRegex, '').trim()

@@ -26,6 +26,7 @@ class TodoView extends View
             when 'Range' then @i todo.range
             when 'Line'  then @i todo.line
             when 'Regex' then @code todo.regex
+            when 'Path'  then @a todo.path
             when 'File'  then @a todo.file
             when 'Tags'  then @i todo.tags
             when 'Id'    then @i todo.id

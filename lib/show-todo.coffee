@@ -37,12 +37,12 @@ module.exports =
       default: [
         'Text',
         'Type',
-        'File'
+        'Path'
       ]
     sortBy:
       type: 'string'
       default: 'Text'
-      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'File', 'Tags', 'Id']
+      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'Path', 'File', 'Tags', 'Id']
     sortAscending:
       type: 'boolean'
       default: true

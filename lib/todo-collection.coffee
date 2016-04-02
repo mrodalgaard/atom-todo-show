@@ -104,7 +104,7 @@ class TodoCollection
         @addTodo new TodoModel(
           all: match.lineText
           text: match.matchText
-          path: result.filePath
+          loc: result.filePath
           position: match.range
           regex: todoRegex.regex
           regexp: todoRegex.regexp
@@ -132,7 +132,7 @@ class TodoCollection
         @addTodo new TodoModel(
           all: match.lineText
           text: match.matchText
-          path: editor.getPath()
+          loc: editor.getPath()
           position: range
           regex: todoRegex.regex
           regexp: todoRegex.regexp

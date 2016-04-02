@@ -12,7 +12,7 @@ describe 'Todo Collection', ->
     collection.addTodo(
       new TodoModel(
         all: '#FIXME: fixme 1'
-        path: 'file1.txt'
+        loc: 'file1.txt'
         position: [[3,6], [3,10]]
         regex: todoRegex.regex
         regexp: todoRegex.regexp
@@ -21,7 +21,7 @@ describe 'Todo Collection', ->
     collection.addTodo(
       new TodoModel(
         all: '#TODO: todo 1'
-        path: 'file1.txt'
+        loc: 'file1.txt'
         position: [[4,5], [4,9]]
         regex: todoRegex.regex
         regexp: todoRegex.regexp
@@ -30,7 +30,7 @@ describe 'Todo Collection', ->
     collection.addTodo(
       new TodoModel(
         all: '#FIXME: fixme 2'
-        path: 'file2.txt'
+        loc: 'file2.txt'
         position: [[5,7], [5,11]]
         regex: todoRegex.regex
         regexp: todoRegex.regexp
@@ -301,14 +301,14 @@ describe 'Todo Collection', ->
       expect(collection.todos[2].range).toBe '5,7,5,11'
 
       collection.sortTodos(sortBy: 'File', sortAsc: false)
-      expect(collection.todos[0].file).toBe 'file2.txt'
-      expect(collection.todos[2].file).toBe 'file1.txt'
+      expect(collection.todos[0].path).toBe 'file2.txt'
+      expect(collection.todos[2].path).toBe 'file1.txt'
 
     it 'sort line as number', ->
       collection.addTodo(
         new TodoModel(
           all: '#FIXME: fixme 3'
-          path: 'file3.txt'
+          loc: 'file3.txt'
           position: [[12,14], [12,16]]
           regex: todoRegex.regex
           regexp: todoRegex.regexp
@@ -360,7 +360,7 @@ describe 'Todo Collection', ->
       collection.addTodo(
         new TodoModel(
           all: '#FIXME: THIS IS WITH CAPS'
-          path: 'file2.txt'
+          loc: 'file2.txt'
           position: [[6,7], [6,11]]
           regex: todoRegex.regex
           regexp: todoRegex.regexp

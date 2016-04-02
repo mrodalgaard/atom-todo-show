@@ -1,3 +1,5 @@
+path = require 'path'
+
 {Emitter} = require 'atom'
 _ = require 'underscore-plus'
 
@@ -25,6 +27,7 @@ class TodoModel
       when 'Range' then " _:#{value}_"
       when 'Line' then " _:#{value}_"
       when 'Regex' then " _'#{value}'_"
+      when 'Path' then " [#{value}](#{value})"
       when 'File' then " [#{value}](#{value})"
       when 'Tags' then " _#{value}_"
       when 'Id' then " _#{value}_"
@@ -82,7 +85,8 @@ class TodoModel
 
     match.text = matchText || "No details"
     match.line = (parseInt(match.range.split(',')[0]) + 1).toString()
-    match.file ?= atom.project.relativize(match.path)
+    match.path ?= atom.project.relativize(match.loc)
+    match.file = path.basename(match.loc)
     match.regex = match.regex.replace('${TODOS}', match.type)
     match.id = match.id || ''
 

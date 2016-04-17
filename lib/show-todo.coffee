@@ -82,7 +82,7 @@ module.exports =
         when @URI.open then 'open'
         when @URI.active then 'active'
       if scope
-        collection.setSearchScope(scope)
+        collection.scope = scope
         new ShowTodoView(collection, uriToOpen)
 
   deactivate: ->

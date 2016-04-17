@@ -178,7 +178,7 @@ class TodoCollection
       return ['*']
     "!#{ignore}" for ignore in ignores
 
-  activeProjectHas: (filePath) ->
+  activeProjectHas: (filePath = '') ->
     return unless project = @getActiveProject()
     filePath.indexOf(project) is 0
 
@@ -197,14 +197,13 @@ class TodoCollection
     if projectName is 'undefined' then "no active project" else projectName
 
   setActiveProject: (filePath) ->
-    return unless filePath
-
     lastProject = @activeProject
     @activeProject = project if project = @projectForFile(filePath)
     lastProject isnt @activeProject
 
   projectForFile: (filePath) ->
-    return project if project = atom.project.relativizePath(filePath)[0]
+    return if typeof filePath isnt 'string'
+    project if project = atom.project.relativizePath(filePath)[0]
 
   getMarkdown: ->
     todosMarkdown = new TodosMarkdown

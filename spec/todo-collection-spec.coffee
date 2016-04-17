@@ -322,6 +322,53 @@ describe 'Todo Collection', ->
       addTestTodos()
       expect(collection.todos).toHaveLength 3
 
+  describe 'getActiveProject', ->
+    beforeEach ->
+      atom.project.addPath sample2Path
+
+    it 'returns active project', ->
+      collection.activeProject = sample2Path
+      expect(collection.getActiveProject()).toBe sample2Path
+
+    it 'falls back to first project', ->
+      expect(collection.getActiveProject()).toBe sample1Path
+
+    it 'falls back to first open item', ->
+      waitsForPromise ->
+        atom.workspace.open path.join(sample2Path, 'sample.txt')
+      runs ->
+        expect(collection.getActiveProject()).toBe sample2Path
+
+    it 'handles no project paths', ->
+      atom.project.setPaths []
+      expect(collection.getActiveProject()).toBeFalsy()
+      expect(collection.activeProject).not.toBeDefined()
+
+  describe 'setActiveProject', ->
+    it 'sets active project from file path and returns true if changed', ->
+      atom.project.addPath sample2Path
+      expect(collection.getActiveProject()).toBe sample1Path
+      res = collection.setActiveProject path.join(sample2Path, 'sample.txt')
+      expect(res).toBe true
+      expect(collection.getActiveProject()).toBe sample2Path
+      res = collection.setActiveProject path.join(sample2Path, 'sample.txt')
+      expect(res).toBe false
+
+    it 'ignores if file is not in project', ->
+      res = collection.setActiveProject path.join(sample2Path, 'sample.txt')
+      expect(res).toBe false
+      expect(collection.getActiveProject()).toBe sample1Path
+
+    it 'handles invalid arguments', ->
+      expect(collection.setActiveProject()).toBe false
+      expect(collection.activeProject).not.toBeDefined()
+
+      expect(collection.setActiveProject(false)).toBe false
+      expect(collection.activeProject).not.toBeDefined()
+
+      expect(collection.setActiveProject({})).toBe false
+      expect(collection.activeProject).not.toBeDefined()
+
   describe 'Sort todos', ->
     {sortSpy} = []
 

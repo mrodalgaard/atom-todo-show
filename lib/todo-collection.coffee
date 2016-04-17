@@ -35,7 +35,6 @@ class TodoCollection
     @emitter.emit 'did-add-todo', todo
 
   getTodos: -> @todos
-  getTodosCount: -> @todos.length
   getState: -> @searching
 
   sortTodos: ({sortBy, sortAsc} = {}) ->
@@ -93,13 +92,15 @@ class TodoCollection
   # returns a promise that the scan generates
   fetchRegexItem: (todoRegex, activeProjectOnly) ->
     options =
-      paths: @getSearchPaths(activeProjectOnly)
+      paths: @getSearchPaths()
       onPathsSearched: (nPaths) =>
         @emitter.emit 'did-search-paths', nPaths if @searching
 
     atom.workspace.scan todoRegex.regexp, options, (result, error) =>
       console.debug error.message if error
       return unless result
+
+      return if activeProjectOnly and not @activeProjectHas(result.filePath)
 
       for match in result.matches
         @addTodo new TodoModel(
@@ -169,47 +170,41 @@ class TodoCollection
       @searching = false
       @emitter.emit 'did-fail-search', err
 
-  getSearchPaths: (activeProjectOnly) ->
-    paths = ['*']
-    if activeProjectOnly and @activeProject = @getActiveProject()
-      # FIXME: This also includes dirs in other projects with the same name
-      paths = [@activeProject]
-
+  getSearchPaths: ->
     ignores = atom.config.get('todo-show.ignoreThesePaths')
-    return paths unless ignores?
+    return ['*'] unless ignores?
     if Object.prototype.toString.call(ignores) isnt '[object Array]'
       @emitter.emit 'did-fail-search', "ignoreThesePaths must be an array"
-    else
-      paths.push("!#{ignore}") for ignore in ignores
+      return ['*']
+    "!#{ignore}" for ignore in ignores
 
-    return paths
+  activeProjectHas: (filePath) ->
+    return unless project = @getActiveProject()
+    filePath.indexOf(project) is 0
 
   getActiveProject: ->
     return @activeProject if @activeProject
+    @activeProject = project if project = @getFallbackProject()
 
-    # Get first items project or fall back to first project
+  getFallbackProject: ->
     for item in atom.workspace.getPaneItems()
-      if activeProject = @projectForFilePath(item.getPath?())
-        return activeProject
-    activeProject = path.basename(atom.project.getPaths()[0])
-    return activeProject if activeProject isnt 'undefined'
+      if project = @projectForFile(item.getPath?())
+        return project
+    project if project = atom.project.getPaths()[0]
 
-  getActiveProjectPath: ->
-    for projectPath in atom.project.getPaths()
-      return projectPath if path.basename(projectPath) is @getActiveProject()
+  getActiveProjectName: ->
+    projectName = path.basename(@getActiveProject())
+    if projectName is 'undefined' then "no active project" else projectName
 
   setActiveProject: (filePath) ->
     return unless filePath
 
     lastProject = @activeProject
-    if project = @projectForFilePath(filePath)
-      @activeProject = project
-
+    @activeProject = project if project = @projectForFile(filePath)
     lastProject isnt @activeProject
 
-  projectForFilePath: (filePath) ->
-    projectPath = atom.project.relativizePath(filePath)[0]
-    path.basename(projectPath) if projectPath
+  projectForFile: (filePath) ->
+    return project if project = atom.project.relativizePath(filePath)[0]
 
   getMarkdown: ->
     todosMarkdown = new TodosMarkdown

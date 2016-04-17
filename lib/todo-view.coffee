@@ -126,8 +126,8 @@ class ShowTodoView extends ScrollView
   getTitle: -> "Todo Show"
   getIconName: -> "checklist"
   getURI: -> @uri
-  getProjectName: -> @collection.getActiveProject()
-  getProjectPath: -> @collection.getActiveProjectPath()
+  getProjectName: -> @collection.getActiveProjectName()
+  getProjectPath: -> @collection.getActiveProject()
   getTodos: -> @collection.getTodos()
   isSearching: -> @collection.getState()
 
@@ -143,8 +143,8 @@ class ShowTodoView extends ScrollView
     @todoInfo.html("#{@getInfoText()} #{@getScopeText()}")
 
   getInfoText: ->
-    return "Found ... results" if @collection.searching
-    switch count = @collection.getTodosCount()
+    return "Found ... results" if @isSearching()
+    switch count = @getTodos().length
       when 1 then "Found #{count} result"
       else "Found #{count} results"
 
@@ -157,7 +157,7 @@ class ShowTodoView extends ScrollView
       when 'open'
         "in open files"
       when 'project'
-        "in project <code>#{@collection.getActiveProject()}</code>"
+        "in project <code>#{@getProjectName()}</code>"
       else
         "in workspace"
 

@@ -183,7 +183,7 @@ describe 'Todo Collection', ->
 
     it 'handles no project situations', ->
       expect(collection.activeProject).not.toBeDefined()
-      expect(collection.getActiveProject()).toBe 'sample1'
+      expect(path.basename(collection.getActiveProject())).toBe 'sample1'
 
       atom.project.setPaths []
       collection.activeProject = undefined

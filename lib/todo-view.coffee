@@ -22,13 +22,16 @@ class ShowTodoView extends ScrollView
       @div class: 'input-block', =>
         @div class: 'input-block-item input-block-item--flex', =>
           @subview 'filterEditorView', new TextEditorView(editor: filterEditor)
-
         @div class: 'input-block-item', =>
           @div class: 'btn-group', =>
             @button outlet: 'scopeButton', class: 'btn'
             @button outlet: 'optionsButton', class: 'btn icon-gear'
             @button outlet: 'saveAsButton', class: 'btn icon-cloud-download'
             @button outlet: 'refreshButton', class: 'btn icon-sync'
+
+      @div class: 'input-block todo-info-block', =>
+        @div class: 'input-block-item', =>
+          @span outlet: 'todoInfo'
 
       @div outlet: 'optionsView'
 
@@ -86,7 +89,8 @@ class ShowTodoView extends ScrollView
       @searchCount.text "#{nPaths} paths searched..."
 
     @disposables.add atom.workspace.onDidChangeActivePaneItem (item) =>
-      if item?.constructor.name is 'TextEditor' and @collection.scope is 'active'
+      if @collection.setActiveProject(item?.getPath?()) or
+      (item?.constructor.name is 'TextEditor' and @collection.scope is 'active')
         @collection.search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
@@ -119,42 +123,43 @@ class ShowTodoView extends ScrollView
     flex = localStorage.getItem 'todo-show.flex'
     pane.setFlexScale parseFloat(flex) if flex
 
-  getTitle: ->
-    return "Todo Show: ..." if @loading
-    switch count = @collection.getTodosCount()
-      when 1 then "Todo Show: #{count} result"
-      else "Todo Show: #{count} results"
-
-  getIconName: ->
-    "checklist"
-
-  getURI: ->
-    @uri
-
-  getProjectPath: ->
-    atom.project.getPaths()[0]
-
-  getProjectName: ->
-    atom.project.getDirectories()[0]?.getBaseName()
+  getTitle: -> "Todo Show"
+  getIconName: -> "checklist"
+  getURI: -> @uri
+  getProjectName: -> @collection.getActiveProject()
+  getProjectPath: -> @collection.getActiveProjectPath()
+  getTodos: -> @collection.getTodos()
+  isSearching: -> @collection.getState()
 
   startLoading: =>
-    @loading = true
     @todoLoading.show()
-    @updateTabTitle()
+    @updateInfo()
 
   stopLoading: =>
-    @loading = false
     @todoLoading.hide()
-    @updateTabTitle()
+    @updateInfo()
 
-  updateTabTitle: ->
-    view = atom.views.getView(@)
-    return unless view and view.parentElement?.parentElement
-    for tab in view.parentElement.parentElement.querySelectorAll('.tab')
-      tab.updateTitle?()
+  updateInfo: ->
+    @todoInfo.html("#{@getInfoText()} #{@getScopeText()}")
 
-  getTodos: ->
-    @collection.getTodos()
+  getInfoText: ->
+    return "Found ... results" if @collection.searching
+    switch count = @collection.getTodosCount()
+      when 1 then "Found #{count} result"
+      else "Found #{count} results"
+
+  getScopeText: ->
+    # TODO: Also show number of files
+
+    switch @collection.scope
+      when 'active'
+        "in active file"
+      when 'open'
+        "in open files"
+      when 'project'
+        "in project <code>#{@collection.getActiveProject()}</code>"
+      else
+        "in workspace"
 
   showError: (message = '') ->
     atom.notifications.addError message, @notificationOptions
@@ -163,7 +168,7 @@ class ShowTodoView extends ScrollView
     atom.notifications.addWarning message, @notificationOptions
 
   saveAs: =>
-    return if @collection.isSearching()
+    return if @isSearching()
 
     filePath = "#{@getProjectName() or 'todos'}.md"
     if projectPath = @getProjectPath()
@@ -179,7 +184,8 @@ class ShowTodoView extends ScrollView
 
   setScopeButtonState: (state) =>
     switch state
-      when 'full' then @scopeButton.text 'Workspace'
+      when 'workspace' then @scopeButton.text 'Workspace'
+      when 'project' then @scopeButton.text 'Project'
       when 'open' then @scopeButton.text 'Open Files'
       when 'active' then @scopeButton.text 'Active File'
 

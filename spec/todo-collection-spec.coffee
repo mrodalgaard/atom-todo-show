@@ -5,6 +5,10 @@ ShowTodo = require '../lib/show-todo'
 TodoModel = require '../lib/todo-model'
 TodoRegex = require '../lib/todo-regex'
 
+sample1Path = path.join(__dirname, 'fixtures/sample1')
+sample2Path = path.join(__dirname, 'fixtures/sample2')
+fixturesPath = path.join(__dirname, 'fixtures')
+
 describe 'Todo Collection', ->
   [collection, todoRegex, defaultShowInTable] = []
 
@@ -45,10 +49,10 @@ describe 'Todo Collection', ->
     defaultShowInTable = ['Text', 'Type', 'File']
 
     collection = new TodoCollection
-    atom.project.setPaths [path.join(__dirname, 'fixtures/sample1')]
+    atom.project.setPaths [sample1Path]
 
   describe 'fetchRegexItem(todoRegex)', ->
-    it 'should scan the workspace for the regex that is passed and fill lookup results', ->
+    it 'scans project for regex', ->
       waitsForPromise ->
         collection.fetchRegexItem(todoRegex)
 
@@ -58,6 +62,13 @@ describe 'Todo Collection', ->
         expect(collection.todos[1].text).toBe 'This is the first todo'
         expect(collection.todos[2].text).toBe 'This is the second todo'
         expect(collection.todos[3].text).toBe 'Add more annnotations :)'
+
+    it 'scans full workspace', ->
+      atom.project.addPath sample2Path
+      waitsForPromise ->
+        collection.fetchRegexItem(todoRegex)
+      runs ->
+        expect(collection.todos).toHaveLength 10
 
     it 'should handle other regexes', ->
       waitsForPromise ->
@@ -122,10 +133,9 @@ describe 'Todo Collection', ->
         expect(collection.todos[1].text).toBe text2
 
     it 'should strip common block comment endings', ->
-      atom.project.setPaths [path.join(__dirname, 'fixtures/sample2')]
+      atom.project.setPaths [sample2Path]
 
-      waitsForPromise ->
-        collection.fetchRegexItem(todoRegex)
+      waitsForPromise -> collection.fetchRegexItem(todoRegex)
       runs ->
         expect(collection.todos).toHaveLength 6
         expect(collection.todos[0].text).toBe 'C block comment'
@@ -134,6 +144,52 @@ describe 'Todo Collection', ->
         expect(collection.todos[3].text).toBe 'Haskell comment'
         expect(collection.todos[4].text).toBe 'Lua comment'
         expect(collection.todos[5].text).toBe 'PHP comment'
+
+  describe 'fetchRegexItem(todoRegex, activeProjectOnly)', ->
+    beforeEach ->
+      atom.project.addPath sample2Path
+
+    it 'scans active project for regex', ->
+      collection.setActiveProject(sample1Path)
+
+      waitsForPromise -> collection.fetchRegexItem(todoRegex, true)
+      runs ->
+        expect(collection.todos).toHaveLength 4
+        expect(collection.todos[0].text).toBe 'Comment in C'
+        expect(collection.todos[1].text).toBe 'This is the first todo'
+        expect(collection.todos[2].text).toBe 'This is the second todo'
+        expect(collection.todos[3].text).toBe 'Add more annnotations :)'
+
+    it 'changes active project', ->
+      collection.setActiveProject(sample2Path)
+
+      waitsForPromise -> collection.fetchRegexItem(todoRegex, true)
+      runs ->
+        expect(collection.todos).toHaveLength 6
+        collection.clear()
+        collection.setActiveProject(sample1Path)
+
+        waitsForPromise -> collection.fetchRegexItem(todoRegex, true)
+        runs ->
+          expect(collection.todos).toHaveLength 4
+
+    it 'still respects ignored paths', ->
+      atom.config.set('todo-show.ignoreThesePaths', ['sample.js'])
+      waitsForPromise ->
+        collection.fetchRegexItem(todoRegex, true)
+      runs ->
+        expect(collection.todos).toHaveLength 1
+        expect(collection.todos[0].text).toBe 'Comment in C'
+
+    it 'handles no project situations', ->
+      expect(collection.activeProject).not.toBeDefined()
+      expect(collection.getActiveProject()).toBe 'sample1'
+
+      atom.project.setPaths []
+      collection.activeProject = undefined
+      waitsForPromise -> collection.fetchRegexItem(todoRegex, true)
+      runs ->
+        expect(collection.todos).toHaveLength 0
 
   describe 'ignore path rules', ->
     it 'works with no paths added', ->
@@ -165,7 +221,7 @@ describe 'Todo Collection', ->
         expect(collection.todos[0].text).toBe 'Comment in C'
 
     it 'respects ignored directories and filetypes', ->
-      atom.project.setPaths [path.join(__dirname, 'fixtures')]
+      atom.project.setPaths [fixturesPath]
       atom.config.set('todo-show.ignoreThesePaths', ['sample1', '*.md'])
 
       waitsForPromise ->
@@ -175,7 +231,7 @@ describe 'Todo Collection', ->
         expect(collection.todos[0].text).toBe 'C block comment'
 
     it 'respects ignored wildcard directories', ->
-      atom.project.setPaths [path.join(__dirname, 'fixtures')]
+      atom.project.setPaths [fixturesPath]
       atom.config.set('todo-show.ignoreThesePaths', ['**/sample.js', '**/sample.txt', '*.md'])
 
       waitsForPromise ->
@@ -185,7 +241,7 @@ describe 'Todo Collection', ->
         expect(collection.todos[0].text).toBe 'Comment in C'
 
     it 'respects more advanced ignores', ->
-      atom.project.setPaths [path.join(__dirname, 'fixtures')]
+      atom.project.setPaths [fixturesPath]
       atom.config.set('todo-show.ignoreThesePaths', ['output(-grouped)?\\.*', '*1/**'])
 
       waitsForPromise ->

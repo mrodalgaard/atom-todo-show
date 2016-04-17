@@ -5,6 +5,7 @@
   "description": "Finds all the TODOs, FIXMEs, CHANGEDs, etc. in your project.",
   "activationCommands": {
     "atom-workspace": [
+      "todo-show:find-in-workspace",
       "todo-show:find-in-project",
       "todo-show:find-in-open-files"
     ]

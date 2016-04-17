@@ -9,12 +9,12 @@ describe 'ShowTodo opening panes and executing commands', ->
   # and wait for loading to stop
   executeCommand = (callback) ->
     wasVisible = showTodoModule?.showTodoView.isVisible()
-    atom.commands.dispatch(workspaceElement, 'todo-show:find-in-project')
+    atom.commands.dispatch(workspaceElement, 'todo-show:find-in-workspace')
     waitsForPromise -> activationPromise
     runs ->
       waitsFor ->
         return !showTodoModule.showTodoView.isVisible() if wasVisible
-        !showTodoModule.showTodoView.loading and showTodoModule.showTodoView.isVisible()
+        !showTodoModule.showTodoView.isSearching() and showTodoModule.showTodoView.isVisible()
       runs ->
         showTodoPane = atom.workspace.paneForItem(showTodoModule.showTodoView)
         callback()
@@ -26,7 +26,7 @@ describe 'ShowTodo opening panes and executing commands', ->
     activationPromise = atom.packages.activatePackage('todo-show').then (opts) ->
       showTodoModule = opts.mainModule
 
-  describe 'when the show-todo:find-in-project event is triggered', ->
+  describe 'when the show-todo:find-in-workspace event is triggered', ->
     it 'attaches and then detaches the pane view', ->
       expect(atom.packages.loadedPackages['todo-show']).toBeDefined()
       expect(workspaceElement.querySelector('.show-todo-preview')).not.toExist()
@@ -105,23 +105,10 @@ describe 'ShowTodo opening panes and executing commands', ->
             expect(showTodoPane.getFlexScale()).toEqual newFlex
             showTodoPane.setFlexScale(originalFlex)
 
-    it 'can update tab bar title', ->
-      getTitle = ->
-        showTodoModule.showTodoView.parents().find('.tab .title').text()
-
-      waitsForPromise ->
-        atom.packages.activatePackage 'tabs'
-      runs ->
-        executeCommand ->
-          count = showTodoModule.showTodoView.collection.getTodosCount()
-          expect(getTitle()).toBe "Todo Show: #{count} results"
-          showTodoModule.showTodoView.collection.search()
-          expect(getTitle()).toBe "Todo Show: ..."
-
-          waitsFor ->
-            !showTodoModule.showTodoView.loading
-          runs ->
-            expect(getTitle()).toBe "Todo Show: #{count} results"
+  describe 'when the show-todo:find-in-workspace event is triggered', ->
+    it 'activates', ->
+      expect(atom.packages.loadedPackages['todo-show']).toBeDefined()
+      expect(workspaceElement.querySelector('.show-todo-preview')).not.toExist()
 
   describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->
@@ -170,13 +157,13 @@ describe 'ShowTodo opening panes and executing commands', ->
       executeCommand ->
         atom.commands.dispatch workspaceElement.querySelector('.show-todo-preview'), 'core:refresh'
 
-        expect(showTodoModule.showTodoView.loading).toBe true
+        expect(showTodoModule.showTodoView.isSearching()).toBe true
         expect(showTodoModule.showTodoView.find('.markdown-spinner')).toBeVisible()
 
-        waitsFor -> !showTodoModule.showTodoView.loading
+        waitsFor -> !showTodoModule.showTodoView.isSearching()
         runs ->
           expect(showTodoModule.showTodoView.find('.markdown-spinner')).not.toBeVisible()
-          expect(showTodoModule.showTodoView.loading).toBe false
+          expect(showTodoModule.showTodoView.isSearching()).toBe false
 
   describe 'when the show-todo:find-in-open-files event is triggered', ->
     beforeEach ->
@@ -184,7 +171,7 @@ describe 'ShowTodo opening panes and executing commands', ->
       waitsForPromise -> activationPromise
       runs ->
         waitsFor ->
-          !showTodoModule.showTodoView.loading and showTodoModule.showTodoView.isVisible()
+          !showTodoModule.showTodoView.isSearching() and showTodoModule.showTodoView.isVisible()
 
     it 'does not show any results with no open files', ->
       element = showTodoModule.showTodoView.find('p').last()
@@ -197,7 +184,7 @@ describe 'ShowTodo opening panes and executing commands', ->
       waitsForPromise ->
         atom.workspace.open 'sample.c'
 
-      waitsFor -> !showTodoModule.showTodoView.loading
+      waitsFor -> !showTodoModule.showTodoView.isSearching()
       runs ->
         todos = showTodoModule.showTodoView.getTodos()
         expect(todos).toHaveLength 1

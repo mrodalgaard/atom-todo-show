@@ -59,7 +59,8 @@ module.exports =
       enum: ['List', 'Table']
 
   URI:
-    full: 'atom://todo-show/todos'
+    workspace: 'atom://todo-show/todos'
+    project: 'atom://todo-show/project-todos'
     open: 'atom://todo-show/open-todos'
     active: 'atom://todo-show/active-todos'
 
@@ -69,13 +70,15 @@ module.exports =
 
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
-      'todo-show:find-in-project': => @show(@URI.full)
+      'todo-show:find-in-workspace': => @show(@URI.workspace)
+      'todo-show:find-in-project': => @show(@URI.project)
       'todo-show:find-in-open-files': => @show(@URI.open)
 
     # Register the todolist URI, which will then open our custom view
     @disposables.add atom.workspace.addOpener (uriToOpen) =>
       scope = switch uriToOpen
-        when @URI.full then 'full'
+        when @URI.workspace then 'workspace'
+        when @URI.project then 'project'
         when @URI.open then 'open'
         when @URI.active then 'active'
       if scope

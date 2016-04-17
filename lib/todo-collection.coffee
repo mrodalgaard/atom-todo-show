@@ -1,3 +1,4 @@
+path = require 'path'
 {Emitter} = require 'atom'
 
 TodoModel = require './todo-model'
@@ -9,7 +10,7 @@ class TodoCollection
   constructor: ->
     @emitter = new Emitter
     @defaultKey = 'Text'
-    @scope = 'full'
+    @scope = 'workspace'
     @todos = []
 
   onDidAddTodo: (cb) -> @emitter.on 'did-add-todo', cb
@@ -35,6 +36,7 @@ class TodoCollection
 
   getTodos: -> @todos
   getTodosCount: -> @todos.length
+  getState: -> @searching
 
   sortTodos: ({sortBy, sortAsc} = {}) ->
     sortBy ?= @defaultKey
@@ -68,17 +70,16 @@ class TodoCollection
   getAvailableTableItems: -> @availableItems
   setAvailableTableItems: (@availableItems) ->
 
-  isSearching: -> @searching
-
   getSearchScope: -> @scope
   setSearchScope: (scope) ->
     @emitter.emit 'did-change-scope', @scope = scope
 
   toggleSearchScope: ->
     scope = switch @scope
-      when 'full' then 'open'
+      when 'workspace' then 'project'
+      when 'project' then 'open'
       when 'open' then 'active'
-      else 'full'
+      else 'workspace'
     @setSearchScope(scope)
     scope
 
@@ -90,11 +91,11 @@ class TodoCollection
 
   # Scan project workspace for the TodoRegex object
   # returns a promise that the scan generates
-  fetchRegexItem: (todoRegex) ->
+  fetchRegexItem: (todoRegex, activeProjectOnly) ->
     options =
-      paths: @getIgnorePaths()
+      paths: @getSearchPaths(activeProjectOnly)
       onPathsSearched: (nPaths) =>
-        @emitter.emit 'did-search-paths', nPaths if @isSearching()
+        @emitter.emit 'did-search-paths', nPaths if @searching
 
     atom.workspace.scan todoRegex.regexp, options, (result, error) =>
       console.debug error.message if error
@@ -158,6 +159,7 @@ class TodoCollection
     @searchPromise = switch @scope
       when 'open' then @fetchOpenRegexItem(todoRegex, false)
       when 'active' then @fetchOpenRegexItem(todoRegex, true)
+      when 'project' then @fetchRegexItem(todoRegex, true)
       else @fetchRegexItem(todoRegex)
 
     @searchPromise.then () =>
@@ -167,13 +169,47 @@ class TodoCollection
       @searching = false
       @emitter.emit 'did-fail-search', err
 
-  getIgnorePaths: ->
+  getSearchPaths: (activeProjectOnly) ->
+    paths = ['*']
+    if activeProjectOnly and @activeProject = @getActiveProject()
+      # FIXME: This also includes dirs in other projects with the same name
+      paths = [@activeProject]
+
     ignores = atom.config.get('todo-show.ignoreThesePaths')
-    return ['*'] unless ignores?
+    return paths unless ignores?
     if Object.prototype.toString.call(ignores) isnt '[object Array]'
       @emitter.emit 'did-fail-search', "ignoreThesePaths must be an array"
-      return ['*']
-    "!#{ignore}" for ignore in ignores
+    else
+      paths.push("!#{ignore}") for ignore in ignores
+
+    return paths
+
+  getActiveProject: ->
+    return @activeProject if @activeProject
+
+    # Get first items project or fall back to first project
+    for item in atom.workspace.getPaneItems()
+      if activeProject = @projectForFilePath(item.getPath?())
+        return activeProject
+    activeProject = path.basename(atom.project.getPaths()[0])
+    return activeProject if activeProject isnt 'undefined'
+
+  getActiveProjectPath: ->
+    for projectPath in atom.project.getPaths()
+      return projectPath if path.basename(projectPath) is @getActiveProject()
+
+  setActiveProject: (filePath) ->
+    return unless filePath
+
+    lastProject = @activeProject
+    if project = @projectForFilePath(filePath)
+      @activeProject = project
+
+    lastProject isnt @activeProject
+
+  projectForFilePath: (filePath) ->
+    projectPath = atom.project.relativizePath(filePath)[0]
+    path.basename(projectPath) if projectPath
 
   getMarkdown: ->
     todosMarkdown = new TodosMarkdown

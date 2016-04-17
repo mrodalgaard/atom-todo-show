@@ -4,6 +4,10 @@
     'label': 'Todo-Show'
     'submenu': [
       {
+        'label': 'Find in Workspae'
+        'command': 'todo-show:find-in-workspace'
+      }
+      {
         'label': 'Find in Project'
         'command': 'todo-show:find-in-project'
       }

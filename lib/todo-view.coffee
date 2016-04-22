@@ -6,10 +6,17 @@ fs = require 'fs-plus'
 TodoTable = require './todo-table-view'
 TodoOptions = require './todo-options-view'
 
+deprecatedTextEditor = (params) ->
+  if atom.workspace.buildTextEditor?
+    atom.workspace.buildTextEditor(params)
+  else
+    TextEditor = require('atom').TextEditor
+    new TextEditor(params)
+
 module.exports =
 class ShowTodoView extends ScrollView
   @content: (collection, filterBuffer) ->
-    filterEditor = atom.workspace.buildTextEditor(
+    filterEditor = deprecatedTextEditor(
       mini: true
       tabLength: 2
       softTabs: true

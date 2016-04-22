@@ -34,15 +34,11 @@ module.exports =
         type: 'string'
     showInTable:
       type: 'array'
-      default: [
-        'Text',
-        'Type',
-        'Path'
-      ]
+      default: ['Text', 'Type', 'Path']
     sortBy:
       type: 'string'
       default: 'Text'
-      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'Path', 'File', 'Tags', 'Id']
+      enum: ['All', 'Text', 'Type', 'Range', 'Line', 'Regex', 'Path', 'File', 'Tags', 'Id', 'Project']
     sortAscending:
       type: 'boolean'
       default: true

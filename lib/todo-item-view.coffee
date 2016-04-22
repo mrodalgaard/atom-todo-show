@@ -30,6 +30,7 @@ class TodoView extends View
             when 'File'  then @a todo.file
             when 'Tags'  then @i todo.tags
             when 'Id'    then @i todo.id
+            when 'Project' then @a todo.project
 
   initialize: (showInTable, @todo) ->
     @handleEvents()

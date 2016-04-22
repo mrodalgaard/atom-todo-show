@@ -4,10 +4,13 @@ TodoModel = require '../lib/todo-model'
 ShowTodo = require '../lib/show-todo'
 TodoRegex = require '../lib/todo-regex'
 
+sample1Path = path.join(__dirname, 'fixtures/sample1')
+
 describe "Todo Model", ->
   {match, todoRegex} = []
 
   beforeEach ->
+    atom.project.setPaths [sample1Path]
     todoRegex = new TodoRegex(
       ShowTodo.config.findUsingRegex.default
       ['FIXME', 'TODO']
@@ -15,7 +18,7 @@ describe "Todo Model", ->
 
     match =
       all: " TODO: Comment in C #tag1 "
-      loc: "#{atom.project.getPaths()[0]}/dir/sample.c"
+      loc: "#{atom.project.getPaths()[0]}/sample1/sample.c"
       regex: todoRegex.regex
       regexp: todoRegex.regexp
       position: [
@@ -35,7 +38,7 @@ describe "Todo Model", ->
 
     it "should serialize range, relativize path and extract basename", ->
       model = new TodoModel(match)
-      expect(model.path).toEqual 'dir/sample.c'
+      expect(model.path).toEqual 'sample1/sample.c'
       expect(model.file).toEqual 'sample.c'
       expect(model.range).toEqual '0,1,0,20'
 
@@ -176,6 +179,24 @@ describe "Todo Model", ->
       expect(model.type).toBe undefined
       expect(model.text).toBe text
 
+    it 'extracts project name', ->
+      model = new TodoModel(match)
+      expect(model.project).toBe 'sample1'
+
+    it 'handles non-existing projects', ->
+      atom.project.setPaths []
+      model = new TodoModel(match)
+      expect(model.project).toBe ''
+      expect(model.file).toBe 'sample.c'
+      expect(model.path).toBe match.loc
+
+    it 'handles files not in project', ->
+      match.loc = 'nonexisting/sample.c'
+      model = new TodoModel(match)
+      expect(model.project).toBe ''
+      expect(model.file).toBe 'sample.c'
+      expect(model.path).toBe match.loc
+
   describe "Extracting todo tags", ->
     it "should extract todo tags", ->
       match.text = "test #TODO: 123 #tag1"
@@ -297,10 +318,11 @@ describe "Todo Model", ->
       expect(model.get('Range')).toBe '0,1,0,20'
       expect(model.get('Line')).toBe '1'
       expect(model.get('Regex')).toBe '/\\b(TODO)[:;.,]?\\d*($|\\s.*$|\\(.*$)/g'
-      expect(model.get('Path')).toBe 'dir/sample.c'
+      expect(model.get('Path')).toBe 'sample1/sample.c'
       expect(model.get('File')).toBe 'sample.c'
       expect(model.get('Tags')).toBe 'tag1'
       expect(model.get('Id')).toBe ''
+      expect(model.get('Project')).toBe 'sample1'
       expect(model.get('RegExp')).toBe match.regexp
 
     it "defaults to text", ->

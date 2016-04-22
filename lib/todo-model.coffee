@@ -21,16 +21,12 @@ class TodoModel
   getMarkdown: (key = '') ->
     return '' unless value = @[key.toLowerCase()]
     switch key
-      when 'All' then " #{value}"
-      when 'Text' then " #{value}"
-      when 'Type' then " __#{value}__"
-      when 'Range' then " _:#{value}_"
-      when 'Line' then " _:#{value}_"
+      when 'All', 'Text' then " #{value}"
+      when 'Type', 'Project' then " __#{value}__"
+      when 'Range', 'Line' then " _:#{value}_"
       when 'Regex' then " _'#{value}'_"
-      when 'Path' then " [#{value}](#{value})"
-      when 'File' then " [#{value}](#{value})"
-      when 'Tags' then " _#{value}_"
-      when 'Id' then " _#{value}_"
+      when 'Path', 'File' then " [#{value}](#{value})"
+      when 'Tags', 'Id' then " _#{value}_"
 
   getMarkdownArray: (keys) ->
     for key in keys or @getAllKeys()
@@ -87,12 +83,20 @@ class TodoModel
     else
       match.range = match.position.toString()
 
-    match.text = matchText || "No details"
-    match.line = (parseInt(match.range.split(',')[0]) + 1).toString()
-    match.path ?= atom.project.relativize(match.loc)
+    # Extract paths and project
+    relativePath = atom.project.relativizePath(match.loc)
+    match.path = relativePath[1] or ''
     match.file = path.basename(match.loc)
+
+    if (project = path.basename(relativePath[0])) isnt 'null'
+      match.project = project
+    else
+      match.project = ''
+
+    match.text = matchText or "No details"
+    match.line = (parseInt(match.range.split(',')[0]) + 1).toString()
     match.regex = match.regex.replace('${TODOS}', match.type)
-    match.id = match.id || ''
+    match.id = match.id or ''
 
     _.extend(this, match)
 

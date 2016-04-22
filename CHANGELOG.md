@@ -1,3 +1,12 @@
+## 1.5.0
+- Search project option
+- Support pending tabs
+- Use text before todo if empty after
+- Can show file and path
+- Accept other separators
+- Improved readme
+- Support Google style guide
+
 ## 1.4.0
 - Major performance improvement by only using one regex
 - Handle duplicate todos

@@ -105,5 +105,5 @@ class TodoModel
     text.replace(startRegex, '').trim()
 
   stripCommentEnd: (text = '') ->
-    endRegex = /(\*\/|\?>|-->|#>|-}|\]\])\s*$/
+    endRegex = /(\*\/}?|\?>|-->|#>|-}|\]\])\s*$/
     text.replace(endRegex, '').trim()

@@ -68,7 +68,7 @@ class TodoModel
     ).sort().join(', ')
 
     # Use text before todo if no content after
-    if not matchText and match.all and pos = match.position?[0][1]
+    if not matchText and match.all and pos = match.position?[0]?[1]
       matchText = match.all.substr(0, pos)
       matchText = @stripCommentStart(matchText)
 

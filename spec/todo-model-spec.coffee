@@ -63,6 +63,24 @@ describe "Todo Model", ->
       expect(model.range).toEqual '0,1,2,3'
       expect(model.position).toEqual [[0,1],[2,3]]
 
+    it "should handle invalid match position with no matchText", ->
+      match.all = "TODO"
+      delete match.position
+      model = new TodoModel(match)
+      expect(model.text).toEqual 'No details'
+      expect(model.range).toEqual '0,0'
+      expect(model.position).toEqual [[0,0]]
+
+      match.position = []
+      model = new TodoModel(match)
+      expect(model.range).toEqual '0,0'
+      expect(model.position).toEqual [[0,0]]
+
+      match.position = true
+      model = new TodoModel(match)
+      expect(model.range).toEqual '0,0'
+      expect(model.position).toEqual [[0,0]]
+
     it "should handle dot after todo", ->
       match.all = "// TODO. comment"
       model = new TodoModel(match)

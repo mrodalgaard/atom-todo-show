@@ -86,7 +86,11 @@ class TodoModel
     # Extract paths and project
     relativePath = atom.project.relativizePath(match.loc)
     match.path = relativePath[1] or ''
-    match.file = path.basename(match.loc)
+
+    if (loc = path.basename(match.loc)) isnt 'undefined'
+      match.file = loc
+    else
+      match.file = 'untitled'
 
     if (project = path.basename(relativePath[0])) isnt 'null'
       match.project = project

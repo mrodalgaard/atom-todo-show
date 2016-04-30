@@ -42,7 +42,7 @@ class TodoView extends View
     @on 'click', 'td', @openPath
 
   openPath: =>
-    return unless @todo
+    return unless @todo and @todo.loc
     position = [@todo.position[0][0], @todo.position[0][1]]
     pending = atom.config.get('core.allowPendingPaneItems') or false
 

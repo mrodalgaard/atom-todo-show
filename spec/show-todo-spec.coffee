@@ -110,6 +110,29 @@ describe 'ShowTodo opening panes and executing commands', ->
       expect(atom.packages.loadedPackages['todo-show']).toBeDefined()
       expect(workspaceElement.querySelector('.show-todo-preview')).not.toExist()
 
+  describe 'when todo item is clicked', ->
+    it 'opens the file', ->
+      executeCommand ->
+        element = showTodoModule.showTodoView.find('td').last()
+        item = atom.workspace.getActivePaneItem()
+        expect(item).not.toBeDefined()
+        element.click()
+
+        waitsFor -> item = atom.workspace.getActivePaneItem()
+        runs -> expect(item.getTitle()).toBe 'sample.js'
+
+    it 'opens file other project', ->
+      atom.project.addPath path.join(__dirname, 'fixtures/sample2')
+
+      executeCommand ->
+        element = showTodoModule.showTodoView.find('td')[3]
+        item = atom.workspace.getActivePaneItem()
+        expect(item).not.toBeDefined()
+        element.click()
+
+        waitsFor -> item = atom.workspace.getActivePaneItem()
+        runs -> expect(item.getTitle()).toBe 'sample.txt'
+
   describe 'when save-as button is clicked', ->
     it 'saves the list in markdown and opens it', ->
       outputPath = temp.path(suffix: '.md')

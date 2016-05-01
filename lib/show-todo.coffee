@@ -99,10 +99,13 @@ module.exports =
 
     return if @destroyPaneItem()
 
-    if direction is 'down'
-      prevPane.splitDown() if prevPane.parent.orientation isnt 'vertical'
-    else if direction is 'up'
-      prevPane.splitUp() if prevPane.parent.orientation isnt 'vertical'
+    switch direction
+      when 'down'
+        prevPane.splitDown() if prevPane.parent.orientation isnt 'vertical'
+      when 'up'
+        prevPane.splitUp() if prevPane.parent.orientation isnt 'vertical'
+      when 'left'
+        prevPane.splitLeft() if prevPane.parent.orientation isnt 'horizontal'
 
     atom.workspace.open(uri, split: direction).then (@showTodoView) =>
       prevPane.activate()

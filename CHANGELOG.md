@@ -1,3 +1,8 @@
+## 1.6.0
+- Fix left splitting list
+- Handle unsaved files
+- Open multi-project file bug fix
+
 ## 1.5.0
 - Search project option
 - Support pending tabs

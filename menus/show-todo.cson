@@ -4,7 +4,7 @@
     'label': 'Todo-Show'
     'submenu': [
       {
-        'label': 'Find in Workspae'
+        'label': 'Find in Workspace'
         'command': 'todo-show:find-in-workspace'
       }
       {

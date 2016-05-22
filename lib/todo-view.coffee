@@ -84,13 +84,16 @@ class ShowTodoView extends ScrollView
     @disposables.add pane.observeFlexScale (flexScale) =>
       @savePaneFlex(flexScale)
 
-    @disposables.add @collection.onDidChangeSearchScope @setScopeButtonState
     @disposables.add @collection.onDidStartSearch @startLoading
     @disposables.add @collection.onDidFinishSearch @stopLoading
     @disposables.add @collection.onDidFailSearch (err) =>
       @searchCount.text "Search Failed"
       console.error err if err
       @showError err if err
+
+    @disposables.add @collection.onDidChangeSearchScope (scope) =>
+      @setScopeButtonState(scope)
+      @collection.search()
 
     @disposables.add @collection.onDidSearchPaths (nPaths) =>
       @searchCount.text "#{nPaths} paths searched..."

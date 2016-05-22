@@ -21,7 +21,6 @@ class ShowTodoView extends View
     @disposables.add @collection.onDidClear @clearTodos
     @disposables.add @collection.onDidSortTodos (todos) => @renderTable todos
     @disposables.add @collection.onDidFilterTodos (todos) => @renderTable todos
-    @disposables.add @collection.onDidChangeSearchScope => @collection.search()
 
     @on 'click', 'th', @tableHeaderClicked
 

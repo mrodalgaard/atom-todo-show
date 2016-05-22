@@ -19,6 +19,7 @@ class TodoCollection
   onDidStartSearch: (cb) -> @emitter.on 'did-start-search', cb
   onDidSearchPaths: (cb) -> @emitter.on 'did-search-paths', cb
   onDidFinishSearch: (cb) -> @emitter.on 'did-finish-search', cb
+  onDidCancelSearch: (cb) -> @emitter.on 'did-cancel-search', cb
   onDidFailSearch: (cb) -> @emitter.on 'did-fail-search', cb
   onDidSortTodos: (cb) -> @emitter.on 'did-sort-todos', cb
   onDidFilterTodos: (cb) -> @emitter.on 'did-filter-todos', cb
@@ -163,12 +164,15 @@ class TodoCollection
       when 'project' then @fetchRegexItem(todoRegex, true)
       else @fetchRegexItem(todoRegex)
 
-    @searchPromise.then () =>
+    @searchPromise.then (result) =>
       @searching = false
-      @emitter.emit 'did-finish-search'
-    .catch (err) =>
+      if result is 'cancelled'
+        @emitter.emit 'did-cancel-search'
+      else
+        @emitter.emit 'did-finish-search'
+    .catch (reason) =>
       @searching = false
-      @emitter.emit 'did-fail-search', err
+      @emitter.emit 'did-fail-search', reason
 
   getSearchPaths: ->
     ignores = atom.config.get('todo-show.ignoreThesePaths')

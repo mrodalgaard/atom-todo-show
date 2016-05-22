@@ -59,23 +59,19 @@ describe "Show Todo View", ->
 
       waitsForPromise -> atom.workspace.open 'temp.txt'
       runs ->
-        expect(showTodoView.isSearching()).toBe true
+        editor = atom.workspace.getActiveTextEditor()
+        editor.setText("# TODO: Test")
+        editor.save()
 
         waitsFor -> !showTodoView.isSearching()
         runs ->
-          editor = atom.workspace.getActiveTextEditor()
-          editor.setText("# TODO: Test")
+          expect(showTodoView.getTodos()).toHaveLength 4
+          editor.setText("")
           editor.save()
 
           waitsFor -> !showTodoView.isSearching()
           runs ->
-            expect(showTodoView.getTodos()).toHaveLength 4
-            editor.setText("")
-            editor.save()
-
-            waitsFor -> !showTodoView.isSearching()
-            runs ->
-              expect(showTodoView.getTodos()).toHaveLength 3
+            expect(showTodoView.getTodos()).toHaveLength 3
 
     it "updates on search scope change", ->
       expect(showTodoView.isSearching()).toBe false
@@ -107,21 +103,24 @@ describe "Show Todo View", ->
 
       waitsForPromise ->
         atom.workspace.open path.join(sample2Path, 'sample.txt')
-      waitsFor -> !showTodoView.isSearching()
       runs ->
-        expect(showTodoView.getTodos()).toHaveLength 9
-        collection.setSearchScope 'project'
-        expect(showTodoView.isSearching()).toBe true
+        collection.setSearchScope 'workspace'
 
         waitsFor -> !showTodoView.isSearching()
         runs ->
-          expect(showTodoView.getTodos()).toHaveLength 6
+          expect(showTodoView.getTodos()).toHaveLength 9
+          collection.setSearchScope 'project'
+          expect(showTodoView.isSearching()).toBe true
 
-          waitsForPromise ->
-            atom.workspace.open path.join(sample1Path, 'sample.c')
           waitsFor -> !showTodoView.isSearching()
           runs ->
-            expect(showTodoView.getTodos()).toHaveLength 3
+            expect(showTodoView.getTodos()).toHaveLength 6
+
+            waitsForPromise ->
+              atom.workspace.open path.join(sample1Path, 'sample.c')
+            waitsFor -> !showTodoView.isSearching()
+            runs ->
+              expect(showTodoView.getTodos()).toHaveLength 3
 
     it "handles search scope 'open'", ->
       waitsForPromise -> atom.workspace.open 'sample.c'

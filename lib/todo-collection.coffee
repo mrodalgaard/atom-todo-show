@@ -199,6 +199,7 @@ class TodoCollection
   setActiveProject: (filePath) ->
     lastProject = @activeProject
     @activeProject = project if project = @projectForFile(filePath)
+    return false unless lastProject
     lastProject isnt @activeProject
 
   projectForFile: (filePath) ->

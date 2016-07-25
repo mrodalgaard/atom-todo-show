@@ -36,6 +36,7 @@ class TodoCollection
     @emitter.emit 'did-add-todo', todo
 
   getTodos: -> @todos
+  getTodosCount: -> @todos.length
   getState: -> @searching
 
   sortTodos: ({sortBy, sortAsc} = {}) ->

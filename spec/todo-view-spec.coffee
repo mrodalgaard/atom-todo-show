@@ -28,7 +28,7 @@ describe "Show Todo View", ->
     it "updates view info", ->
       getInfo = -> showTodoView.todoInfo.text()
 
-      count = showTodoView.getTodos().length
+      count = showTodoView.getTodosCount()
       expect(getInfo()).toBe "Found #{count} results in workspace"
       showTodoView.collection.search()
       expect(getInfo()).toBe "Found ... results in workspace"

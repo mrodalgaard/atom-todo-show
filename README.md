@@ -29,6 +29,7 @@ _sortAscending_       | `true`                                  | Sort table in 
 _openListInDirection_ | `'right'`                               | Defines where the todo list is shown
 _rememberViewSize_    | `true`                                  | Remember the todo list width or split in the middle
 _saveOutputAs_        | `'List'`                                | Choose which format to use for saved markdown
+_statusBarIndicator_  | `false`                                 | Show todo count in status bar (this is only shown and updated when the 'Todo Show' tab is open)
 
 ## Regular Expression Search
 

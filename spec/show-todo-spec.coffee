@@ -214,3 +214,19 @@ describe 'ShowTodo opening panes and executing commands', ->
         expect(todos[0].type).toBe 'TODO'
         expect(todos[0].text).toBe 'Comment in C'
         expect(todos[0].file).toBe 'sample.c'
+
+  describe 'status bar indicator', ->
+    todoIndicatorClass = '.status-bar .todo-status-bar-indicator'
+
+    it 'shows the current number of todos', ->
+      atom.packages.activatePackage 'status-bar'
+
+      executeCommand ->
+        expect(workspaceElement.querySelector(todoIndicatorClass)).not.toExist()
+        atom.config.set('todo-show.statusBarIndicator', true)
+        expect(workspaceElement.querySelector(todoIndicatorClass)).toExist()
+
+        nTodos = showTodoModule.showTodoView.getTodosCount()
+        expect(nTodos).not.toBe 0
+        indicatorElement = workspaceElement.querySelector(todoIndicatorClass)
+        expect(indicatorElement.innerText).toBe nTodos.toString()

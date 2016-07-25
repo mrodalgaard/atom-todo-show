@@ -139,6 +139,7 @@ class ShowTodoView extends ScrollView
   getProjectName: -> @collection.getActiveProjectName()
   getProjectPath: -> @collection.getActiveProject()
   getTodos: -> @collection.getTodos()
+  getTodosCount: -> @collection.getTodosCount()
   isSearching: -> @collection.getState()
 
   startLoading: =>
@@ -154,7 +155,7 @@ class ShowTodoView extends ScrollView
 
   getInfoText: ->
     return "Found ... results" if @isSearching()
-    switch count = @getTodos().length
+    switch count = @getTodosCount()
       when 1 then "Found #{count} result"
       else "Found #{count} results"
 

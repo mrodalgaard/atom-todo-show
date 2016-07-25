@@ -2,6 +2,7 @@
 
 ShowTodoView = require './todo-view'
 TodoCollection = require './todo-collection'
+TodoIndicatorView = null
 
 module.exports =
   config:
@@ -53,6 +54,9 @@ module.exports =
       type: 'string'
       default: 'List'
       enum: ['List', 'Table']
+    statusBarIndicator:
+      type: 'boolean'
+      default: false
 
   URI:
     workspace: 'atom://todo-show/todos'
@@ -61,8 +65,8 @@ module.exports =
     active: 'atom://todo-show/active-todos'
 
   activate: ->
-    collection = new TodoCollection
-    collection.setAvailableTableItems(@config.sortBy.enum)
+    @collection = new TodoCollection
+    @collection.setAvailableTableItems(@config.sortBy.enum)
 
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
@@ -78,10 +82,11 @@ module.exports =
         when @URI.open then 'open'
         when @URI.active then 'active'
       if scope
-        collection.scope = scope
-        new ShowTodoView(collection, uriToOpen)
+        @collection.scope = scope
+        new ShowTodoView(@collection, uriToOpen)
 
   deactivate: ->
+    @destroyTodoIndicator()
     @disposables?.dispose()
 
   destroyPaneItem: ->
@@ -109,3 +114,18 @@ module.exports =
 
     atom.workspace.open(uri, split: direction).then (@showTodoView) =>
       prevPane.activate()
+
+  consumeStatusBar: (statusBar) ->
+    atom.config.observe 'todo-show.statusBarIndicator', (newValue) =>
+      if newValue
+        TodoIndicatorView ?= require './todo-indicator-view'
+        @todoIndicatorView ?= new TodoIndicatorView(@collection)
+        @statusBarTile = statusBar.addLeftTile(item: @todoIndicatorView, priority: 200)
+      else
+        @destroyTodoIndicator()
+
+  destroyTodoIndicator: ->
+    @todoIndicatorView?.destroy()
+    @todoIndicatorView = null
+    @statusBarTile?.destroy()
+    @statusBarTile = null

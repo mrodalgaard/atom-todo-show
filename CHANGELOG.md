@@ -1,3 +1,8 @@
+## 1.7.0
+- Option to show status bar count
+- Loading bug fixed
+- Faster startup
+
 ## 1.6.0
 - Fix left splitting list
 - Handle unsaved files

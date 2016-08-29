@@ -15,6 +15,10 @@
         'label': 'Find in Open Files'
         'command': 'todo-show:find-in-open-files'
       }
+      {
+        'label': 'Find in Active File'
+        'command': 'todo-show:find-in-active-file'
+      }
     ]
   ]
 ]

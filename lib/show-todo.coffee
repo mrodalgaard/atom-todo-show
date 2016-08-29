@@ -73,6 +73,7 @@ module.exports =
       'todo-show:find-in-workspace': => @show(@URI.workspace)
       'todo-show:find-in-project': => @show(@URI.project)
       'todo-show:find-in-open-files': => @show(@URI.open)
+      'todo-show:find-in-active-file': => @show(@URI.active)
 
     # Register the todolist URI, which will then open our custom view
     @disposables.add atom.workspace.addOpener (uriToOpen) =>

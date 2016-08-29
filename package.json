@@ -7,7 +7,8 @@
     "atom-workspace": [
       "todo-show:find-in-workspace",
       "todo-show:find-in-project",
-      "todo-show:find-in-open-files"
+      "todo-show:find-in-open-files",
+      "todo-show:find-in-active-file"
     ]
   },
   "repository": "https://github.com/mrodalgaard/atom-todo-show",

@@ -59,8 +59,8 @@ class TodoCollection
     return @filterTodos(@filter) if @filter
     @emitter.emit 'did-sort-todos', @todos
 
-  filterTodos: (@filter) ->
-    if filter
+  filterTodos: (filter) ->
+    if @filter = filter
       result = @todos.filter (todo) ->
         todo.contains(filter)
     else

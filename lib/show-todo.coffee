@@ -17,6 +17,11 @@ module.exports =
         'HACK'
         'NOTE'
         'REVIEW'
+        'NB'
+        'BUG'
+        'QUESTION'
+        'COMBAK'
+        'TEMP'
       ]
       items:
         type: 'string'

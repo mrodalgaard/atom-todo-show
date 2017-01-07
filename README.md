@@ -50,6 +50,6 @@ Todos can be tagged using hashtag (e.g. `TODO: do this #object #profile`), which
 To extend the default todo types and search regex, the existing config needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/mrodalgaard/atom-todo-show/blob/master/lib/show-todo.coffee) for current defaults.
 
 ## Credits
-Created by [Jamis Charles](https://github.com/jamischarles)
+Originally created by [Jamis Charles](https://github.com/jamischarles)
 
-Maintained by [Martin Rodalgaard](https://github.com/mrodalgaard)
+Now maintained by [Martin Rodalgaard](https://github.com/mrodalgaard)

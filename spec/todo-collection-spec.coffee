@@ -374,50 +374,51 @@ describe 'Todo Collection', ->
 
     beforeEach ->
       addTestTodos()
+      collection.addTodo(
+        new TodoModel(
+          all: '#FIXME: fixme 3'
+          loc: 'file1.txt'
+          position: [[12,14], [12,16]]
+          regex: todoRegex.regex
+          regexp: todoRegex.regexp
+        )
+      )
+      atom.config.set 'todo-show.findTheseTodos', ['FIXME', 'TODO']
       sortSpy = jasmine.createSpy()
       collection.onDidSortTodos sortSpy
 
     it 'can sort simple todos', ->
       collection.sortTodos(sortBy: 'Text', sortAsc: false)
       expect(collection.todos[0].text).toBe 'todo 1'
-      expect(collection.todos[2].text).toBe 'fixme 1'
+      expect(collection.todos[3].text).toBe 'fixme 1'
 
       collection.sortTodos(sortBy: 'Text', sortAsc: true)
       expect(collection.todos[0].text).toBe 'fixme 1'
-      expect(collection.todos[2].text).toBe 'todo 1'
+      expect(collection.todos[3].text).toBe 'todo 1'
 
       collection.sortTodos(sortBy: 'Text')
       expect(collection.todos[0].text).toBe 'todo 1'
-      expect(collection.todos[2].text).toBe 'fixme 1'
+      expect(collection.todos[3].text).toBe 'fixme 1'
 
       collection.sortTodos(sortAsc: true)
       expect(collection.todos[0].text).toBe 'fixme 1'
-      expect(collection.todos[2].text).toBe 'todo 1'
+      expect(collection.todos[3].text).toBe 'todo 1'
 
       collection.sortTodos()
       expect(collection.todos[0].text).toBe 'todo 1'
-      expect(collection.todos[2].text).toBe 'fixme 1'
+      expect(collection.todos[3].text).toBe 'fixme 1'
 
     it 'sort by other values', ->
       collection.sortTodos(sortBy: 'Range', sortAsc: true)
       expect(collection.todos[0].range).toBe '3,6,3,10'
       expect(collection.todos[2].range).toBe '5,7,5,11'
+      expect(collection.todos[3].range).toBe '12,14,12,16'
 
       collection.sortTodos(sortBy: 'File', sortAsc: false)
       expect(collection.todos[0].path).toBe 'file2.txt'
-      expect(collection.todos[2].path).toBe 'file1.txt'
+      expect(collection.todos[3].path).toBe 'file1.txt'
 
     it 'sort line as number', ->
-      collection.addTodo(
-        new TodoModel(
-          all: '#FIXME: fixme 3'
-          loc: 'file3.txt'
-          position: [[12,14], [12,16]]
-          regex: todoRegex.regex
-          regexp: todoRegex.regexp
-        )
-      )
-
       collection.sortTodos(sortBy: 'Line', sortAsc: true)
       expect(collection.todos[0].line).toBe '4'
       expect(collection.todos[1].line).toBe '5'
@@ -429,6 +430,51 @@ describe 'Todo Collection', ->
       expect(collection.todos[1].range).toBe '4,5,4,9'
       expect(collection.todos[2].range).toBe '5,7,5,11'
       expect(collection.todos[3].range).toBe '12,14,12,16'
+
+    it 'performs a stable sort', ->
+      collection.sortTodos(sortBy: 'File', sortAsc: true)
+      expect(collection.todos[0].text).toBe 'fixme 1'
+      expect(collection.todos[1].text).toBe 'fixme 3'
+      expect(collection.todos[2].text).toBe 'todo 1'
+      expect(collection.todos[3].text).toBe 'fixme 2'
+
+      collection.sortTodos(sortBy: 'Text', sortAsc: false)
+      expect(collection.todos[0].text).toBe 'todo 1'
+      expect(collection.todos[1].text).toBe 'fixme 3'
+      expect(collection.todos[2].text).toBe 'fixme 2'
+      expect(collection.todos[3].text).toBe 'fixme 1'
+
+      collection.sortTodos(sortBy: 'File', sortAsc: true)
+      expect(collection.todos[0].text).toBe 'todo 1'
+      expect(collection.todos[1].text).toBe 'fixme 3'
+      expect(collection.todos[2].text).toBe 'fixme 1'
+      expect(collection.todos[3].text).toBe 'fixme 2'
+
+      collection.sortTodos(sortBy: 'Type', sortAsc: true)
+      expect(collection.todos[0].text).toBe 'fixme 3'
+      expect(collection.todos[1].text).toBe 'fixme 1'
+      expect(collection.todos[2].text).toBe 'fixme 2'
+      expect(collection.todos[3].text).toBe 'todo 1'
+
+    it 'sorts type in the defined order', ->
+      collection.sortTodos(sortBy: 'Type', sortAsc: true)
+      expect(collection.todos[0].text).toBe 'fixme 1'
+      expect(collection.todos[1].text).toBe 'fixme 2'
+      expect(collection.todos[2].text).toBe 'fixme 3'
+      expect(collection.todos[3].text).toBe 'todo 1'
+
+      atom.config.set 'todo-show.findTheseTodos', ['TODO', 'FIXME']
+      collection.sortTodos(sortBy: 'Type', sortAsc: true)
+      expect(collection.todos[0].text).toBe 'todo 1'
+      expect(collection.todos[1].text).toBe 'fixme 1'
+      expect(collection.todos[2].text).toBe 'fixme 2'
+      expect(collection.todos[3].text).toBe 'fixme 3'
+
+      collection.sortTodos(sortBy: 'Type', sortAsc: false)
+      expect(collection.todos[0].text).toBe 'fixme 3'
+      expect(collection.todos[1].text).toBe 'fixme 2'
+      expect(collection.todos[2].text).toBe 'fixme 1'
+      expect(collection.todos[3].text).toBe 'todo 1'
 
   describe 'Filter todos', ->
     {filterSpy} = []

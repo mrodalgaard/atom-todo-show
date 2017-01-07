@@ -42,22 +42,44 @@ class TodoCollection
   sortTodos: ({sortBy, sortAsc} = {}) ->
     sortBy ?= @defaultKey
 
-    @todos = @todos.sort((a,b) ->
-      aVal = a.get(sortBy)
-      bVal = b.get(sortBy)
+    # Save history of new sort elements
+    if @searches?[@searches.length - 1].sortBy isnt sortBy
+      @searches ?= []
+      @searches.push {sortBy, sortAsc}
+    else
+      @searches[@searches.length - 1] = {sortBy, sortAsc}
 
-      # Fall back to text if values are the same
-      [aVal, bVal] = [a.get(@defaultKey), b.get(@defaultKey)] if aVal is bVal
-
-      if a.keyIsNumber(sortBy)
-        comp = parseInt(aVal) - parseInt(bVal)
-      else
-        comp = aVal.localeCompare(bVal)
-      if sortAsc then comp else -comp
+    @todos = @todos.sort((todoA, todoB) =>
+      @todoSorter(todoA, todoB, sortBy, sortAsc)
     )
 
     return @filterTodos(@filter) if @filter
     @emitter.emit 'did-sort-todos', @todos
+
+  todoSorter: (todoA, todoB, sortBy, sortAsc) ->
+    [sortBy2, sortAsc2] = [sortBy, sortAsc]
+
+    aVal = todoA.get(sortBy2)
+    bVal = todoB.get(sortBy2)
+
+    if aVal is bVal
+      # Use previous sorts to make a 2-level stable sort
+      if search = @searches?[@searches.length - 2]
+        [sortBy2, sortAsc2] = [search.sortBy, search.sortAsc]
+      else
+        sortBy2 = @defaultKey
+
+      [aVal, bVal] = [todoA.get(sortBy2), todoB.get(sortBy2)]
+
+    # Sort type in the defined order, as number or normal string sort
+    if sortBy2 is 'Type'
+      findTheseTodos = atom.config.get('todo-show.findTheseTodos')
+      comp = findTheseTodos.indexOf(aVal) - findTheseTodos.indexOf(bVal)
+    else if todoA.keyIsNumber(sortBy2)
+      comp = parseInt(aVal) - parseInt(bVal)
+    else
+      comp = aVal.localeCompare(bVal)
+    if sortAsc2 then comp else -comp
 
   filterTodos: (filter) ->
     if @filter = filter
@@ -217,3 +239,10 @@ class TodoCollection
 
   cancelSearch: ->
     @searchPromise?.cancel?()
+
+  # TODO: Previous searches are not saved yet!
+  getPreviousSearch: ->
+    sortBy = localStorage.getItem 'todo-show.previous-sortBy'
+
+  setPreviousSearch: (search) ->
+    localStorage.setItem 'todo-show.previous-search', search

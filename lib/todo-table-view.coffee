@@ -50,7 +50,7 @@ class ShowTodoView extends View
 
   tableHeaderClicked: (e) =>
     item = e.target.innerText
-    sortAsc = if @sortBy is item then !@sortAsc else true
+    sortAsc = if @sortBy is item then !@sortAsc else @sortAsc
 
     atom.config.set('todo-show.sortBy', item)
     atom.config.set('todo-show.sortAscending', sortAsc)

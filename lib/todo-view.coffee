@@ -173,10 +173,10 @@ class ShowTodoView extends ScrollView
         "in workspace"
 
   showError: (message = '') ->
-    atom.notifications.addError message, @notificationOptions
+    atom.notifications.addError message.toString(), @notificationOptions
 
   showWarning: (message = '') ->
-    atom.notifications.addWarning message, @notificationOptions
+    atom.notifications.addWarning message.toString(), @notificationOptions
 
   saveAs: =>
     return if @isSearching()

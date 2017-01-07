@@ -9,8 +9,8 @@ module.exports =
     findTheseTodos:
       type: 'array'
       default: [
-        'FIXME'
         'TODO'
+        'FIXME'
         'CHANGED'
         'XXX'
         'IDEA'

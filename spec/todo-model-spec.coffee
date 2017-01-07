@@ -241,6 +241,11 @@ describe "Todo Model", ->
       expect(model.text).toBe 'Fix this link.'
 
     it "should extract multiple todo tags", ->
+      match.text = "TODO: #123 #tag1"
+      model = new TodoModel(match)
+      expect(model.tags).toBe '123, tag1'
+      expect(model.text).toBe 'No details'
+
       match.text = "TODO: 123 #tag1 #tag2 #tag3"
       model = new TodoModel(match)
       expect(model.tags).toBe 'tag1, tag2, tag3'
@@ -248,11 +253,6 @@ describe "Todo Model", ->
 
       match.text = "test #TODO: 123 #tag1, #tag2"
       expect(new TodoModel(match).tags).toBe 'tag1, tag2'
-
-      match.text = "TODO: #123 #tag1"
-      model = new TodoModel(match)
-      expect(model.tags).toBe '123, tag1'
-      expect(model.text).toBe 'No details'
 
     it "should handle invalid tags", ->
       match.text = "#TODO: 123 #tag1 X"

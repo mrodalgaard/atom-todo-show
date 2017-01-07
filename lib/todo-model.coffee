@@ -43,6 +43,8 @@ class TodoModel
 
   handleScanMatch: (match) ->
     matchText = match.text or match.all or ''
+    if matchText.length > match.all?.length
+      match.all = matchText
 
     # Strip out the regex token from the found annotation
     # not all objects will have an exec match
@@ -85,6 +87,7 @@ class TodoModel
 
     # Extract paths and project
     relativePath = atom.project.relativizePath(match.loc)
+    relativePath[0] ?= ''
     match.path = relativePath[1] or ''
 
     if (loc = path.basename(match.loc)) isnt 'undefined'

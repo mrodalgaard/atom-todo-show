@@ -147,7 +147,7 @@ describe 'ShowTodo opening panes and executing commands', ->
         showTodoModule.showTodoView.saveAs()
 
       waitsFor ->
-        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is fs.realpathSync(outputPath)
+        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is outputPath
 
       runs ->
         expect(fs.isFileSync(outputPath)).toBe true
@@ -165,7 +165,7 @@ describe 'ShowTodo opening panes and executing commands', ->
         showTodoModule.showTodoView.saveAs()
 
       waitsFor ->
-        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is fs.realpathSync(outputPath)
+        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is outputPath
 
       runs ->
         expect(fs.isFileSync(outputPath)).toBe true

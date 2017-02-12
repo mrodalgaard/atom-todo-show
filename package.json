@@ -1,6 +1,6 @@
 {
   "name": "todo-show",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "main": "./lib/show-todo",
   "description": "Finds all the TODOs, FIXMEs, CHANGEDs, etc. in your project.",
   "activationCommands": {

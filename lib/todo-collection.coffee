@@ -151,8 +151,8 @@ class TodoCollection
         return unless match
 
         range = [
-          [match.computedRange.start.row, match.computedRange.start.column]
-          [match.computedRange.end.row, match.computedRange.end.column]
+          [match.range.start.row, match.range.start.column]
+          [match.range.end.row, match.range.end.column]
         ]
 
         @addTodo new TodoModel(

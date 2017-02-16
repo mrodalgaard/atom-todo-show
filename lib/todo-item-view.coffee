@@ -46,8 +46,6 @@ class TodoView extends View
     position = [@todo.position[0][0], @todo.position[0][1]]
 
     atom.workspace.open(@todo.loc, {
-      initialLine: position[0]
-      initialColumn: position[1]
       split: @getSplitDirection()
       pending: atom.config.get('core.allowPendingPaneItems') or false
     }).then ->

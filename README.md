@@ -47,7 +47,7 @@ Default regex string: `'/\\b(${TODOS})[:;.,]?\\d*($|\\s.*$|\\(.*$)/g'`
 
 Todos can be tagged using hashtag (e.g. `TODO: do this #object #profile`), which is presented in the tags column.
 
-To extend the default todo types and search regex, the existing config needs to be copied into your config.cson. See [show-todo.coffee](https://github.com/mrodalgaard/atom-todo-show/blob/master/lib/show-todo.coffee) for current defaults.
+To extend the default todo types and search regex, the existing config needs to be copied into your config.cson.
 
 ## Credits
 Originally created by [Jamis Charles](https://github.com/jamischarles)

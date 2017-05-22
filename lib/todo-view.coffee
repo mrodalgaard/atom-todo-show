@@ -127,11 +127,17 @@ class ShowTodoView extends ScrollView
     @detach()
 
   savePaneFlex: (flex) ->
+    return if flex is 1
     localStorage.setItem 'todo-show.flex', flex
 
   restorePaneFlex: (pane) ->
     flex = localStorage.getItem 'todo-show.flex'
     pane.setFlexScale parseFloat(flex) if flex
+
+    # When view is created it sets it's flex to 1 later in life
+    setTimeout ->
+      pane.setFlexScale parseFloat(flex) if flex
+    , 10
 
   getTitle: -> "Todo Show"
   getIconName: -> "checklist"

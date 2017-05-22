@@ -58,7 +58,7 @@ module.exports =
       enum: ['up', 'right', 'down', 'left', 'ontop']
     rememberViewSize:
       type: 'boolean'
-      default: true
+      default: false
     saveOutputAs:
       type: 'string'
       default: 'List'

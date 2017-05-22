@@ -90,7 +90,7 @@ class TodoModel
     relativePath[0] ?= ''
     match.path = relativePath[1] or ''
 
-    if (loc = path.basename(match.loc)) isnt 'undefined'
+    if (match.loc and loc = path.basename(match.loc)) isnt 'undefined'
       match.file = loc
     else
       match.file = 'untitled'

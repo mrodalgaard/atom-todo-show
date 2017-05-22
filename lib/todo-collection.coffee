@@ -220,7 +220,8 @@ class TodoCollection
     project if project = atom.project.getPaths()[0]
 
   getActiveProjectName: ->
-    projectName = path.basename(@getActiveProject())
+    return 'no active project' unless project = @getActiveProject()
+    projectName = path.basename(project)
     if projectName is 'undefined' then "no active project" else projectName
 
   setActiveProject: (filePath) ->

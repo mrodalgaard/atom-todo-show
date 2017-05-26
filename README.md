@@ -26,8 +26,6 @@ _ignoreThesePaths_    | `['node_modules', 'vendor', 'bower_components']` | An ar
 _showInTable_         | `['Text', 'Type', 'Path']`              | An array of properties to show for each todo in table
 _sortBy_              | `'Text'`                                | Sort table by this todo property
 _sortAscending_       | `true`                                  | Sort table in ascending or descending order
-_openListInDirection_ | `'right'`                               | Defines where the todo list is shown when opened
-_rememberViewSize_    | `true`                                  | Remember the todo list width or split in the middle
 _saveOutputAs_        | `'List'`                                | Choose which format to use for saved markdown
 _statusBarIndicator_  | `false`                                 | Show todo count in status bar (this is only shown and updated when the 'Todo Show' tab is open)
 

@@ -78,12 +78,6 @@ class ShowTodoView extends ScrollView
         event.stopPropagation()
         @collection.search()
 
-    # Persist pane size by saving to local storage
-    pane = atom.workspace.getActivePane()
-    @restorePaneFlex(pane) if atom.config.get('todo-show.rememberViewSize')
-    @disposables.add pane.observeFlexScale (flexScale) =>
-      @savePaneFlex(flexScale)
-
     @disposables.add @collection.onDidStartSearch @startLoading
     @disposables.add @collection.onDidFinishSearch @stopLoading
     @disposables.add @collection.onDidFailSearch (err) =>
@@ -126,24 +120,14 @@ class ShowTodoView extends ScrollView
     @disposables.dispose()
     @detach()
 
-  savePaneFlex: (flex) ->
-    return if flex is 1
-    localStorage.setItem 'todo-show.flex', flex
-
-  restorePaneFlex: (pane) ->
-    flex = localStorage.getItem 'todo-show.flex'
-    pane.setFlexScale parseFloat(flex) if flex
-
-    # When view is created it sets it's flex to 1 later in life
-    setTimeout ->
-      pane.setFlexScale parseFloat(flex) if flex
-    , 10
-
   getTitle: -> "Todo Show"
   getIconName: -> "checklist"
   getURI: -> @uri
+  getDefaultLocation: -> 'right'
+  getAllowedLocations: -> ['left', 'right', 'bottom']
   getProjectName: -> @collection.getActiveProjectName()
   getProjectPath: -> @collection.getActiveProject()
+
   getTodos: -> @collection.getTodos()
   getTodosCount: -> @collection.getTodosCount()
   isSearching: -> @collection.getState()

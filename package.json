@@ -14,7 +14,7 @@
   "repository": "https://github.com/mrodalgaard/atom-todo-show",
   "license": "MIT",
   "engines": {
-    "atom": ">0.50.0"
+    "atom": ">1.17.0"
   },
   "consumedServices": {
     "status-bar": {

@@ -46,20 +46,12 @@ class TodoView extends View
     position = [@todo.position[0][0], @todo.position[0][1]]
 
     atom.workspace.open(@todo.loc, {
-      split: @getSplitDirection()
       pending: atom.config.get('core.allowPendingPaneItems') or false
     }).then ->
       # Setting initialColumn/Line does not always center view
       if textEditor = atom.workspace.getActiveTextEditor()
         textEditor.setCursorBufferPosition(position, autoscroll: false)
         textEditor.scrollToCursorPosition(center: true)
-
-  getSplitDirection: ->
-    switch atom.config.get('todo-show.openListInDirection')
-      when 'up' then 'down'
-      when 'down' then 'up'
-      when 'left' then 'right'
-      else 'left'
 
 class TodoEmptyView extends View
   @content: (showInTable = []) ->

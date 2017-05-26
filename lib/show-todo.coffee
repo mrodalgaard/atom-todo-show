@@ -51,14 +51,6 @@ module.exports =
     sortAscending:
       type: 'boolean'
       default: true
-    openListInDirection:
-      description: 'Defines where the todo list is shown when opened.'
-      type: 'string'
-      default: 'right'
-      enum: ['up', 'right', 'down', 'left', 'ontop']
-    rememberViewSize:
-      type: 'boolean'
-      default: false
     saveOutputAs:
       type: 'string'
       default: 'List'
@@ -97,32 +89,12 @@ module.exports =
 
   deactivate: ->
     @destroyTodoIndicator()
+    @showTodoView?.destroy()
     @disposables?.dispose()
-
-  destroyPaneItem: ->
-    pane = atom.workspace.paneForItem(@showTodoView)
-    return false unless pane
-
-    pane.destroyItem(@showTodoView)
-    # Ignore core.destroyEmptyPanes and close empty pane
-    pane.destroy() if pane.getItems().length is 0
-    return true
 
   show: (uri) ->
     prevPane = atom.workspace.getActivePane()
-    direction = atom.config.get('todo-show.openListInDirection')
-
-    return if @destroyPaneItem()
-
-    switch direction
-      when 'down'
-        prevPane.splitDown() if prevPane.parent.orientation isnt 'vertical'
-      when 'up'
-        prevPane.splitUp() if prevPane.parent.orientation isnt 'vertical'
-      when 'left'
-        prevPane.splitLeft() if prevPane.parent.orientation isnt 'horizontal'
-
-    atom.workspace.open(uri, split: direction).then (@showTodoView) =>
+    atom.workspace.toggle(uri).then (@showTodoView) =>
       prevPane.activate()
 
   consumeStatusBar: (statusBar) ->

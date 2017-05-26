@@ -40,77 +40,11 @@ describe 'ShowTodo opening panes and executing commands', ->
         executeCommand ->
           expect(workspaceElement.querySelector('.show-todo-preview')).not.toExist()
 
-    it 'can open in vertical split', ->
-      atom.config.set 'todo-show.openListInDirection', 'down'
-
-      executeCommand ->
-        expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
-        expect(showTodoPane.parent.orientation).toBe 'vertical'
-
-    it 'can open ontop of current view', ->
-      atom.config.set 'todo-show.openListInDirection', 'ontop'
-
-      executeCommand ->
-        expect(workspaceElement.querySelector('.show-todo-preview')).toExist()
-        expect(showTodoPane.parent.orientation).not.toExist()
-
     it 'has visible elements in view', ->
       executeCommand ->
         element = showTodoModule.showTodoView.find('td').last()
         expect(element.text()).toEqual 'sample.js'
         expect(element.isVisible()).toBe true
-
-    it 'persists pane width', ->
-      return # Pane resizing with flex is currently not working in specs
-
-      atom.config.set 'todo-show.rememberViewSize', true
-
-      executeCommand ->
-        originalFlex = showTodoPane.getFlexScale()
-        newFlex = originalFlex * 1.1
-        expect(typeof originalFlex).toEqual "number"
-        expect(showTodoModule.showTodoView).toBeVisible()
-        showTodoPane.setFlexScale(newFlex)
-
-        executeCommand ->
-          expect(showTodoPane).not.toExist()
-          expect(showTodoModule.showTodoView).not.toBeVisible()
-
-          executeCommand ->
-            expect(showTodoPane.getFlexScale()).toEqual newFlex
-            showTodoPane.setFlexScale(originalFlex)
-
-    it 'does not persist pane width by default', ->
-      atom.config.set('todo-show.rememberViewSize', false)
-
-      executeCommand ->
-        originalFlex = showTodoPane.getFlexScale()
-        newFlex = originalFlex * 1.1
-        expect(typeof originalFlex).toEqual "number"
-
-        showTodoPane.setFlexScale(newFlex)
-        executeCommand ->
-          executeCommand ->
-            expect(showTodoPane.getFlexScale()).not.toEqual newFlex
-            expect(showTodoPane.getFlexScale()).toEqual originalFlex
-
-    it 'persists horizontal pane height', ->
-      return # Pane resizing with flex is currently not working in specs
-
-      atom.config.set 'todo-show.rememberViewSize', true
-      atom.config.set('todo-show.openListInDirection', 'down')
-
-      executeCommand ->
-        originalFlex = showTodoPane.getFlexScale()
-        newFlex = originalFlex * 1.1
-        expect(typeof originalFlex).toEqual "number"
-
-        showTodoPane.setFlexScale(newFlex)
-        executeCommand ->
-          expect(showTodoPane).not.toExist()
-          executeCommand ->
-            expect(showTodoPane.getFlexScale()).toEqual newFlex
-            showTodoPane.setFlexScale(originalFlex)
 
   describe 'when the show-todo:find-in-workspace event is triggered', ->
     it 'activates', ->

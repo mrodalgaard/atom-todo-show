@@ -59,11 +59,7 @@ module.exports =
       type: 'boolean'
       default: false
 
-  URI:
-    workspace: 'atom://todo-show/todos'
-    project: 'atom://todo-show/project-todos'
-    open: 'atom://todo-show/open-todos'
-    active: 'atom://todo-show/active-todos'
+  URI: 'atom://todo-show'
 
   activate: ->
     @collection = new TodoCollection
@@ -71,30 +67,29 @@ module.exports =
 
     @disposables = new CompositeDisposable
     @disposables.add atom.commands.add 'atom-workspace',
-      'todo-show:find-in-workspace': => @show(@URI.workspace)
-      'todo-show:find-in-project': => @show(@URI.project)
-      'todo-show:find-in-open-files': => @show(@URI.open)
-      'todo-show:find-in-active-file': => @show(@URI.active)
+      'todo-show:toggle': => @show()
+      'todo-show:find-in-workspace': => @show('workspace')
+      'todo-show:find-in-project': => @show('project')
+      'todo-show:find-in-open-files': => @show('open')
+      'todo-show:find-in-active-file': => @show('active')
 
-    # Register the todolist URI, which will then open our custom view
-    @disposables.add atom.workspace.addOpener (uriToOpen) =>
-      scope = switch uriToOpen
-        when @URI.workspace then 'workspace'
-        when @URI.project then 'project'
-        when @URI.open then 'open'
-        when @URI.active then 'active'
-      if scope
-        @collection.scope = scope
-        new ShowTodoView(@collection, uriToOpen)
+    @disposables.add atom.workspace.addOpener (uri) =>
+      new ShowTodoView(@collection, uri) if uri is @URI
 
   deactivate: ->
     @destroyTodoIndicator()
     @showTodoView?.destroy()
     @disposables?.dispose()
 
-  show: (uri) ->
+  show: (scope) ->
+    if scope
+      prevScope = @collection.scope
+      if prevScope isnt scope
+        @collection.setSearchScope scope
+        return if @showTodoView?.isVisible()
+
     prevPane = atom.workspace.getActivePane()
-    atom.workspace.toggle(uri).then (@showTodoView) =>
+    atom.workspace.toggle(@URI).then (@showTodoView) =>
       prevPane.activate()
 
   consumeStatusBar: (statusBar) ->

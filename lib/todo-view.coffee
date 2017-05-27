@@ -120,6 +120,10 @@ class ShowTodoView extends ScrollView
     @disposables.dispose()
     @detach()
 
+  serialize: ->
+    deserializer: 'todo-show/todo-view'
+    scope: @collection.scope
+
   getTitle: -> "Todo Show"
   getIconName: -> "checklist"
   getURI: -> @uri

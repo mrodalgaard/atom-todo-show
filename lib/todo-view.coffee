@@ -54,7 +54,6 @@ class ShowTodoView extends ScrollView
   initialize: ->
     @disposables = new CompositeDisposable
     @handleEvents()
-    @collection.search()
     @setScopeButtonState(@collection.getSearchScope())
 
     @notificationOptions =
@@ -76,7 +75,7 @@ class ShowTodoView extends ScrollView
         @saveAs()
       'core:refresh': (event) =>
         event.stopPropagation()
-        @collection.search()
+        @search()
 
     @disposables.add @collection.onDidStartSearch @startLoading
     @disposables.add @collection.onDidFinishSearch @stopLoading
@@ -87,7 +86,7 @@ class ShowTodoView extends ScrollView
 
     @disposables.add @collection.onDidChangeSearchScope (scope) =>
       @setScopeButtonState(scope)
-      @collection.search()
+      @search()
 
     @disposables.add @collection.onDidSearchPaths (nPaths) =>
       @searchCount.text "#{nPaths} paths searched..."
@@ -95,16 +94,16 @@ class ShowTodoView extends ScrollView
     @disposables.add atom.workspace.onDidChangeActivePaneItem (item) =>
       if @collection.setActiveProject(item?.getPath?()) or
       (item?.constructor.name is 'TextEditor' and @collection.scope is 'active')
-        @collection.search()
+        @search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
-      @collection.search() if @collection.scope is 'open'
+      @search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.onDidDestroyPaneItem ({item}) =>
-      @collection.search() if @collection.scope is 'open'
+      @search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.observeTextEditors (editor) =>
-      @disposables.add editor.onDidSave => @collection.search()
+      @disposables.add editor.onDidSave => @search()
 
     @filterEditorView.getModel().onDidStopChanging =>
       @filter() if @firstTimeFilter
@@ -113,7 +112,7 @@ class ShowTodoView extends ScrollView
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
     @saveAsButton.on 'click', @saveAs
-    @refreshButton.on 'click', => @collection.search()
+    @refreshButton.on 'click', => @search()
 
   destroy: ->
     @collection.cancelSearch()
@@ -135,6 +134,9 @@ class ShowTodoView extends ScrollView
   getTodos: -> @collection.getTodos()
   getTodosCount: -> @collection.getTodosCount()
   isSearching: -> @collection.getState()
+  search: ->
+    return unless atom.workspace.paneContainerForItem(this)?.isVisible()
+    @collection.search()
 
   startLoading: =>
     @todoLoading.show()

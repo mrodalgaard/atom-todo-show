@@ -1,12 +1,14 @@
 TodoRegex = require '../lib/todo-regex'
-ShowTodo = require '../lib/show-todo'
+{getConfigSchema} = require './helpers'
 
 describe 'Todo Regex', ->
   [defaultRegexStr, defaultTodoList] = []
 
   beforeEach ->
-    defaultRegexStr = ShowTodo.config.findUsingRegex.default
-    defaultTodoList = ShowTodo.config.findTheseTodos.default
+    getConfigSchema (configSchema) ->
+      defaultRegexStr = configSchema.findUsingRegex.default
+      defaultTodoList = configSchema.findTheseTodos.default
+    waitsFor -> defaultRegexStr isnt undefined
 
   describe 'create regexp', ->
     it 'includes a regular expression', ->

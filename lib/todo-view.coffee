@@ -56,6 +56,7 @@ class ShowTodoView extends ScrollView
     @handleEvents()
     @setScopeButtonState(@collection.getSearchScope())
 
+    @onlySearchWhenVisible = true
     @notificationOptions =
       detail: 'Atom todo-show package'
       dismissable: true
@@ -135,7 +136,8 @@ class ShowTodoView extends ScrollView
   getTodosCount: -> @collection.getTodosCount()
   isSearching: -> @collection.getState()
   search: ->
-    return unless atom.workspace.paneContainerForItem(this)?.isVisible()
+    if @onlySearchWhenVisible
+      return unless atom.workspace.paneContainerForItem(this)?.isVisible()
     @collection.search()
 
   startLoading: =>

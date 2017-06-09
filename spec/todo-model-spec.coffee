@@ -1,8 +1,8 @@
 path = require 'path'
 
 TodoModel = require '../lib/todo-model'
-ShowTodo = require '../lib/show-todo'
 TodoRegex = require '../lib/todo-regex'
+{getConfigSchema} = require './helpers'
 
 sample1Path = path.join(__dirname, 'fixtures/sample1')
 
@@ -10,21 +10,23 @@ describe "Todo Model", ->
   {match, todoRegex} = []
 
   beforeEach ->
-    atom.project.setPaths [sample1Path]
-    todoRegex = new TodoRegex(
-      ShowTodo.config.findUsingRegex.default
-      ['FIXME', 'TODO']
-    )
+    getConfigSchema (configSchema) ->
+      atom.project.setPaths [sample1Path]
+      todoRegex = new TodoRegex(
+        configSchema.findUsingRegex.default
+        ['FIXME', 'TODO']
+      )
 
-    match =
-      all: " TODO: Comment in C #tag1 "
-      loc: "#{atom.project.getPaths()[0]}/sample1/sample.c"
-      regex: todoRegex.regex
-      regexp: todoRegex.regexp
-      position: [
-        [0, 1]
-        [0, 20]
-      ]
+      match =
+        all: " TODO: Comment in C #tag1 "
+        loc: "#{atom.project.getPaths()[0]}/sample1/sample.c"
+        regex: todoRegex.regex
+        regexp: todoRegex.regexp
+        position: [
+          [0, 1]
+          [0, 20]
+        ]
+    waitsFor -> todoRegex isnt undefined
 
   describe "Create todo models", ->
     it "should handle results from workspace scan (also tested in fetchRegexItem)", ->

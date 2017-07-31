@@ -23,6 +23,8 @@ module.exports =
         'QUESTION'
         'COMBAK'
         'TEMP'
+        '@todo'
+        '@fixme'
       ]
       items:
         type: 'string'

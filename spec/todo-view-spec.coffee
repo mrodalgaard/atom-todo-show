@@ -64,17 +64,17 @@ describe "Show Todo View", ->
       runs ->
         editor = atom.workspace.getActiveTextEditor()
         editor.setText("# TODO: Test")
-        editor.save()
-
-        waitsFor -> !showTodoView.isSearching()
+        waitsForPromise -> editor.save()
         runs ->
-          expect(showTodoView.getTodos()).toHaveLength 4
-          editor.setText("")
-          editor.save()
-
           waitsFor -> !showTodoView.isSearching()
           runs ->
-            expect(showTodoView.getTodos()).toHaveLength 3
+            expect(showTodoView.getTodos()).toHaveLength 4
+            editor.setText("")
+            waitsForPromise -> editor.save()
+            runs ->
+              waitsFor -> !showTodoView.isSearching()
+              runs ->
+                expect(showTodoView.getTodos()).toHaveLength 3
 
     it "updates on search scope change", ->
       expect(showTodoView.isSearching()).toBe false

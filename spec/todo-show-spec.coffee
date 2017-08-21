@@ -63,24 +63,27 @@ describe 'ShowTodo opening panes and executing commands', ->
           runs ->
             prevText = editor.getText()
             editor.insertText 'TODO: This is an inserted todo'
-            editor.save()
-            expect(showTodoModule.showTodoView.isSearching()).toBe true
-
-            waitsFor -> showTodoModule.collection.getTodosCount() > 0
+            waitsForPromise -> editor.save()
             runs ->
-              expect(showTodoModule.collection.getTodosCount()).toBe(nTodos + 1)
+              expect(showTodoModule.showTodoView.isSearching()).toBe true
 
-              executeCommand ->
-                editor.setText prevText
-                editor.save()
-                expect(showTodoModule.showTodoView).not.toBeDefined()
+              waitsFor -> showTodoModule.collection.getTodosCount() > 0
+              runs ->
                 expect(showTodoModule.collection.getTodosCount()).toBe(nTodos + 1)
 
-                dock.show()
-                editor.save()
-                waitsFor -> showTodoModule.collection.getTodosCount() > 0
-                runs ->
-                  expect(showTodoModule.collection.getTodosCount()).toBe nTodos
+                executeCommand ->
+                  editor.setText prevText
+                  waitsForPromise -> editor.save()
+                  runs ->
+                    expect(showTodoModule.showTodoView).not.toBeDefined()
+                    expect(showTodoModule.collection.getTodosCount()).toBe(nTodos + 1)
+
+                    dock.show()
+                    waitsForPromise -> editor.save()
+                    runs ->
+                      waitsFor -> showTodoModule.collection.getTodosCount() > 0
+                      runs ->
+                        expect(showTodoModule.collection.getTodosCount()).toBe nTodos
 
   describe 'when todo item is clicked', ->
     it 'opens the file', ->

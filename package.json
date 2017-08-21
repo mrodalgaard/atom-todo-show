@@ -1,20 +1,23 @@
 {
   "name": "todo-show",
   "version": "1.11.0",
-  "main": "./lib/show-todo",
+  "main": "./lib/main",
   "description": "Finds all the TODOs, FIXMEs, CHANGEDs, etc. in your project.",
-  "activationCommands": {
-    "atom-workspace": [
-      "todo-show:find-in-workspace",
-      "todo-show:find-in-project",
-      "todo-show:find-in-open-files",
-      "todo-show:find-in-active-file"
-    ]
-  },
   "repository": "https://github.com/mrodalgaard/atom-todo-show",
   "license": "MIT",
   "engines": {
-    "atom": ">0.50.0"
+    "atom": ">1.17.0"
+  },
+  "dependencies": {
+    "atom-space-pen-views": "^2.0.3",
+    "event-kit": "^2.3.0",
+    "fs-plus": "2.x",
+    "sortablejs": "^1.4.2",
+    "temp": "^0.8.3",
+    "underscore-plus": "^1.6.6"
+  },
+  "deserializers": {
+    "todo-show/todo-view": "deserializeTodoView"
   },
   "consumedServices": {
     "status-bar": {
@@ -23,11 +26,87 @@
       }
     }
   },
-  "dependencies": {
-    "atom-space-pen-views": "^2.0.3",
-    "fs-plus": "2.x",
-    "sortablejs": "^1.4.2",
-    "temp": "^0.8.3",
-    "underscore-plus": "^1.6.6"
+  "configSchema": {
+    "findTheseTodos": {
+      "description": "An array of todo types used by the search regex.",
+      "type": "array",
+      "default": [
+        "TODO",
+        "FIXME",
+        "CHANGED",
+        "XXX",
+        "IDEA",
+        "HACK",
+        "NOTE",
+        "REVIEW",
+        "NB",
+        "BUG",
+        "QUESTION",
+        "COMBAK",
+        "TEMP"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "findUsingRegex": {
+      "description": "Regex string used to find all your todos. `${TODOS}` is replaced with `FindTheseTodos` from above.",
+      "type": "string",
+      "default": "/\\b(${TODOS})[:;.,]?\\d*($|\\s.*$|[\\{\\[\\(].+$)/g"
+    },
+    "ignoreThesePaths": {
+      "description": "Similar to `.gitignore` (remember to use `/` on Mac/Linux and `\\` on Windows for subdirectories).",
+      "type": "array",
+      "default": [
+        "node_modules",
+        "vendor",
+        "bower_components"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "showInTable": {
+      "description": "An array of properties to show for each todo in table.",
+      "type": "array",
+      "default": [
+        "Text",
+        "Type",
+        "Path"
+      ]
+    },
+    "sortBy": {
+      "type": "string",
+      "default": "Text",
+      "enum": [
+        "All",
+        "Text",
+        "Type",
+        "Range",
+        "Line",
+        "Regex",
+        "Path",
+        "File",
+        "Tags",
+        "Id",
+        "Project"
+      ]
+    },
+    "sortAscending": {
+      "type": "boolean",
+      "default": true
+    },
+    "saveOutputAs": {
+      "type": "string",
+      "default": "List",
+      "enum": [
+        "List",
+        "Table"
+      ]
+    },
+    "statusBarIndicator": {
+      "type": "boolean",
+      "default": false
+    }
   }
 }

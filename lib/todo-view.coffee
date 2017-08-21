@@ -54,9 +54,9 @@ class ShowTodoView extends ScrollView
   initialize: ->
     @disposables = new CompositeDisposable
     @handleEvents()
-    @collection.search()
     @setScopeButtonState(@collection.getSearchScope())
 
+    @onlySearchWhenVisible = true
     @notificationOptions =
       detail: 'Atom todo-show package'
       dismissable: true
@@ -76,13 +76,7 @@ class ShowTodoView extends ScrollView
         @saveAs()
       'core:refresh': (event) =>
         event.stopPropagation()
-        @collection.search()
-
-    # Persist pane size by saving to local storage
-    pane = atom.workspace.getActivePane()
-    @restorePaneFlex(pane) if atom.config.get('todo-show.rememberViewSize')
-    @disposables.add pane.observeFlexScale (flexScale) =>
-      @savePaneFlex(flexScale)
+        @search()
 
     @disposables.add @collection.onDidStartSearch @startLoading
     @disposables.add @collection.onDidFinishSearch @stopLoading
@@ -93,7 +87,7 @@ class ShowTodoView extends ScrollView
 
     @disposables.add @collection.onDidChangeSearchScope (scope) =>
       @setScopeButtonState(scope)
-      @collection.search()
+      @search()
 
     @disposables.add @collection.onDidSearchPaths (nPaths) =>
       @searchCount.text "#{nPaths} paths searched..."
@@ -101,16 +95,16 @@ class ShowTodoView extends ScrollView
     @disposables.add atom.workspace.onDidChangeActivePaneItem (item) =>
       if @collection.setActiveProject(item?.getPath?()) or
       (item?.constructor.name is 'TextEditor' and @collection.scope is 'active')
-        @collection.search()
+        @search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
-      @collection.search() if @collection.scope is 'open'
+      @search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.onDidDestroyPaneItem ({item}) =>
-      @collection.search() if @collection.scope is 'open'
+      @search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.observeTextEditors (editor) =>
-      @disposables.add editor.onDidSave => @collection.search()
+      @disposables.add editor.onDidSave => @search()
 
     @filterEditorView.getModel().onDidStopChanging =>
       @filter() if @firstTimeFilter
@@ -119,34 +113,32 @@ class ShowTodoView extends ScrollView
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
     @saveAsButton.on 'click', @saveAs
-    @refreshButton.on 'click', => @collection.search()
+    @refreshButton.on 'click', => @search()
 
   destroy: ->
     @collection.cancelSearch()
     @disposables.dispose()
     @detach()
 
-  savePaneFlex: (flex) ->
-    return if flex is 1
-    localStorage.setItem 'todo-show.flex', flex
-
-  restorePaneFlex: (pane) ->
-    flex = localStorage.getItem 'todo-show.flex'
-    pane.setFlexScale parseFloat(flex) if flex
-
-    # When view is created it sets it's flex to 1 later in life
-    setTimeout ->
-      pane.setFlexScale parseFloat(flex) if flex
-    , 10
+  serialize: ->
+    deserializer: 'todo-show/todo-view'
+    scope: @collection.scope
 
   getTitle: -> "Todo Show"
   getIconName: -> "checklist"
   getURI: -> @uri
+  getDefaultLocation: -> 'right'
+  getAllowedLocations: -> ['left', 'right', 'bottom']
   getProjectName: -> @collection.getActiveProjectName()
   getProjectPath: -> @collection.getActiveProject()
+
   getTodos: -> @collection.getTodos()
   getTodosCount: -> @collection.getTodosCount()
   isSearching: -> @collection.getState()
+  search: ->
+    if @onlySearchWhenVisible
+      return unless atom.workspace.paneContainerForItem(this)?.isVisible()
+    @collection.search()
 
   startLoading: =>
     @todoLoading.show()

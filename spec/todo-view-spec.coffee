@@ -5,9 +5,10 @@ TodosCollection = require '../lib/todo-collection'
 
 sample1Path = path.join(__dirname, 'fixtures/sample1')
 sample2Path = path.join(__dirname, 'fixtures/sample2')
+showTodoUri = 'atom://todo-show'
 
 describe "Show Todo View", ->
-  [showTodoView, collection] = []
+  [showTodoView, collection, showTodoUri] = []
 
   beforeEach ->
     atom.config.set 'todo-show.findTheseTodos', ['TODO']
@@ -15,14 +16,16 @@ describe "Show Todo View", ->
 
     atom.project.setPaths [sample1Path]
     collection = new TodosCollection
-    uri = 'atom://todo-show/todos'
-    showTodoView = new ShowTodoView(collection, uri)
+    collection.setSearchScope 'workspace'
+    showTodoView = new ShowTodoView(collection, showTodoUri)
+    showTodoView.onlySearchWhenVisible = false
+    showTodoView.search(true)
     waitsFor -> !showTodoView.isSearching()
 
   describe "View properties", ->
     it "has a title, uri, etc.", ->
       expect(showTodoView.getIconName()).toEqual 'checklist'
-      expect(showTodoView.getURI()).toEqual 'atom://todo-show/todos'
+      expect(showTodoView.getURI()).toEqual showTodoUri
       expect(showTodoView.find('.btn-group')).toExist()
 
     it "updates view info", ->
@@ -43,7 +46,7 @@ describe "Show Todo View", ->
     it "updates view info details", ->
       getInfo = -> showTodoView.todoInfo.text()
 
-      collection.setSearchScope('project')
+      collection.setSearchScope 'project'
       waitsFor -> !showTodoView.isSearching()
       runs ->
         expect(getInfo()).toBe "Found 3 results in project sample1"
@@ -61,17 +64,17 @@ describe "Show Todo View", ->
       runs ->
         editor = atom.workspace.getActiveTextEditor()
         editor.setText("# TODO: Test")
-        editor.save()
-
-        waitsFor -> !showTodoView.isSearching()
+        waitsForPromise -> editor.save()
         runs ->
-          expect(showTodoView.getTodos()).toHaveLength 4
-          editor.setText("")
-          editor.save()
-
           waitsFor -> !showTodoView.isSearching()
           runs ->
-            expect(showTodoView.getTodos()).toHaveLength 3
+            expect(showTodoView.getTodos()).toHaveLength 4
+            editor.setText("")
+            waitsForPromise -> editor.save()
+            runs ->
+              waitsFor -> !showTodoView.isSearching()
+              runs ->
+                expect(showTodoView.getTodos()).toHaveLength 3
 
     it "updates on search scope change", ->
       expect(showTodoView.isSearching()).toBe false

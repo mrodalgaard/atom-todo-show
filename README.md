@@ -2,6 +2,8 @@
 
 Finds all TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW, NB, BUG, QUESTION, COMBAK, TEMP comments in your project and shows them in a nice overview list.
 
+Attention: This package searches for todos. For todo word highlighting see [language-todo](https://github.com/atom/language-todo).
+
 Open todo list using command palette `Todo Show: Find In Workspace`, `Todo Show: Find In Project` or `Todo Show: Find In Open Files`. Keyboard shortcuts <kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>T</kbd> on Mac OSX or <kbd>ALT</kbd> + <kbd>SHIFT</kbd> + <kbd>T</kbd> on Windows and Linux.
 
 Install with `apm install todo-show` or use *Install Packages* from *Atom Settings*.

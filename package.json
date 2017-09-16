@@ -60,7 +60,8 @@
       "default": [
         "node_modules",
         "vendor",
-        "bower_components"
+        "bower_components",
+        "*.pdf"
       ],
       "items": {
         "type": "string"

@@ -27,6 +27,10 @@
     }
   },
   "configSchema": {
+    "autoRefresh": {
+      "type": "boolean",
+      "default": true
+    },
     "findTheseTodos": {
       "description": "An array of todo types used by the search regex.",
       "type": "array",

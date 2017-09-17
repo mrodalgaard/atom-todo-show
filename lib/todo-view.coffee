@@ -98,13 +98,16 @@ class ShowTodoView extends ScrollView
         @search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
-      @search() if @collection.scope is 'open'
+      if @collection.scope is 'open' and atom.config.get 'todo-show.autoRefresh'
+        @search()
 
     @disposables.add atom.workspace.onDidDestroyPaneItem ({item}) =>
-      @search() if @collection.scope is 'open'
+      if @collection.scope is 'open' and atom.config.get 'todo-show.autoRefresh'
+        @search()
 
     @disposables.add atom.workspace.observeTextEditors (editor) =>
-      @disposables.add editor.onDidSave => @search()
+      @disposables.add editor.onDidSave =>
+        @search() if atom.config.get 'todo-show.autoRefresh'
 
     @filterEditorView.getModel().onDidStopChanging =>
       @filter() if @firstTimeFilter

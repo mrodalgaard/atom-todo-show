@@ -34,6 +34,12 @@ class ShowTodoView extends View
         @div outlet: 'ignorePathDiv'
 
       @div class: 'option', =>
+        @h2 'Auto Refresh'
+        @div class: 'checkbox', =>
+          @label =>
+            @input outlet: 'autoRefreshCheckbox', class: 'input-checkbox', type: 'checkbox'
+
+      @div class: 'option', =>
         @div class: 'btn-group', =>
           @button outlet: 'configButton', class: 'btn', "Go to Config"
           @button outlet: 'closeButton', class: 'btn', "Close Options"
@@ -46,7 +52,13 @@ class ShowTodoView extends View
   handleEvents: ->
     @configButton.on 'click', ->
       atom.workspace.open 'atom://config/packages/todo-show'
-    @closeButton.on 'click', => @parent().slideToggle()
+    @closeButton.on 'click', =>
+      @parent().slideToggle()
+    @autoRefreshCheckbox.on 'click', (event) =>
+      @autoRefreshChange(event.target.checked)
+
+    @disposables.add atom.config.observe 'todo-show.autoRefresh', (newValue) =>
+      @autoRefreshCheckbox.context?.checked = newValue
 
   detach: ->
     @disposables.dispose()
@@ -86,3 +98,6 @@ class ShowTodoView extends View
 
     for path in atom.config.get('todo-show.ignoreThesePaths')
       @ignorePathDiv.append new CodeView(path)
+
+  autoRefreshChange: (state) ->
+    atom.config.set('todo-show.autoRefresh', state)

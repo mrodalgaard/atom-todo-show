@@ -34,7 +34,6 @@ class ShowTodoView extends View
         @div outlet: 'ignorePathDiv'
 
       @div class: 'option', =>
-        @h2 ''
         @div class: 'btn-group', =>
           @button outlet: 'configButton', class: 'btn', "Go to Config"
           @button outlet: 'closeButton', class: 'btn', "Close Options"

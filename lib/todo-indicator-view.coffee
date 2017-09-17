@@ -30,4 +30,4 @@ class TabNumbersView extends View
     @toolTipDisposable = atom.tooltips.add @element, title: "#{@nTodos} TODOs"
 
   activateTodoPackage: ->
-    atom.commands.dispatch(this, 'todo-show:find-in-workspace')
+    atom.commands.dispatch(this, 'todo-show:toggle')

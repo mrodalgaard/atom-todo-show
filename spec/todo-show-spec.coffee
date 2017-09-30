@@ -191,6 +191,40 @@ describe 'ShowTodo opening panes and executing commands', ->
         expect(todos[0].text).toBe 'Comment in C'
         expect(todos[0].file).toBe 'sample.c'
 
+  describe 'when the tree view context menu is selected', ->
+    beforeEach ->
+      atom.commands.dispatch(workspaceElement, 'todo-show:find-in-workspace')
+      waitsForPromise -> activationPromise
+      runs ->
+        waitsFor ->
+          !showTodoModule.showTodoView.isSearching() and showTodoModule.showTodoView.isVisible()
+
+    it 'searches for todos in the selected folder', ->
+      expect(showTodoModule.collection.getTodosCount()).toBe nTodos
+
+      event =
+        target:
+          getAttribute: ->
+            path.join(__dirname, 'fixtures/sample1/sample.c')
+      showTodoModule.show(undefined, event)
+
+      waitsFor -> !showTodoModule.showTodoView.isSearching()
+      runs ->
+        expect(showTodoModule.collection.getCustomPath()).toBe 'sample.c'
+        expect(showTodoModule.collection.scope).toBe 'custom'
+        expect(showTodoModule.collection.getTodosCount()).toBe 1
+
+    it 'handles missing path in event argument', ->
+      event =
+        target:
+          getAttribute: ->
+            undefined
+      showTodoModule.show(undefined, event)
+
+      waitsFor -> !showTodoModule.showTodoView.isSearching()
+      runs ->
+        expect(showTodoModule.collection.getTodosCount()).toBe nTodos
+
   describe 'status bar indicator', ->
     todoIndicatorClass = '.status-bar .todo-status-bar-indicator'
 

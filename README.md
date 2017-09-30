@@ -12,11 +12,12 @@ Install with `apm install todo-show` or use *Install Packages* from *Atom Settin
 
 ## Search Scopes
 
-Four different scopes are available to narrow down your search for todos. Change scope using the button at the top of the todo tab or use the corresponding command.
+Five different scopes are available to narrow down your search for todos. Change scope using the button at the top of the todo view or use the corresponding command.
 * __Workspace__: Searches all open projects.
 * __Project__: Searches active project (a project is marked as active when you open a file it contains).
 * __Open Files__: Searches currently open files.
 * __Active File__: Searches last active file only.
+* __Custom__: Tree view has a context menu to search for todos in the selected folder or file.
 
 ## Configuration
 

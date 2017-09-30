@@ -106,6 +106,9 @@ class TodoCollection
     @setSearchScope(scope)
     scope
 
+  getCustomPath: -> @customPath
+  setCustomPath: (@customPath) ->
+
   alreadyExists: (newTodo) ->
     properties = ['range', 'path']
     @todos.some (todo) ->
@@ -198,6 +201,8 @@ class TodoCollection
       @emitter.emit 'did-fail-search', reason
 
   getSearchPaths: ->
+    return [@getCustomPath()] if @scope is 'custom'
+
     ignores = atom.config.get('todo-show.ignoreThesePaths')
     return ['*'] unless ignores?
     if Object.prototype.toString.call(ignores) isnt '[object Array]'

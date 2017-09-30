@@ -25,6 +25,9 @@
 
 'context-menu':
   '.show-todo-preview': [
-    {label: 'Save As Text\u2026', command: 'core:save-as'}
+    {label: 'Save to file', command: 'core:save-as'}
     {label: 'Refresh Todos', command: 'core:refresh'}
+  ],
+  '.tree-view': [
+    {label: 'Search for Todos', command: 'todo-show:toggle'}
   ]

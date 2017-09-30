@@ -82,13 +82,13 @@ class TodoCollection
     if sortAsc2 then comp else -comp
 
   filterTodos: (filter) ->
-    if @filter = filter
-      result = @todos.filter (todo) ->
-        todo.contains(filter)
-    else
-      result = @todos
+    @filter = filter
+    @emitter.emit 'did-filter-todos', @getFilteredTodos()
 
-    @emitter.emit 'did-filter-todos', result
+  getFilteredTodos: ->
+    return @todos unless filter = @filter
+    @todos.filter (todo) ->
+      todo.contains(filter)
 
   getAvailableTableItems: -> @availableItems
   setAvailableTableItems: (@availableItems) ->
@@ -241,7 +241,7 @@ class TodoCollection
 
   getMarkdown: ->
     todosMarkdown = new TodosMarkdown
-    todosMarkdown.markdown @getTodos()
+    todosMarkdown.markdown @getFilteredTodos()
 
   cancelSearch: ->
     @searchPromise?.cancel?()

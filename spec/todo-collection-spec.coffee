@@ -566,6 +566,15 @@ describe 'Todo Collection', ->
         - fixme 1 __FIXME__ [file1.txt](file1.txt)\n
       """
 
+    it 'creates markdown with applied filter', ->
+      addTestTodos()
+      collection.filter = 'file1'
+      collection.sortTodos(sortBy: 'Text', sortAsc: false)
+      expect(collection.getMarkdown()).toEqual """
+        - todo 1 __TODO__ [file1.txt](file1.txt)
+        - fixme 1 __FIXME__ [file1.txt](file1.txt)\n
+      """
+
     it 'creates markdown with different items', ->
       addTestTodos()
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']

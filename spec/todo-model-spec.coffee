@@ -225,6 +225,9 @@ describe "Todo Model", ->
       match.text = "#TODO: 123 #tag1."
       expect(new TodoModel(match).tags).toBe 'tag1'
 
+      match.text = "#TODO: 123 #tag2.add3"
+      expect(new TodoModel(match).tags).toBe 'tag2.add3'
+
       match.text = "  TODO: 123 #tag1  "
       model = new TodoModel(match)
       expect(model.tags).toBe 'tag1'
@@ -251,7 +254,7 @@ describe "Todo Model", ->
       expect(model.tags).toBe 'tag1, tag2, tag3'
       expect(model.text).toBe '123'
 
-      match.text = "test #TODO: 123 #tag1, #tag2"
+      match.text = "test #TODO: 123 #tag1, #tag2,"
       expect(new TodoModel(match).tags).toBe 'tag1, tag2'
 
     it "should handle invalid tags", ->
@@ -262,9 +265,6 @@ describe "Todo Model", ->
       expect(new TodoModel(match).tags).toBe ''
 
       match.text = "#TODO: #tag1 todo"
-      expect(new TodoModel(match).tags).toBe ''
-
-      match.text = "#TODO: #tag.123"
       expect(new TodoModel(match).tags).toBe ''
 
       match.text = "#TODO: #tag1 #tag2@"

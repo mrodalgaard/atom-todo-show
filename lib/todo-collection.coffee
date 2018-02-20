@@ -143,7 +143,7 @@ class TodoCollection
   fetchOpenRegexItem: (todoRegex, activeEditorOnly) ->
     editors = []
     if activeEditorOnly
-      if editor = atom.workspace.getPanes()[0]?.getActiveEditor()
+      if editor = atom.workspace.getActiveTextEditor()
         editors = [editor]
     else
       editors = atom.workspace.getTextEditors()

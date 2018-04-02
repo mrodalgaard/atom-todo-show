@@ -30,7 +30,7 @@ _ignoreThesePaths_    | `['node_modules', 'vendor', 'bower_components', '*.pdf']
 _showInTable_         | `['Text', 'Type', 'Path']`              | An array of properties to show for each todo in table
 _sortBy_              | `'Text'`                                | Sort table by this todo property
 _sortAscending_       | `true`                                  | Sort table in ascending or descending order
-_saveOutputAs_        | `'List'`                                | Choose which format to use for saved markdown
+_exportAs_        | `'List'`                                | Choose which format to use for exported markdown
 _statusBarIndicator_  | `false`                                 | Show todo count in status bar (this is only shown and updated when the 'Todo Show' tab is open)
 
 ## Regular Expression Search

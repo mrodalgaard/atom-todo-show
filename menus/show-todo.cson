@@ -25,7 +25,7 @@
 
 'context-menu':
   '.show-todo-preview': [
-    {label: 'Save to file', command: 'core:save-as'}
+    {label: 'Export Todos', command: 'core:export'}
     {label: 'Refresh Todos', command: 'core:refresh'}
   ],
   '.tree-view': [

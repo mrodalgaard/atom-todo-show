@@ -19,7 +19,7 @@ class TodosMarkdown
     ).join('')
 
   markdown: (todos) ->
-    if atom.config.get('todo-show.saveOutputAs') is 'Table'
+    if atom.config.get('todo-show.exportAs') is 'Table'
       @getTable todos
     else
       @getList todos

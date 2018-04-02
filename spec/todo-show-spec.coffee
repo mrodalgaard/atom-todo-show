@@ -108,48 +108,31 @@ describe 'ShowTodo opening panes and executing commands', ->
         waitsFor -> item = atom.workspace.getActivePaneItem()
         runs -> expect(item.getTitle()).toBe 'sample.txt'
 
-  describe 'when save-as button is clicked', ->
-    it 'saves the list in markdown and opens it', ->
-      outputPath = temp.path(suffix: '.md')
-      expectedFilePath = atom.project.getDirectories()[0].resolve('../saved-output.md')
-      expectedOutput = fs.readFileSync(expectedFilePath).toString()
+  describe 'when export button is clicked', ->
+    it 'export the list of todos in markdown and opens it', ->
+      filePath = atom.project.getDirectories()[0].resolve('../exported-output.md')
+      expectedOutput = fs.readFileSync(filePath).toString()
       atom.config.set 'todo-show.sortBy', 'Type'
 
-      expect(fs.isFileSync(outputPath)).toBe false
-
       executeCommand ->
-        spyOn(atom, 'showSaveDialogSync').andReturn(outputPath)
-        showTodoModule.showTodoView.saveAs()
+        waitsForPromise -> showTodoModule.showTodoView.export()
+        runs ->
+          editor = atom.workspace.getActiveTextEditor()
+          expect(editor.getText()).toBe expectedOutput
 
-      waitsFor ->
-        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is outputPath
-
-      runs ->
-        expect(fs.isFileSync(outputPath)).toBe true
-        # Not working in Travis CI
-        # expect(atom.workspace.getActiveTextEditor().getText()).toBe expectedOutput
-
-    it 'saves another list sorted differently in markdown', ->
-      outputPath = temp.path(suffix: '.md')
+    it 'export another list sorted differently in markdown', ->
       atom.config.set 'todo-show.findTheseTodos', ['TODO']
       atom.config.set 'todo-show.showInTable', ['Text', 'Type', 'File', 'Line']
       atom.config.set 'todo-show.sortBy', 'File'
-      expect(fs.isFileSync(outputPath)).toBe false
 
       executeCommand ->
-        spyOn(atom, 'showSaveDialogSync').andReturn(outputPath)
-        showTodoModule.showTodoView.saveAs()
-
-      waitsFor ->
-        fs.existsSync(outputPath) && atom.workspace.getActiveTextEditor()?.getPath() is outputPath
-
-      runs ->
-        expect(fs.isFileSync(outputPath)).toBe true
-        expect(atom.workspace.getActiveTextEditor().getText()).toBe """
-          - Comment in C __TODO__ [sample.c](sample.c) _:5_
-          - This is the first todo __TODO__ [sample.js](sample.js) _:3_
-          - This is the second todo __TODO__ [sample.js](sample.js) _:20_\n
-        """
+        waitsForPromise -> showTodoModule.showTodoView.export()
+        runs ->
+          expect(atom.workspace.getActiveTextEditor().getText()).toBe """
+            - Comment in C __TODO__ [sample.c](sample.c) _:5_
+            - This is the first todo __TODO__ [sample.js](sample.js) _:3_
+            - This is the second todo __TODO__ [sample.js](sample.js) _:20_\n
+          """
 
   describe 'when core:refresh is triggered', ->
     it 'refreshes the list', ->

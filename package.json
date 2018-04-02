@@ -101,7 +101,7 @@
       "type": "boolean",
       "default": true
     },
-    "saveOutputAs": {
+    "exportAs": {
       "type": "string",
       "default": "List",
       "enum": [

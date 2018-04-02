@@ -586,7 +586,7 @@ describe 'Todo Collection', ->
 
     it 'creates markdown as table', ->
       addTestTodos()
-      atom.config.set 'todo-show.saveOutputAs', 'Table'
+      atom.config.set 'todo-show.exportAs', 'Table'
       expect(collection.getMarkdown()).toEqual """
         | Text | Type | File |
         |--------------------|
@@ -597,7 +597,7 @@ describe 'Todo Collection', ->
 
     it 'creates markdown as table with different items', ->
       addTestTodos()
-      atom.config.set 'todo-show.saveOutputAs', 'Table'
+      atom.config.set 'todo-show.exportAs', 'Table'
       atom.config.set 'todo-show.showInTable', ['Type', 'File', 'Range']
       expect(collection.getMarkdown()).toEqual """
         | Type | File | Range |
@@ -647,7 +647,7 @@ describe 'Todo Collection', ->
           type: 'FIXME'
         , plain: true)
       )
-      atom.config.set 'todo-show.saveOutputAs', 'Table'
+      atom.config.set 'todo-show.exportAs', 'Table'
       expect(collection.getMarkdown()).toEqual """
         | Text | Type | File |
         |--------------------|

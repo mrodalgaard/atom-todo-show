@@ -33,7 +33,7 @@ class ShowTodoView extends ScrollView
           @div class: 'btn-group', =>
             @button outlet: 'scopeButton', class: 'btn'
             @button outlet: 'optionsButton', class: 'btn icon-gear'
-            @button outlet: 'saveAsButton', class: 'btn icon-cloud-download'
+            @button outlet: 'exportButton', class: 'btn icon-cloud-download'
             @button outlet: 'refreshButton', class: 'btn icon-sync'
 
       @div class: 'input-block todo-info-block', =>
@@ -66,14 +66,14 @@ class ShowTodoView extends ScrollView
 
     @disposables.add atom.tooltips.add @scopeButton, title: "What to Search"
     @disposables.add atom.tooltips.add @optionsButton, title: "Show Todo Options"
-    @disposables.add atom.tooltips.add @saveAsButton, title: "Save Todos to File"
+    @disposables.add atom.tooltips.add @exportButton, title: "Export Todos"
     @disposables.add atom.tooltips.add @refreshButton, title: "Refresh Todos"
 
   handleEvents: ->
     @disposables.add atom.commands.add @element,
-      'core:save-as': (event) =>
+      'core:export': (event) =>
         event.stopPropagation()
-        @saveAs()
+        @export()
       'core:refresh': (event) =>
         event.stopPropagation()
         @search()
@@ -115,7 +115,7 @@ class ShowTodoView extends ScrollView
 
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
-    @saveAsButton.on 'click', @saveAs
+    @exportButton.on 'click', @export
     @refreshButton.on 'click', => @search()
 
   destroy: ->
@@ -182,16 +182,18 @@ class ShowTodoView extends ScrollView
   showWarning: (message = '') ->
     atom.notifications.addWarning message.toString(), @notificationOptions
 
-  saveAs: =>
+  export: =>
     return if @isSearching()
 
     filePath = "#{@getProjectName() or 'todos'}.md"
     if projectPath = @getProjectPath()
       filePath = path.join(projectPath, filePath)
 
-    if outputFilePath = atom.showSaveDialogSync(filePath.toLowerCase())
-      fs.writeFileSync(outputFilePath, @collection.getMarkdown())
-      atom.workspace.open(outputFilePath)
+    # Do not override if default file path already exists
+    filePath = undefined if fs.existsSync(filePath)
+
+    atom.workspace.open(filePath).then (textEditor) =>
+      textEditor.setText(@collection.getMarkdown())
 
   toggleSearchScope: =>
     scope = @collection.toggleSearchScope()

@@ -76,7 +76,7 @@ class ShowTodoView extends ScrollView
         @export()
       'core:refresh': (event) =>
         event.stopPropagation()
-        @search()
+        @search(true)
 
     @disposables.add @collection.onDidStartSearch @startLoading
     @disposables.add @collection.onDidFinishSearch @stopLoading
@@ -87,7 +87,7 @@ class ShowTodoView extends ScrollView
 
     @disposables.add @collection.onDidChangeSearchScope (scope) =>
       @setScopeButtonState(scope)
-      @search()
+      @search(true)
 
     @disposables.add @collection.onDidSearchPaths (nPaths) =>
       @searchCount.text "#{nPaths} paths searched..."
@@ -98,16 +98,14 @@ class ShowTodoView extends ScrollView
         @search()
 
     @disposables.add atom.workspace.onDidAddTextEditor ({textEditor}) =>
-      if @collection.scope is 'open' and atom.config.get 'todo-show.autoRefresh'
-        @search()
+      @search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.onDidDestroyPaneItem ({item}) =>
-      if @collection.scope is 'open' and atom.config.get 'todo-show.autoRefresh'
-        @search()
+      @search() if @collection.scope is 'open'
 
     @disposables.add atom.workspace.observeTextEditors (editor) =>
       @disposables.add editor.onDidSave =>
-        @search() if atom.config.get 'todo-show.autoRefresh'
+        @search()
 
     @filterEditorView.getModel().onDidStopChanging =>
       @filter() if @firstTimeFilter
@@ -116,7 +114,7 @@ class ShowTodoView extends ScrollView
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions
     @exportButton.on 'click', @export
-    @refreshButton.on 'click', => @search()
+    @refreshButton.on 'click', => @search(true)
 
   destroy: ->
     @collection.cancelSearch()
@@ -139,10 +137,10 @@ class ShowTodoView extends ScrollView
   getTodos: -> @collection.getTodos()
   getTodosCount: -> @collection.getTodosCount()
   isSearching: -> @collection.getState()
-  search: ->
+  search: (force = false) ->
     if @onlySearchWhenVisible
       return unless atom.workspace.paneContainerForItem(this)?.isVisible()
-    @collection.search()
+    @collection.search(force)
 
   startLoading: =>
     @todoLoading.show()

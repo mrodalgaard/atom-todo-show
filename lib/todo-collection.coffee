@@ -170,7 +170,9 @@ class TodoCollection
     # No async operations, so just return a resolved promise
     Promise.resolve()
 
-  search: ->
+  search: (force = false) ->
+    return if !atom.config.get('todo-show.autoRefresh') and !force
+
     @clear()
     @searching = true
     @emitter.emit 'did-start-search'

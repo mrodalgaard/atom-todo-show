@@ -16,19 +16,20 @@ deprecatedTextEditor = (params) ->
 module.exports =
 class ShowTodoView extends ScrollView
   @content: (collection, filterBuffer) ->
-    filterEditor = deprecatedTextEditor(
-      mini: true
-      tabLength: 2
-      softTabs: true
-      softWrapped: false
-      buffer: filterBuffer
-      placeholderText: 'Search Todos'
-    )
+    # FIXME: Creating text editor this way results in weird getScopeChain error in Atom core - deprecated
+    # filterEditor = deprecatedTextEditor(
+    #   mini: true
+    #   tabLength: 2
+    #   softTabs: true
+    #   softWrapped: false
+    #   buffer: filterBuffer
+    #   placeholderText: 'Search Todos'
+    # )
 
     @div class: 'show-todo-preview', tabindex: -1, =>
       @div class: 'input-block', =>
-        @div class: 'input-block-item input-block-item--flex', =>
-          @subview 'filterEditorView', new TextEditorView(editor: filterEditor)
+        @div class: 'input-block-item input-block-item--flex'
+          # @subview 'filterEditorView', new TextEditorView(editor: filterEditor)
         @div class: 'input-block-item', =>
           @div class: 'btn-group', =>
             @button outlet: 'scopeButton', class: 'btn'
@@ -107,9 +108,9 @@ class ShowTodoView extends ScrollView
       @disposables.add editor.onDidSave =>
         @search()
 
-    @filterEditorView.getModel().onDidStopChanging =>
-      @filter() if @firstTimeFilter
-      @firstTimeFilter = true
+    # @filterEditorView.getModel().onDidStopChanging =>
+    #   @filter() if @firstTimeFilter
+    #   @firstTimeFilter = true
 
     @scopeButton.on 'click', @toggleSearchScope
     @optionsButton.on 'click', @toggleOptions

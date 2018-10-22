@@ -47,9 +47,14 @@ Default regex string: `'/\\b(${TODOS})[:;.,]?\\d*($|\\s.*$|\\(.*$)/g'`
 * Or an immediate parentheses, `\(.*$`, to support [Google style guide IDs](https://google.github.io/styleguide/cppguide.html#TODO_Comments)
 * Because Atom config only accepts strings all `\` characters are also escaped
 
-Todos can be tagged using hashtag (e.g. `TODO: do this #object #profile`), which is presented in the tags column.
+To extend the default todo types and search regex, the existing config needs to be copied into your `config.cson`.
 
-To extend the default todo types and search regex, the existing config needs to be copied into your config.cson.
+## Other Features
+
+* Configurable Columns: You can define which columns you want to see in your todo list: Text, Type, Path, Tags, Range, Line, Regex, File, Id, Project
+* Sortable Columns: All columns in the todo list can be sorted ascending or descending.
+* TODO tags: Todos can be tagged using hashtags (e.g. `TODO: do this #object #profile`), which are presented in the "Tags" column.
+* Live search: You can search within your todo list. Note: This feature is temporarily disabled due to a bug, see https://github.com/mrodalgaard/atom-todo-show/issues/198
 
 ## Credits
 Originally created by [Jamis Charles](https://github.com/jamischarles)

@@ -1,5 +1,7 @@
 # Todo Show Package [![Build Status](https://travis-ci.org/mrodalgaard/atom-todo-show.svg)](https://travis-ci.org/mrodalgaard/atom-todo-show)
 
+> DEPRECATED: This package will no longer be maintained by me since I have switched permanently to VSCode.
+
 Finds all TODO, FIXME, CHANGED, XXX, IDEA, HACK, NOTE, REVIEW, NB, BUG, QUESTION, COMBAK, TEMP comments in your project and shows them in a nice overview list.
 
 Attention: This package searches for todos. For todo word highlighting see [language-todo](https://github.com/atom/language-todo).
